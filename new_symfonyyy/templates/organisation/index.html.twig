@@ -18,6 +18,57 @@
         </div>
     {% endfor %}
 
+    <!-- Filtres et recherche -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-header" style="background-color: #f8f9fa;">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Search & Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ path('organisation_index') }}" class="row g-3">
+                <div class="col-md-5">
+                    <label for="search" class="form-label"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="Name, email or address...">
+                </div>
+                <div class="col-md-3">
+                    <label for="communite" class="form-label"><i class="fas fa-users"></i> Community</label>
+                    <select class="form-control" id="communite" name="communite">
+                        <option value="">All Communities</option>
+                        {% for c in communites %}
+                            <option value="{{ c.id }}" {% if communiteId == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="sort" class="form-label"><i class="fas fa-sort"></i> Sort By</label>
+                    <select class="form-control" id="sort" name="sort">
+                        <option value="name" {% if sortBy == 'name' %}selected{% endif %}>Name</option>
+                        <option value="email" {% if sortBy == 'email' %}selected{% endif %}>Email</option>
+                        <option value="createdBy" {% if sortBy == 'createdBy' %}selected{% endif %}>Created By</option>
+                        <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Created Date</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="order" class="form-label">Order</label>
+                    <select class="form-control" id="order" name="order">
+                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑ ASC</option>
+                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓ DESC</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary" style="background-color: #344BE2; border-color: #344BE2;">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <a href="{{ path('organisation_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                    <span class="text-muted ms-3">
+                        <i class="fas fa-info-circle"></i> {{ organisations|length }} result(s)
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body">
             {% if organisations|length > 0 %}

@@ -15,12 +15,46 @@ use Symfony\Component\Routing\Attribute\Route;
 class OrganisationController extends AbstractController
 {
     #[Route('/', name: 'organisation_index', methods: ['GET'])]
-    public function index(OrganisationRepository $repo): Response
+    public function index(Request $request, OrganisationRepository $repo, EntityManagerInterface $em): Response
     {
-        $organisations = $repo->findAll();
+        $search = $request->query->get('search', '');
+        $communiteId = $request->query->get('communite', '');
+        $sortBy = $request->query->get('sort', 'name');
+        $order = $request->query->get('order', 'ASC');
+
+        $queryBuilder = $repo->createQueryBuilder('o')
+            ->leftJoin('o.communite', 'c');
+
+        // Filtrage par recherche
+        if ($search) {
+            $queryBuilder->andWhere('o.name LIKE :search OR o.email LIKE :search OR o.address LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Filtrage par communauté
+        if ($communiteId) {
+            $queryBuilder->andWhere('o.communite = :communiteId')
+                ->setParameter('communiteId', $communiteId);
+        }
+
+        // Tri
+        $validSorts = ['name', 'email', 'createdAt', 'createdBy'];
+        if (in_array($sortBy, $validSorts)) {
+            $queryBuilder->orderBy('o.' . $sortBy, $order === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        $organisations = $queryBuilder->getQuery()->getResult();
+
+        // Récupérer toutes les communautés pour le filtre
+        $communites = $em->getRepository(\App\Entity\Communite::class)->findAll();
 
         return $this->render('organisation/index.html.twig', [
             'organisations' => $organisations,
+            'communites' => $communites,
+            'search' => $search,
+            'communiteId' => $communiteId,
+            'sortBy' => $sortBy,
+            'order' => $order,
         ]);
     }
 

@@ -18,6 +18,65 @@
         </div>
     {% endfor %}
 
+    <!-- Filtres et recherche -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-header" style="background-color: #f8f9fa;">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Search & Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ path('app_community_index') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="Name, slug or description...">
+                </div>
+                <div class="col-md-3">
+                    <label for="type" class="form-label"><i class="fas fa-tag"></i> Type</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="">All Types</option>
+                        <option value="general" {% if type == 'general' %}selected{% endif %}>General</option>
+                        <option value="artist" {% if type == 'artist' %}selected{% endif %}>Artist</option>
+                        <option value="category" {% if type == 'category' %}selected{% endif %}>Category</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="privacy" class="form-label"><i class="fas fa-lock"></i> Privacy</label>
+                    <select class="form-control" id="privacy" name="privacy">
+                        <option value="">All</option>
+                        <option value="0" {% if privacy == '0' %}selected{% endif %}>Public</option>
+                        <option value="1" {% if privacy == '1' %}selected{% endif %}>Private</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="sort" class="form-label"><i class="fas fa-sort"></i> Sort By</label>
+                    <select class="form-control" id="sort" name="sort">
+                        <option value="name" {% if sortBy == 'name' %}selected{% endif %}>Name</option>
+                        <option value="slug" {% if sortBy == 'slug' %}selected{% endif %}>Slug</option>
+                        <option value="type" {% if sortBy == 'type' %}selected{% endif %}>Type</option>
+                        <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Created Date</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label for="order" class="form-label">Order</label>
+                    <select class="form-control" id="order" name="order">
+                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑ ASC</option>
+                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓ DESC</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary" style="background-color: #344BE2; border-color: #344BE2;">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <a href="{{ path('app_community_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                    <span class="text-muted ms-3">
+                        <i class="fas fa-info-circle"></i> {{ communities|length }} result(s)
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body">
             {% if communities|length > 0 %}

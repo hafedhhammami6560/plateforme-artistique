@@ -15,12 +15,33 @@ use Symfony\Component\Routing\Attribute\Route;
 class CommuniteController extends AbstractController
 {
     #[Route('/', name: 'communite_index', methods: ['GET'])]
-    public function index(CommuniteRepository $repo): Response
+    public function index(Request $request, CommuniteRepository $repo): Response
     {
-        $communites = $repo->findAll();
+        $search = $request->query->get('search', '');
+        $sortBy = $request->query->get('sort', 'name');
+        $order = $request->query->get('order', 'ASC');
+
+        $queryBuilder = $repo->createQueryBuilder('c');
+
+        // Filtrage par recherche
+        if ($search) {
+            $queryBuilder->andWhere('c.name LIKE :search OR c.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Tri
+        $validSorts = ['name', 'description', 'createdAt', 'createdBy'];
+        if (in_array($sortBy, $validSorts)) {
+            $queryBuilder->orderBy('c.' . $sortBy, $order === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        $communites = $queryBuilder->getQuery()->getResult();
 
         return $this->render('communite/index.html.twig', [
             'communites' => $communites,
+            'search' => $search,
+            'sortBy' => $sortBy,
+            'order' => $order,
         ]);
     }
 

@@ -15,10 +15,49 @@ use Symfony\Component\Routing\Attribute\Route;
 class CommunityController extends AbstractController
 {
     #[Route('/', name: 'app_community_index', methods: ['GET'])]
-    public function index(CommunityRepository $communityRepository): Response
+    public function index(Request $request, CommunityRepository $communityRepository): Response
     {
+        $search = $request->query->get('search', '');
+        $type = $request->query->get('type', '');
+        $privacy = $request->query->get('privacy', '');
+        $sortBy = $request->query->get('sort', 'name');
+        $order = $request->query->get('order', 'ASC');
+
+        $queryBuilder = $communityRepository->createQueryBuilder('c');
+
+        // Filtrage par recherche
+        if ($search) {
+            $queryBuilder->andWhere('c.name LIKE :search OR c.slug LIKE :search OR c.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Filtrage par type
+        if ($type) {
+            $queryBuilder->andWhere('c.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        // Filtrage par privacy
+        if ($privacy !== '') {
+            $queryBuilder->andWhere('c.isPrivate = :privacy')
+                ->setParameter('privacy', $privacy === '1');
+        }
+
+        // Tri
+        $validSorts = ['name', 'slug', 'type', 'createdAt'];
+        if (in_array($sortBy, $validSorts)) {
+            $queryBuilder->orderBy('c.' . $sortBy, $order === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        $communities = $queryBuilder->getQuery()->getResult();
+
         return $this->render('community/index.html.twig', [
-            'communities' => $communityRepository->findAll(),
+            'communities' => $communities,
+            'search' => $search,
+            'type' => $type,
+            'privacy' => $privacy,
+            'sortBy' => $sortBy,
+            'order' => $order,
         ]);
     }
 

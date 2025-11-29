@@ -34,7 +34,7 @@
                     <select class="form-control" id="communite" name="communite">
                         <option value="">All Communities</option>
                         {% for c in communites %}
-                            <option value="{{ c.id }}" {% if communiteId == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                            <option value="{{ c.id }}" {% if communiteId == c.id %}selected{% endif %}>{{ c.name }}</option>
                         {% endfor %}
                     </select>
                 </div>

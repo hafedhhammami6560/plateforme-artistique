@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Communauté {{ communite.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ communite.name }}</h1>
+    <p>{{ communite.description }}</p>
+    <p>Créée le {{ communite.createdAt|date('Y-m-d H:i') }}</p>
+    <p>Créée par: {{ communite.createdBy ?: 'anonyme' }}</p>
+
+    <h2>Organisations</h2>
+    <ul>
+        {% for org in communite.organisations %}
+            <li><a href="{{ path('organisation_show', {id: org.id}) }}">{{ org.name }}</a></li>
+        {% else %}
+            <li>Aucune organisation.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ path('communite_index') }}">Retour</a>
+{% endblock %}

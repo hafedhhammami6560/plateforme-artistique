@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Communautés{% endblock %}
+
+{% block body %}
+    <h1>Communautés</h1>
+    <a href="{{ path('communite_new') }}">Créer une communauté</a>
+    <ul>
+        {% for c in communites %}
+            <li>
+                <a href="{{ path('communite_show', {id: c.id}) }}">{{ c.name }}</a>
+                ({{ c.organisations|length }} organisations)
+                - créé par: {{ c.createdBy ?: 'anonyme' }}
+                <a href="{{ path('communite_edit', {id: c.id}) }}">éditer</a>
+            </li>
+        {% else %}
+            <li>Aucune communauté.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}My App{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            body { font-family: Arial, Helvetica, sans-serif; background:#f5f7fb; margin:0; padding:0; }
+            header { display:flex; align-items:center; justify-content:space-between; background:white; padding:15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            nav a { margin-right:20px; text-decoration:none; color:#344BE2; font-weight:500; transition: color 0.3s; }
+            nav a:hover { color:#2837b5; }
+            .container { max-width:1100px; margin:20px auto; }
+        </style>
+    </head>
+    <body>
+        <header class="container">
+            <div>
+                <a href="/">Home</a>
+            </div>
+            <nav>
+                <a href="{{ path('communite_index') }}">Communautés</a>
+                <a href="{{ path('app_community_index') }}">Communities</a>
+                <a href="{{ path('organisation_index') }}">Organisations</a>
+                <a href="{{ path('app_admin_user_dashboard') }}">Admin Users</a>
+            </nav>
+        </header>
+
+        {% block body %}{% endblock %}
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

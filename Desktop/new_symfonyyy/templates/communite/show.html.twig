@@ -3,6 +3,13 @@
 {% block title %}Communauté {{ communite.name }}{% endblock %}
 
 {% block body %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
     <h1>{{ communite.name }}</h1>
     <p>{{ communite.description }}</p>
     <p>Créée le {{ communite.createdAt|date('Y-m-d H:i') }}</p>

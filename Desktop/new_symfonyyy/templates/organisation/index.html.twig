@@ -18,6 +18,13 @@
         </div>
     {% endfor %}
 
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
     <!-- Filtres et recherche -->
     <div class="card shadow-sm mb-3">
         <div class="card-header" style="background-color: #f8f9fa;">

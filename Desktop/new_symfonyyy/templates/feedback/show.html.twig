@@ -4,6 +4,13 @@
 
 {% block body %}
 <div class="container mt-5">
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm">

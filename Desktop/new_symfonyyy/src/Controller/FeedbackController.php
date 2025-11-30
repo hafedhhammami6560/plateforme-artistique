@@ -126,6 +126,12 @@ class FeedbackController extends AbstractController
     #[Route('/{id}/edit', name: 'feedback_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Feedback $feedback, EntityManagerInterface $em): Response
     {
+        // Vérification des droits admin via cookie
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $this->addFlash('error', 'Accès refusé : Vous devez être connecté en tant qu\'administrateur pour modifier un feedback.');
+            return $this->redirectToRoute('auth_login');
+        }
+
         $form = $this->createForm(FeedbackType::class, $feedback);
         $form->handleRequest($request);
 
@@ -152,6 +158,12 @@ class FeedbackController extends AbstractController
     #[Route('/{id}', name: 'feedback_delete', methods: ['POST'])]
     public function delete(Request $request, Feedback $feedback, EntityManagerInterface $em): Response
     {
+        // Vérification des droits admin via cookie
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $this->addFlash('error', 'Accès refusé : Vous devez être connecté en tant qu\'administrateur pour supprimer un feedback.');
+            return $this->redirectToRoute('feedback_index');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$feedback->getId(), $request->request->get('_token'))) {
             try {
                 $em->remove($feedback);

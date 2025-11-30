@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Feedback {{ feedback.id }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #344BE2; color: white;">
+                    <h3 class="mb-0"><i class="fas fa-comment"></i> Feedback #{{ feedback.id }}</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Auteur</h6>
+                            <p><i class="fas fa-user"></i> {{ feedback.authorName|default('Anonyme') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Date de création</h6>
+                            <p><i class="fas fa-calendar"></i> {{ feedback.createdAt|date('d/m/Y H:i') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Type</h6>
+                            <span class="badge bg-secondary">{{ feedback.type }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Note</h6>
+                            {% if feedback.rating %}
+                                <span class="text-warning fs-5">
+                                    {% for i in 1..feedback.rating %}★{% endfor %}
+                                </span>
+                            {% else %}
+                                <p>Non noté</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Statut</h6>
+                            {% if feedback.status == 'published' %}
+                                <span class="badge bg-success">Publié</span>
+                            {% elseif feedback.status == 'pending' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Archivé</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if feedback.targetType or feedback.targetId %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Type de cible</h6>
+                            <p>{{ feedback.targetType|default('-') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">ID de la cible</h6>
+                            <p>{{ feedback.targetId|default('-') }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Contenu</h6>
+                        <p class="card-text">{{ feedback.content|default('Aucun contenu') }}</p>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('feedback_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
+                        <div>
+                            <a href="{{ path('feedback_edit', {'id': feedback.id}) }}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <form method="post" action="{{ path('feedback_delete', {'id': feedback.id}) }}" style="display: inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce feedback ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ feedback.id) }}">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

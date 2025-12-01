@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Signer le Contrat - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pen"></i> Signature du Contrat {{ contract.referenceNumber }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Important</h5>
+                        <p class="mb-0">
+                            Veuillez lire attentivement tous les termes du contrat avant de signer.
+                            Une fois signé, le contrat sera activé et les termes seront applicables.
+                        </p>
+                    </div>
+
+                    <!-- Récapitulatif du contrat -->
+                    <div class="bg-light p-4 rounded mb-4">
+                        <h5 class="mb-3">Récapitulatif du Contrat</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Œuvre:</strong><br>
+                                <i class="bi bi-palette"></i> {{ contract.product.title }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Publisher:</strong><br>
+                                <i class="bi bi-building"></i> {{ contract.publisher.fullName }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>Commission:</strong><br>
+                                <span class="badge bg-primary">{{ contract.commissionRate }}%</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Date de Début:</strong><br>
+                                {{ contract.startDate|date('d/m/Y') }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Date de Fin:</strong><br>
+                                {{ contract.endDate|date('d/m/Y') }}
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="mb-2">Termes et Conditions:</h6>
+                        <div class="bg-white p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                            {{ contract.terms|nl2br }}
+                        </div>
+
+                        {% if contract.notes %}
+                            <hr>
+                            <h6 class="mb-2">Notes:</h6>
+                            <div class="bg-white p-3 rounded">
+                                {{ contract.notes|nl2br }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formulaire de signature -->
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <form method="post" action="{{ path('app_contract_sign', {id: contract.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('sign' ~ contract.id) }}">
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="acceptTerms" required>
+                                    <label class="form-check-label" for="acceptTerms">
+                                        <strong>Je confirme avoir lu et accepté tous les termes de ce contrat</strong>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="confirmSignature" required>
+                                    <label class="form-check-label" for="confirmSignature">
+                                        Je comprends qu'en signant ce contrat, je m'engage légalement à respecter ses termes
+                                    </label>
+                                </div>
+
+                                <div class="alert alert-success">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <strong>Signature électronique:</strong><br>
+                                            <span class="text-muted">
+                                                {{ app.user.fullName }}<br>
+                                                Le {{ 'now'|date('d/m/Y à H:i') }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <i class="bi bi-pen display-3 text-success"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Annuler
+                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-success btn-lg" id="openSignatureModal">
+                                            <i class="bi bi-pen"></i> Préparer la Signature
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-lg" id="signButton" disabled>
+                                            <i class="bi bi-pen"></i> Signer le Contrat
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_javascripts %}
+<script>
+    // Activer le bouton de signature seulement si les deux cases sont cochées
+    document.addEventListener('DOMContentLoaded', function() {
+        const acceptTerms = document.getElementById('acceptTerms');
+        const confirmSignature = document.getElementById('confirmSignature');
+        const signButton = document.getElementById('signButton');
+        const openSignatureModal = document.getElementById('openSignatureModal');
+        const signaturePreview = document.getElementById('signaturePreview');
+
+        function checkBoxes() {
+            if (acceptTerms.checked && confirmSignature.checked) {
+                signButton.disabled = false;
+            } else {
+                signButton.disabled = true;
+            }
+        }
+
+        acceptTerms.addEventListener('change', checkBoxes);
+        confirmSignature.addEventListener('change', checkBoxes);
+
+        // Modal simple de signature (prompt du nom) et activation automatique
+        openSignatureModal?.addEventListener('click', function () {
+            const defaultName = '{{ app.user.fullName|e('js') }}';
+            const name = prompt('Entrez votre nom pour la signature électronique:', defaultName || '');
+            if (name && name.trim().length > 0) {
+                // Met à jour l'aperçu
+                if (signaturePreview) {
+                    signaturePreview.innerHTML = '<strong>Signature électronique:</strong><br>' + name + '<br><small class="text-muted">' + (new Date()).toLocaleString() + '</small>';
+                }
+                // Coche la confirmation et réévalue
+                confirmSignature.checked = true;
+                checkBoxes();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

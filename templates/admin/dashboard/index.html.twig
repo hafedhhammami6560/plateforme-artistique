@@ -1,0 +1,207 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard Admin - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="bi bi-speedometer2"></i> Dashboard Administrateur
+            </h1>
+
+            <!-- Statistiques globales -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">Discussions</h6>
+                                    <h2 class="card-title mb-0">{{ discussionStats.total }}</h2>
+                                    <small>{{ discussionStats.active }} actives</small>
+                                </div>
+                                <i class="bi bi-chat-dots display-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">Contrats</h6>
+                                    <h2 class="card-title mb-0">{{ contractStats.total }}</h2>
+                                    <small>{{ contractStats.active }} actifs</small>
+                                </div>
+                                <i class="bi bi-file-text display-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">Messages</h6>
+                                    <h2 class="card-title mb-0">{{ messageStats.total }}</h2>
+                                    <small>{{ messageStats.unread }} non lus</small>
+                                </div>
+                                <i class="bi bi-envelope display-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2">Utilisateurs</h6>
+                                    <h2 class="card-title mb-0">{{ userStats.total }}</h2>
+                                    <small>{{ userStats.artists }}A / {{ userStats.publishers }}P</small>
+                                </div>
+                                <i class="bi bi-people display-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Discussions récentes -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Discussions Récentes</h5>
+                            <a href="{{ path('app_admin_discussion_index') }}" class="btn btn-sm btn-primary">
+                                Voir tout
+                            </a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for discussion in recentDiscussions %}
+                                <a href="{{ path('app_admin_discussion_show', {id: discussion.id}) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Discussion #{{ discussion.id }}</h6>
+                                        <small class="text-muted">{{ discussion.createdAt|date('d/m/Y') }}</small>
+                                    </div>
+                                    <p class="mb-1 small">{{ discussion.product.title }}</p>
+                                    <small class="text-muted">
+                                        {{ discussion.artist.username }} ↔ {{ discussion.publisher.username }}
+                                    </small>
+                                </a>
+                            {% else %}
+                                <div class="list-group-item text-center text-muted">
+                                    Aucune discussion
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contrats récents -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> Contrats Récents</h5>
+                            <a href="{{ path('app_admin_contract_index') }}" class="btn btn-sm btn-success">
+                                Voir tout
+                            </a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for contract in recentContracts %}
+                                <a href="{{ path('app_admin_contract_show', {id: contract.id}) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ contract.referenceNumber }}</h6>
+                                        <span class="badge bg-{{ contract.status == 'active' ? 'success' : (contract.status == 'signed' ? 'info' : 'secondary') }}">
+                                            {{ contract.statusLabel }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1 small">{{ contract.product.title }}</p>
+                                    <small class="text-muted">Commission: {{ contract.commissionRate }}%</small>
+                                </a>
+                            {% else %}
+                                <div class="list-group-item text-center text-muted">
+                                    Aucun contrat
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Alertes -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="bi bi-exclamation-triangle"></i> Contrats Expirant Bientôt
+                            </h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for contract in expiringContracts %}
+                                <a href="{{ path('app_admin_contract_show', {id: contract.id}) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ contract.referenceNumber }}</h6>
+                                        <small class="text-danger">
+                                            <i class="bi bi-calendar"></i> {{ contract.endDate|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-0 small">{{ contract.product.title }}</p>
+                                </a>
+                            {% else %}
+                                <div class="list-group-item text-center text-muted">
+                                    Aucun contrat expirant bientôt
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques complémentaires -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="bi bi-graph-up"></i> Statistiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Taux de Conversion</span>
+                                    <strong>{{ discussionStats.conversionRate|number_format(1) }}%</strong>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: {{ discussionStats.conversionRate }}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Commission Moyenne</span>
+                                    <strong>{{ contractStats.averageCommission|number_format(2) }}%</strong>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" style="width: {{ (contractStats.averageCommission / 25 * 100) }}%"></div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="mb-3">Discussions par Statut</h6>
+                            {% for status, count in discussionStats.byStatus %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-capitalize">{{ status }}</span>
+                                    <span class="badge bg-secondary">{{ count }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

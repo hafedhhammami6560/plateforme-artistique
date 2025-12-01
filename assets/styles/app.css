@@ -1,3 +1,81 @@
+/* =====================================================
+   Global Aesthetic Styling - ArtConnect
+   ===================================================== */
 body {
-    background-color: skyblue;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecf3 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #2d3436;
+    -webkit-font-smoothing: antialiased;
 }
+
+main.ac-main { padding: 1.5rem 1.25rem; }
+@media (min-width: 992px) { main.ac-main { padding: 2rem 2.25rem; } }
+
+/* Hero Section */
+.ac-hero { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 18px; padding: 3.25rem 2.5rem; position: relative; overflow: hidden; }
+.ac-hero:before { content:""; position:absolute; inset:0; background: radial-gradient(circle at 80% 20%, rgba(111,66,193,0.12), transparent 60%); pointer-events:none; }
+.ac-hero h1 { font-size: clamp(2.2rem, 5vw, 2.9rem); letter-spacing: .5px; }
+.ac-hero .lead { font-size:1.05rem; }
+.ac-hero-actions .btn { min-width: 190px; }
+
+/* Feature Cards */
+.feature-grid { margin-top: 1.5rem; }
+.feature-card { border: 1px solid #e6e8eb; border-radius: 16px; padding: 1.85rem 1.5rem; background:#fff; transition: box-shadow .25s, transform .25s; position:relative; }
+.feature-card:hover { box-shadow: 0 12px 28px -8px rgba(32,32,37,.15); transform: translateY(-6px); }
+.feature-icon { width:72px; height:72px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 1rem; background: linear-gradient(145deg,#f2f3f5,#ffffff); box-shadow:0 4px 10px rgba(0,0,0,.06); }
+.feature-card h5 { font-weight:600; margin-bottom:.65rem; }
+.feature-card p { font-size:.9rem; line-height:1.4rem; }
+
+/* Quick Action Card */
+.quick-actions .card-header { background: linear-gradient(90deg,#6f42c1,#8361d4); }
+.quick-actions .btn { font-weight:500; }
+
+/* Admin Alert */
+.admin-alert { border-left:5px solid #0dcaf0; }
+
+/* =====================================================
+   Global Sidebar
+   ===================================================== */
+.ac-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    background: #212529;
+    color: #fff;
+    z-index: 1040;
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 6px rgba(0,0,0,.25);
+}
+.ac-sidebar.open { transform: translateX(0); }
+.ac-sidebar-inner { overflow-y: auto; flex: 1; padding-bottom: 2rem; }
+.ac-sidebar-header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.12); }
+.ac-brand { text-decoration:none; color:#fff; font-weight:600; display:flex; align-items:center; font-size:1.15rem; letter-spacing:.4px; }
+.ac-brand i { margin-right:.5rem; }
+.ac-user-box { display:flex; align-items:center; padding: .95rem 1.25rem; border-bottom:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg,#222933,#1d222b); }
+.ac-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; margin-right:.75rem; background:#495057; }
+.ac-user-meta strong { font-size:.95rem; font-weight:600; }
+.ac-nav { padding: .75rem 0; }
+.ac-section { padding:.55rem 1.25rem .4rem; font-size:.58rem; letter-spacing:.6px; text-transform:uppercase; opacity:.55; font-weight:600; }
+.ac-link { display:flex; align-items:center; padding:.6rem 1.25rem; color:rgba(255,255,255,.72); text-decoration:none; font-size:.85rem; gap:.6rem; transition:background .18s,color .18s; }
+.ac-link:hover { background:#303841; color:#fff; }
+.ac-link.active { background:#45515d; color:#fff; font-weight:600; box-shadow:inset 2px 0 0 #6f42c1; }
+.ac-toggle-btn { position: fixed; top: 50%; left:0; transform: translate(-50%, -50%); background:#212529; color:#fff; border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:1050; box-shadow:0 4px 14px -4px rgba(0,0,0,.4); }
+.ac-toggle-btn:hover { background:#2f353b; }
+
+@media (min-width: 1200px) {
+  .ac-sidebar { transform: translateX(-100%); }
+  .ac-sidebar.open { transform: translateX(0); }
+}
+
+/* Push main when open */
+.ac-main { transition: margin-left .3s ease; }
+.ac-sidebar.open ~ .ac-main { margin-left:240px; }
+
+/* Utility */
+.text-gradient-primary { background:linear-gradient(90deg,#344BE2,#6f42c1); -webkit-background-clip:text; color:transparent; }
+

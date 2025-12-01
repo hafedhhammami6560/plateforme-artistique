@@ -1,0 +1,201 @@
+{% extends 'backoffice/base.html.twig' %}
+
+{% block title %}Rapport Financier - Contrat {{ contract.referenceNumber }}{% endblock %}
+{% block page_title %}Rapport Financier{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="mb-3">
+            <i class="bi bi-file-earmark-bar-graph"></i> Rapport Financier
+        </h2>
+        <p class="text-muted">Contrat: <strong>{{ contract.referenceNumber }}</strong></p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-primary">
+            <i class="bi bi-file-text"></i> Voir le Contrat
+        </a>
+        <a href="{{ path('app_backoffice_contract_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<!-- Informations Générales -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Informations du Contrat
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th width="40%">Référence:</th>
+                                <td><code>{{ contract.referenceNumber }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>Statut:</th>
+                                <td>
+                                    {% if contract.status == 'active' %}
+                                        <span class="badge bg-success">Actif</span>
+                                    {% elseif contract.status == 'signed' %}
+                                        <span class="badge bg-info">Signé</span>
+                                    {% elseif contract.status == 'proposed' %}
+                                        <span class="badge bg-primary">Proposé</span>
+                                    {% elseif contract.status == 'draft' %}
+                                        <span class="badge bg-secondary">Brouillon</span>
+                                    {% elseif contract.status == 'terminated' %}
+                                        <span class="badge bg-danger">Terminé</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Œuvre:</th>
+                                <td>{{ contract.discussion.product.title }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th width="40%">Artiste:</th>
+                                <td>{{ contract.discussion.artist.fullName }}</td>
+                            </tr>
+                            <tr>
+                                <th>Publisher:</th>
+                                <td>{{ contract.discussion.publisher.fullName }}</td>
+                            </tr>
+                            <tr>
+                                <th>Signé par:</th>
+                                <td>
+                                    {% if contract.signedBy %}
+                                        {{ contract.signedBy.fullName }}
+                                        <br><small class="text-muted">{{ contract.signedAt|date('d/m/Y à H:i') }}</small>
+                                    {% else %}
+                                        <span class="text-muted">Non signé</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Données Financières -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="bi bi-percent display-4 text-primary"></i>
+                <h2 class="mt-3">{{ financial_data.commission_rate }}%</h2>
+                <p class="text-muted mb-0">Taux de Commission</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card success">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-check display-4 text-success"></i>
+                <h2 class="mt-3">
+                    {% if financial_data.duration_days %}
+                        {{ financial_data.duration_days }} j
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </h2>
+                <p class="text-muted mb-0">Durée du Contrat</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card {{ financial_data.is_active ? 'success' : '' }}">
+            <div class="card-body text-center">
+                <i class="bi bi-{{ financial_data.is_active ? 'check-circle' : 'x-circle' }} display-4 text-{{ financial_data.is_active ? 'success' : 'secondary' }}"></i>
+                <h2 class="mt-3">{{ financial_data.is_active ? 'Actif' : 'Inactif' }}</h2>
+                <p class="text-muted mb-0">État Actuel</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Période du Contrat -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-range"></i> Période du Contrat
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted mb-2">Date de Début</h6>
+                            {% if financial_data.start_date %}
+                                <h4><i class="bi bi-calendar-check text-success"></i> {{ financial_data.start_date|date('d/m/Y') }}</h4>
+                            {% else %}
+                                <p class="text-muted mb-0">Non définie</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted mb-2">Date de Fin</h6>
+                            {% if financial_data.end_date %}
+                                <h4><i class="bi bi-calendar-x text-danger"></i> {{ financial_data.end_date|date('d/m/Y') }}</h4>
+                            {% else %}
+                                <p class="text-muted mb-0">Non définie</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded">
+                            <h6 class="text-muted mb-2">Jours Restants</h6>
+                            {% if financial_data.days_until_expiry and financial_data.is_active %}
+                                <h4>
+                                    <i class="bi bi-hourglass-split text-warning"></i> 
+                                    {{ financial_data.days_until_expiry }} jours
+                                </h4>
+                                {% if financial_data.days_until_expiry < 30 %}
+                                    <small class="text-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> Expire bientôt
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted mb-0">Non applicable</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Termes du Contrat -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-text"></i> Termes et Conditions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="p-3 border rounded bg-light">
+                    {{ contract.terms|nl2br }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

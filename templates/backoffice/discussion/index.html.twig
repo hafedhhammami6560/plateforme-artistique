@@ -1,0 +1,168 @@
+{% extends 'backoffice/base.html.twig' %}
+
+{% block title %}Gestion Discussions - BackOffice{% endblock %}
+{% block page_title %}Gestion des Discussions{% endblock %}
+
+{% block body %}
+<!-- Header avec recherche -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3">
+            <i class="bi bi-chat-dots"></i> Gestion des Discussions
+        </h2>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Total</h6>
+                <h3>{{ stats.total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <h6 class="text-muted">Actives</h6>
+                <h3 class="text-success">{{ stats.active }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <h6 class="text-muted">En Attente</h6>
+                <h3 class="text-warning">{{ stats.pending }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Fermées</h6>
+                <h3 class="text-secondary">{{ stats.closed }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Recherche</label>
+                <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Statut</label>
+                <select name="status" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="pending" {{ current_status == 'pending' ? 'selected' : '' }}>En attente</option>
+                    <option value="active" {{ current_status == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="closed" {{ current_status == 'closed' ? 'selected' : '' }}>Fermée</option>
+                    <option value="archived" {{ current_status == 'archived' ? 'selected' : '' }}>Archivée</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+                <a href="{{ path('app_backoffice_discussion_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des Discussions -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Mes Discussions ({{ discussions|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if discussions is empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="text-muted mt-3">Aucune discussion trouvée</p>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Produit</th>
+                            <th>Participants</th>
+                            <th>Messages</th>
+                            <th>Statut</th>
+                            <th>Dernière activité</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for discussion in discussions %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ discussion.id }}</strong>
+                                </td>
+                                <td>
+                                    <i class="bi bi-palette text-primary"></i>
+                                    {{ discussion.product.title }}
+                                </td>
+                                <td>
+                                    <small class="d-block">
+                                        <i class="bi bi-person"></i> {{ discussion.artist.username }}
+                                    </small>
+                                    <small class="d-block">
+                                        <i class="bi bi-building"></i> {{ discussion.publisher.username }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-chat"></i> {{ discussion.messageCount }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if discussion.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elseif discussion.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% elseif discussion.status == 'closed' %}
+                                        <span class="badge bg-secondary">Fermée</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">{{ discussion.statusLabel }}</span>
+                                    {% endif %}
+                                    
+                                    {% if discussion.hasContract %}
+                                        <span class="badge bg-primary ms-1">
+                                            <i class="bi bi-file-check"></i> Contrat
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ discussion.updatedAt ? discussion.updatedAt|date('d/m/Y H:i') : discussion.createdAt|date('d/m/Y H:i') }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('app_discussion_show', {id: discussion.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_backoffice_discussion_analytics', {id: discussion.id}) }}" class="btn btn-sm btn-outline-info" title="Analytics">
+                                            <i class="bi bi-graph-up"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

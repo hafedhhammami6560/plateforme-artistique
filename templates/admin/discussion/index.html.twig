@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Discussions - Admin - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-chat-dots"></i> Gestion des Discussions
+                </h1>
+                <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+            </div>
+
+            <!-- Filtres et Recherche -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="q" class="form-control" placeholder="Rechercher..." value="{{ searchQuery }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="status" class="form-select">
+                                <option value="">Tous les statuts</option>
+                                <option value="pending" {{ currentFilter == 'pending' ? 'selected' : '' }}>En attente</option>
+                                <option value="active" {{ currentFilter == 'active' ? 'selected' : '' }}>Actives</option>
+                                <option value="closed" {{ currentFilter == 'closed' ? 'selected' : '' }}>Fermées</option>
+                                <option value="archived" {{ currentFilter == 'archived' ? 'selected' : '' }}>Archivées</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row g-3 mb-4">
+                {% for status, count in stats %}
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h3 class="mb-0">{{ count }}</h3>
+                                <small class="text-muted text-capitalize">{{ status }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Liste des discussions -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if discussions is empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-inbox display-1"></i>
+                            <p>Aucune discussion trouvée</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Produit</th>
+                                        <th>Artiste</th>
+                                        <th>Publisher</th>
+                                        <th>Statut</th>
+                                        <th>Messages</th>
+                                        <th>Créée le</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for discussion in discussions %}
+                                        <tr>
+                                            <td>{{ discussion.id }}</td>
+                                            {% set t = discussion.product.title %}
+                                            <td>{{ t|length > 30 ? t|slice(0, 30) ~ '...' : t }}</td>
+                                            <td>{{ discussion.artist.username }}</td>
+                                            <td>{{ discussion.publisher.username }}</td>
+                                            <td>
+                                                {% if discussion.status == 'active' %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% elseif discussion.status == 'pending' %}
+                                                    <span class="badge bg-warning text-dark">En attente</span>
+                                                {% elseif discussion.status == 'closed' %}
+                                                    <span class="badge bg-secondary">Fermée</span>
+                                                {% else %}
+                                                    <span class="badge bg-dark">{{ discussion.statusLabel }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ discussion.messageCount }}</span>
+                                            </td>
+                                            <td>{{ discussion.createdAt|date('d/m/Y') }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{{ path('app_admin_discussion_show', {id: discussion.id}) }}" class="btn btn-primary" title="Voir">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{{ path('app_admin_discussion_edit', {id: discussion.id}) }}" class="btn btn-warning" title="Éditer">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <form method="post" action="{{ path('app_admin_discussion_delete', {id: discussion.id}) }}" style="display: inline;">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ discussion.id) }}">
+                                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cette discussion ?');" title="Supprimer">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

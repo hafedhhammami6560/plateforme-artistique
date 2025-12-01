@@ -1,0 +1,138 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Contrats - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-text"></i> Mes Contrats
+                </h1>
+                {% if is_granted('ROLE_PUBLISHER') %}
+                    <a href="{{ path('app_contract_new') }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-plus"></i> Nouveau Contrat
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('app_contract_index') }}" class="btn {{ currentFilter is null ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Tous ({{ stats.total }})
+                        </a>
+                        <a href="{{ path('app_contract_index', {status: 'draft'}) }}" class="btn {{ currentFilter == 'draft' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Brouillons ({{ stats.draft|default(0) }})
+                        </a>
+                        <a href="{{ path('app_contract_index', {status: 'proposed'}) }}" class="btn {{ currentFilter == 'proposed' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Proposés ({{ stats.proposed|default(0) }})
+                        </a>
+                        <a href="{{ path('app_contract_index', {status: 'signed'}) }}" class="btn {{ currentFilter == 'signed' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Signés ({{ stats.signed|default(0) }})
+                        </a>
+                        <a href="{{ path('app_contract_index', {status: 'active'}) }}" class="btn {{ currentFilter == 'active' ? 'btn-primary' : 'btn-outline-primary' }}">
+                            Actifs ({{ stats.active|default(0) }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrats List -->
+            {% if contracts is empty %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Aucun contrat trouvé.
+                    {% if is_granted('ROLE_PUBLISHER') %}
+                        <a href="{{ path('app_contract_new') }}" class="alert-link">Créer un nouveau contrat</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Référence</th>
+                                <th>Produit</th>
+                                <th>Artiste</th>
+                                <th>Publisher</th>
+                                <th>Visuels</th>
+                                <th>Commission</th>
+                                <th>Statut</th>
+                                <th>Date Début</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for contract in contracts %}
+                                <tr>
+                                    <td>
+                                        <code>{{ contract.referenceNumber }}</code>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-palette"></i> {{ contract.product.title }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="{{ contract.artist.avatar }}" alt="{{ contract.artist.fullName }}" class="rounded-circle" width="28" height="28">
+                                            <span>{{ contract.artist.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="{{ contract.publisher.avatar }}" alt="{{ contract.publisher.fullName }}" class="rounded-circle" width="28" height="28">
+                                            <span>{{ contract.publisher.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if contract.product.image %}
+                                            <img src="{{ contract.product.image }}" alt="{{ contract.product.title }}" class="rounded" width="60" height="40" style="object-fit: cover;">
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ contract.commissionRate }}%</span>
+                                    </td>
+                                    <td>
+                                        {% if contract.status == 'draft' %}
+                                            <span class="badge bg-secondary">Brouillon</span>
+                                        {% elseif contract.status == 'proposed' %}
+                                            <span class="badge bg-warning text-dark">Proposé</span>
+                                        {% elseif contract.status == 'signed' %}
+                                            <span class="badge bg-info">Signé</span>
+                                        {% elseif contract.status == 'active' %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% elseif contract.status == 'terminated' %}
+                                            <span class="badge bg-danger">Terminé</span>
+                                        {% endif %}
+
+                                        {% if contract.isExpiringSoon and not contract.isTerminated %}
+                                            <span class="badge bg-warning text-dark ms-1">
+                                                <i class="bi bi-exclamation-triangle"></i> Expire bientôt
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ contract.startDate|date('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if is_granted('CONTRACT_SIGN', contract) %}
+                                                <a href="{{ path('app_contract_sign', {id: contract.id}) }}" class="btn btn-success">
+                                                    <i class="bi bi-pen"></i> Signer
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

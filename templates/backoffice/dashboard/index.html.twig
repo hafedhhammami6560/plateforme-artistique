@@ -1,0 +1,253 @@
+{% extends 'backoffice/base.html.twig' %}
+
+{% block title %}Dashboard BackOffice - ArtConnect{% endblock %}
+{% block page_title %}Dashboard BackOffice{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3">
+            <i class="bi bi-speedometer2"></i> Tableau de Bord
+        </h2>
+        <p class="text-muted">Vue d'ensemble de votre activité sur la plateforme</p>
+    </div>
+</div>
+
+<!-- Statistiques Rapides -->
+<div class="row">
+    <!-- Discussions -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Discussions</h6>
+                        <h3 class="mb-0">{{ stats.total_discussions }}</h3>
+                        <small class="text-success">
+                            <i class="bi bi-arrow-up"></i> {{ stats.active_discussions }} actives
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discussions Actives -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Discussions Actives</h6>
+                        <h3 class="mb-0">{{ stats.active_discussions }}</h3>
+                        <small class="text-warning">
+                            <i class="bi bi-clock"></i> {{ stats.pending_discussions }} en attente
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-chat-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrats Totaux -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Contrats</h6>
+                        <h3 class="mb-0">{{ stats.total_contracts }}</h3>
+                        <small class="text-info">
+                            <i class="bi bi-file-check"></i> {{ stats.signed_contracts }} signés
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrats Actifs -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Contrats Actifs</h6>
+                        <h3 class="mb-0">{{ stats.active_contracts }}</h3>
+                        <small class="text-secondary">
+                            <i class="bi bi-pencil"></i> {{ stats.draft_contracts }} brouillons
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-file-earmark-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Dernières Discussions -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-dots"></i> Dernières Discussions
+                </h5>
+                <a href="{{ path('app_backoffice_discussion_index') }}" class="btn btn-sm btn-outline-primary">
+                    Voir tout
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_discussions is empty %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mb-0 mt-2">Aucune discussion récente</p>
+                    </div>
+                {% else %}
+                    <div class="list-group list-group-flush">
+                        {% for discussion in recent_discussions %}
+                            <a href="{{ path('app_discussion_show', {id: discussion.id}) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-palette"></i> {{ discussion.product.title }}
+                                        </h6>
+                                        <p class="mb-1 small text-muted">
+                                            {% if app.user == discussion.artist %}
+                                                Avec {{ discussion.publisher.fullName }}
+                                            {% else %}
+                                                Avec {{ discussion.artist.fullName }}
+                                            {% endif %}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-chat"></i> {{ discussion.messageCount }} messages
+                                            • {{ discussion.createdAt|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {% if discussion.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elseif discussion.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">En attente</span>
+                                        {% elseif discussion.status == 'closed' %}
+                                            <span class="badge bg-secondary">Fermée</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Derniers Contrats -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-text"></i> Derniers Contrats
+                </h5>
+                <a href="{{ path('app_backoffice_contract_index') }}" class="btn btn-sm btn-outline-primary">
+                    Voir tout
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_contracts is empty %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mb-0 mt-2">Aucun contrat récent</p>
+                    </div>
+                {% else %}
+                    <div class="list-group list-group-flush">
+                        {% for contract in recent_contracts %}
+                            <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <i class="bi bi-file-earmark"></i> {{ contract.referenceNumber }}
+                                        </h6>
+                                        <p class="mb-1 small text-muted">
+                                            {{ contract.discussion.product.title }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-percent"></i> {{ contract.commissionRate }}% commission
+                                            • {{ contract.createdAt|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {% if contract.status == 'active' %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% elseif contract.status == 'signed' %}
+                                            <span class="badge bg-info">Signé</span>
+                                        {% elseif contract.status == 'proposed' %}
+                                            <span class="badge bg-primary">Proposé</span>
+                                        {% elseif contract.status == 'draft' %}
+                                            <span class="badge bg-secondary">Brouillon</span>
+                                        {% elseif contract.status == 'terminated' %}
+                                            <span class="badge bg-danger">Terminé</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Rapides -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ path('app_discussion_new') }}" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-plus-circle fs-4 d-block mb-2"></i>
+                            Nouvelle Discussion
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ path('app_backoffice_discussion_index') }}?status=active" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-chat-check fs-4 d-block mb-2"></i>
+                            Discussions Actives
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ path('app_backoffice_contract_index') }}?status=active" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-file-check fs-4 d-block mb-2"></i>
+                            Contrats Actifs
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ path('app_backoffice_contract_reports') }}" class="btn btn-outline-warning w-100 py-3">
+                            <i class="bi bi-graph-up fs-4 d-block mb-2"></i>
+                            Rapports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

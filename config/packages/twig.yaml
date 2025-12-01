@@ -1,5 +1,8 @@
 twig:
+    default_path: '%kernel.project_dir%/templates'
     file_name_pattern: '*.twig'
+    strict_variables: false
+    debug: '%kernel.debug%'
 
 when@test:
     twig:

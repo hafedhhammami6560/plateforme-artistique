@@ -1,0 +1,218 @@
+{% extends 'backoffice/base.html.twig' %}
+
+{% block title %}Rapports Contrats - BackOffice{% endblock %}
+{% block page_title %}Rapports et Statistiques{% endblock %}
+
+{% block body %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="mb-3">
+            <i class="bi bi-graph-up"></i> Rapports et Statistiques
+        </h2>
+        <p class="text-muted">Vue d'ensemble de vos contrats et performances</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ path('app_backoffice_contract_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<!-- Statistiques Globales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text display-4 text-primary"></i>
+                <h2 class="mt-3">{{ reports.total_contracts }}</h2>
+                <p class="text-muted mb-0">Total Contrats</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card success">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle display-4 text-success"></i>
+                <h2 class="mt-3">{{ reports.active_contracts }}</h2>
+                <p class="text-muted mb-0">Contrats Actifs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card warning">
+            <div class="card-body text-center">
+                <i class="bi bi-percent display-4 text-warning"></i>
+                <h2 class="mt-3">{{ reports.average_commission|number_format(1) }}%</h2>
+                <p class="text-muted mb-0">Commission Moyenne</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card danger">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-4 text-danger"></i>
+                <h2 class="mt-3">{{ reports.expiring_soon|length }}</h2>
+                <p class="text-muted mb-0">Expirent Bientôt</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Répartition par Statut -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart"></i> Répartition par Statut
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if reports.contracts_by_status is empty %}
+                    <p class="text-muted text-center py-4">Aucune donnée disponible</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Statut</th>
+                                    <th class="text-center">Nombre</th>
+                                    <th width="50%">Proportion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set total = reports.total_contracts %}
+                                {% for status, count in reports.contracts_by_status %}
+                                    <tr>
+                                        <td>
+                                            {% if status == 'active' %}
+                                                <span class="badge bg-success">Actif</span>
+                                            {% elseif status == 'signed' %}
+                                                <span class="badge bg-info">Signé</span>
+                                            {% elseif status == 'proposed' %}
+                                                <span class="badge bg-primary">Proposé</span>
+                                            {% elseif status == 'draft' %}
+                                                <span class="badge bg-secondary">Brouillon</span>
+                                            {% elseif status == 'terminated' %}
+                                                <span class="badge bg-danger">Terminé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center"><strong>{{ count }}</strong></td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar 
+                                                    {% if status == 'active' %}bg-success
+                                                    {% elseif status == 'signed' %}bg-info
+                                                    {% elseif status == 'proposed' %}bg-primary
+                                                    {% elseif status == 'draft' %}bg-secondary
+                                                    {% else %}bg-danger{% endif %}" 
+                                                    role="progressbar" 
+                                                    style="width: {{ (count / total * 100)|number_format }}%">
+                                                    {{ (count / total * 100)|number_format }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrats Récemment Signés -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-pen"></i> Récemment Signés
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if reports.recent_signed is empty %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mb-0 mt-2">Aucun contrat récemment signé</p>
+                    </div>
+                {% else %}
+                    <div class="list-group list-group-flush">
+                        {% for contract in reports.recent_signed %}
+                            <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ contract.referenceNumber }}</h6>
+                                        <small class="text-muted d-block">
+                                            {{ contract.discussion.product.title }}
+                                        </small>
+                                        <small class="text-muted">
+                                            Signé le {{ contract.signedAt|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-primary">
+                                        {{ contract.commissionRate }}%
+                                    </span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contrats Expirant Bientôt -->
+{% if reports.expiring_soon is not empty %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-10">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> 
+                        Contrats Expirant dans les 30 Prochains Jours
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Référence</th>
+                                    <th>Produit</th>
+                                    <th>Date de Fin</th>
+                                    <th>Jours Restants</th>
+                                    <th>Commission</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in reports.expiring_soon %}
+                                    {% set daysRemaining = date().diff(contract.endDate).days %}
+                                    <tr>
+                                        <td><strong>{{ contract.referenceNumber }}</strong></td>
+                                        <td>{{ contract.discussion.product.title }}</td>
+                                        <td>{{ contract.endDate|date('d/m/Y') }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ daysRemaining < 10 ? 'danger' : 'warning' }}">
+                                                {{ daysRemaining }} jours
+                                            </span>
+                                        </td>
+                                        <td>{{ contract.commissionRate }}%</td>
+                                        <td class="text-center">
+                                            <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Voir
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

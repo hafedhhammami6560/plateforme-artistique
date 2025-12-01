@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Contrat - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-plus"></i> Créer un Nouveau Contrat
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if form_errors(form) %}
+                        <div class="alert alert-danger">
+                            {{ form_errors(form) }}
+                        </div>
+                    {% endif %}
+                    {% if discussion is defined %}
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Discussion liée</h6>
+                            <p class="mb-0">
+                                Ce contrat sera créé pour la discussion concernant
+                                <strong>{{ discussion.product.title }}</strong> avec
+                                <strong>{{ discussion.artist.fullName }}</strong>
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                        {% if discussion is not defined %}
+                            <div class="mb-4">
+                                {{ form_row(form.discussion, {
+                                    'label': 'Sélectionnez la discussion'
+                                }) }}
+                                <small class="text-muted">
+                                    Seules les discussions actives sans contrat sont disponibles
+                                </small>
+                            </div>
+                            <hr>
+                        {% endif %}
+
+                        <h5 class="mb-3"><i class="bi bi-file-text"></i> Termes du Contrat</h5>
+                        <div class="mb-4">
+                            {{ form_label(form.terms) }}
+                            {{ form_widget(form.terms) }}
+                            <div class="text-danger small">{{ form_errors(form.terms) }}</div>
+                        </div>
+
+                        <h5 class="mb-3"><i class="bi bi-percent"></i> Commission</h5>
+                        <div class="mb-4">
+                            {{ form_label(form.commissionRate) }}
+                            {{ form_widget(form.commissionRate) }}
+                            <div class="text-danger small">{{ form_errors(form.commissionRate) }}</div>
+                        </div>
+
+                        <h5 class="mb-3"><i class="bi bi-calendar-range"></i> Période du Contrat</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.startDate) }}
+                                {{ form_widget(form.startDate) }}
+                                <div class="text-danger small">{{ form_errors(form.startDate) }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.endDate) }}
+                                {{ form_widget(form.endDate) }}
+                                <div class="text-danger small">{{ form_errors(form.endDate) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form_label(form.notes) }}
+                            {{ form_widget(form.notes) }}
+                            <div class="text-danger small">{{ form_errors(form.notes) }}</div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_contract_index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Créer le Contrat
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Conseils -->
+            <div class="alert alert-warning mt-4" role="alert">
+                <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Conseils</h6>
+                <ul class="mb-0">
+                    <li>Assurez-vous que les termes du contrat sont clairs et complets</li>
+                    <li>Le contrat sera créé en brouillon et devra être proposé à l'artiste</li>
+                    <li>L'artiste devra signer le contrat avant qu'il ne devienne actif</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

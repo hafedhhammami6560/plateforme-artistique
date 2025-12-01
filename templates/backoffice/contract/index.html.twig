@@ -1,0 +1,182 @@
+{% extends 'backoffice/base.html.twig' %}
+
+{% block title %}Gestion Contrats - BackOffice{% endblock %}
+{% block page_title %}Gestion des Contrats{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3">
+            <i class="bi bi-file-earmark-text"></i> Gestion des Contrats
+        </h2>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Total</h6>
+                <h3>{{ stats.total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <h6 class="text-muted">Actifs</h6>
+                <h3 class="text-success">{{ stats.active }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <h6 class="text-muted">Signés</h6>
+                <h3 class="text-info">{{ stats.signed }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Commission Moy.</h6>
+                <h3>{{ stats.total_commission|number_format(1) }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Recherche</label>
+                <input type="text" name="search" class="form-control" placeholder="Numéro de référence..." value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Statut</label>
+                <select name="status" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="draft" {{ current_status == 'draft' ? 'selected' : '' }}>Brouillon</option>
+                    <option value="proposed" {{ current_status == 'proposed' ? 'selected' : '' }}>Proposé</option>
+                    <option value="signed" {{ current_status == 'signed' ? 'selected' : '' }}>Signé</option>
+                    <option value="active" {{ current_status == 'active' ? 'selected' : '' }}>Actif</option>
+                    <option value="terminated" {{ current_status == 'terminated' ? 'selected' : '' }}>Terminé</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+                <a href="{{ path('app_backoffice_contract_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des Contrats -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Mes Contrats ({{ contracts|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if contracts is empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="text-muted mt-3">Aucun contrat trouvé</p>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Référence</th>
+                            <th>Discussion/Produit</th>
+                            <th>Participants</th>
+                            <th>Commission</th>
+                            <th>Dates</th>
+                            <th>Statut</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contract in contracts %}
+                            {% set isExpiring = contract.endDate and contract.endDate.diff(date()). days < 30 and contract.isActive %}
+                            <tr class="{{ isExpiring ? 'table-warning' : '' }}">
+                                <td>
+                                    <strong>{{ contract.referenceNumber }}</strong>
+                                    {% if isExpiring %}
+                                        <br><small class="text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i> Expire bientôt
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <i class="bi bi-chat-dots text-muted"></i> #{{ contract.discussion.id }}<br>
+                                    <small class="text-muted">
+                                        <i class="bi bi-palette"></i> {{ contract.discussion.product.title }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small class="d-block">
+                                        <i class="bi bi-person"></i> {{ contract.discussion.artist.username }}
+                                    </small>
+                                    <small class="d-block">
+                                        <i class="bi bi-building"></i> {{ contract.discussion.publisher.username }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ contract.commissionRate }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if contract.startDate %}
+                                        <small class="d-block">
+                                            <i class="bi bi-calendar-check"></i> {{ contract.startDate|date('d/m/Y') }}
+                                        </small>
+                                    {% endif %}
+                                    {% if contract.endDate %}
+                                        <small class="d-block">
+                                            <i class="bi bi-calendar-x"></i> {{ contract.endDate|date('d/m/Y') }}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if contract.status == 'active' %}
+                                        <span class="badge bg-success">Actif</span>
+                                    {% elseif contract.status == 'signed' %}
+                                        <span class="badge bg-info">Signé</span>
+                                    {% elseif contract.status == 'proposed' %}
+                                        <span class="badge bg-primary">Proposé</span>
+                                    {% elseif contract.status == 'draft' %}
+                                        <span class="badge bg-secondary">Brouillon</span>
+                                    {% elseif contract.status == 'terminated' %}
+                                        <span class="badge bg-danger">Terminé</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_backoffice_contract_financial_report', {id: contract.id}) }}" class="btn btn-sm btn-outline-success" title="Rapport">
+                                            <i class="bi bi-file-earmark-bar-graph"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

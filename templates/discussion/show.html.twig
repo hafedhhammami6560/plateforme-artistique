@@ -1,0 +1,182 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Discussion #{{ discussion.id }} - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar avec infos discussion -->
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card shadow-sm sticky-top" style="top: 1rem;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Statut:</strong><br>
+                        {% if discussion.status == 'active' %}
+                            <span class="badge bg-success status-badge">Active</span>
+                        {% elseif discussion.status == 'pending' %}
+                            <span class="badge bg-warning text-dark status-badge">En attente</span>
+                        {% elseif discussion.status == 'closed' %}
+                            <span class="badge bg-secondary status-badge">Fermée</span>
+                        {% else %}
+                            <span class="badge bg-dark status-badge">{{ discussion.statusLabel }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-palette"></i> Produit:</strong><br>
+                        <span class="text-muted">{{ discussion.product.title }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-person"></i> Artiste:</strong><br>
+                        <span class="text-muted">{{ discussion.artist.fullName }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-building"></i> Publisher:</strong><br>
+                        <span class="text-muted">{{ discussion.publisher.fullName }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-calendar"></i> Créée le:</strong><br>
+                        <span class="text-muted">{{ discussion.createdAt|date('d/m/Y à H:i') }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-chat"></i> Messages:</strong><br>
+                        <span class="text-muted">{{ discussion.messageCount }}</span>
+                    </div>
+
+                    {% if discussion.hasContract %}
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>Contrat créé</strong><br>
+                            <a href="{{ path('app_contract_show', {id: discussion.contract.id}) }}" class="alert-link">
+                                Voir le contrat
+                            </a>
+                        </div>
+                    {% elseif is_granted('ROLE_PUBLISHER') and discussion.publisher == app.user %}
+                        <a href="{{ path('app_contract_new_from_discussion', {id: discussion.id}) }}" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-file-earmark-plus"></i> Créer un Contrat
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="card-footer bg-white">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_discussion_index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                        {% if is_granted('DISCUSSION_EDIT', discussion) %}
+                            {% if discussion.status == 'active' %}
+                                <form method="post" action="{{ path('app_discussion_close', {id: discussion.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('close' ~ discussion.id) }}">
+                                    <button class="btn btn-warning btn-sm w-100" onclick="return confirm('Voulez-vous fermer cette discussion ?');">
+                                        <i class="bi bi-x-circle"></i> Fermer
+                                    </button>
+                                </form>
+                            {% elseif discussion.status == 'closed' %}
+                                <form method="post" action="{{ path('app_discussion_reopen', {id: discussion.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reopen' ~ discussion.id) }}">
+                                    <button class="btn btn-success btn-sm w-100">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Rouvrir
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone de messages -->
+        <div class="col-md-8 col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-chat-dots"></i> Discussion #{{ discussion.id }}
+                    </h4>
+                    {% if discussion.subject %}
+                        <p class="text-muted mb-0"><small>{{ discussion.subject }}</small></p>
+                    {% endif %}
+                </div>
+
+                <!-- Liste des messages -->
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;" id="messagesContainer">
+                    {% if discussion.messages is empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-chat-dots display-1"></i>
+                            <p>Aucun message dans cette discussion</p>
+                        </div>
+                    {% else %}
+                        {% for message in discussion.messages %}
+                            <div class="d-flex {{ message.sender == app.user ? 'justify-content-end' : 'justify-content-start' }} mb-3">
+                                <div class="message-bubble {{ message.sender == app.user ? 'message-sent' : 'message-received' }}" style="max-width: 70%;">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <strong>{{ message.sender.username }}</strong>
+                                        {% if message.isContractProposal %}
+                                            <span class="badge bg-warning text-dark ms-2">
+                                                <i class="bi bi-file-text"></i> Proposition de contrat
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div>{{ message.content|nl2br }}</div>
+                                    <div class="small opacity-75 mt-2">
+                                        <i class="bi bi-clock"></i> {{ message.sentAt|date('d/m/Y H:i') }}
+                                        <span class="ms-2">({{ message.timeAgo }})</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Formulaire d'envoi de message -->
+                {% if is_granted('DISCUSSION_SEND_MESSAGE', discussion) %}
+                    <div class="card-footer bg-light">
+                        {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                            <div class="mb-3">
+                                {{ form_row(form.content, {
+                                    'attr': {'placeholder': 'Écrivez votre message...', 'rows': 3}
+                                }) }}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {{ form_row(form.isContractProposal, {
+                                        'label_attr': {'class': 'form-check-label small'}
+                                    }) }}
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Envoyer
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                {% else %}
+                    <div class="card-footer bg-light text-center text-muted">
+                        <i class="bi bi-lock"></i> Cette discussion est fermée, vous ne pouvez plus envoyer de messages.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_javascripts %}
+<script>
+    // Auto-scroll vers le bas des messages
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

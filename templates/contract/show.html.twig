@@ -1,0 +1,211 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contrat {{ contract.referenceNumber }} - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header avec actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-text"></i> Contrat {{ contract.referenceNumber }}
+                </h1>
+                <div class="btn-group" role="group">
+                    <a href="{{ path('app_contract_index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                    {% if is_granted('CONTRACT_EDIT', contract) %}
+                        <a href="{{ path('app_contract_edit', {id: contract.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Éditer
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Détails du contrat -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Détails du Contrat</h5>
+                            {% if contract.status == 'draft' %}
+                                <span class="badge bg-secondary">Brouillon</span>
+                            {% elseif contract.status == 'proposed' %}
+                                <span class="badge bg-warning text-dark">Proposé</span>
+                            {% elseif contract.status == 'signed' %}
+                                <span class="badge bg-info">Signé</span>
+                            {% elseif contract.status == 'active' %}
+                                <span class="badge bg-success">Actif</span>
+                            {% elseif contract.status == 'terminated' %}
+                                <span class="badge bg-danger">Terminé</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <!-- Document style -->
+                            <div class="border-start border-primary border-4 ps-3 mb-4">
+                                <h6 class="text-primary mb-0">CONTRAT DE PUBLICATION</h6>
+                                <small class="text-muted">{{ contract.referenceNumber }}</small>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small">L'Artiste</h6>
+                                    <p class="mb-1"><strong>{{ contract.artist.fullName }}</strong></p>
+                                    <p class="text-muted small mb-0">{{ contract.artist.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted small">Le Publisher</h6>
+                                    <p class="mb-1"><strong>{{ contract.publisher.fullName }}</strong></p>
+                                    <p class="text-muted small mb-0">{{ contract.publisher.email }}</p>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-4">
+                                <h6 class="text-uppercase text-muted small">Œuvre Concernée</h6>
+                                <div class="alert alert-light border-start border-primary border-4">
+                                    <h5 class="mb-1">
+                                        <i class="bi bi-palette"></i> {{ contract.product.title }}
+                                    </h5>
+                                    {% set desc = contract.product.description %}
+                                    <p class="text-muted mb-0">{{ desc|length > 200 ? desc|slice(0, 200) ~ '...' : desc }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-uppercase text-muted small">Termes et Conditions</h6>
+                                <div class="bg-light p-3 rounded">
+                                    {{ contract.terms|nl2br }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <h6 class="text-uppercase text-muted small">Commission</h6>
+                                    <h3 class="text-primary mb-0">{{ contract.commissionRate }}%</h3>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-uppercase text-muted small">Date de Début</h6>
+                                    <p class="mb-0"><i class="bi bi-calendar"></i> {{ contract.startDate|date('d/m/Y') }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-uppercase text-muted small">Date de Fin</h6>
+                                    <p class="mb-0"><i class="bi bi-calendar"></i> {{ contract.endDate|date('d/m/Y') }}</p>
+                                    <small class="text-muted">(Durée: {{ contract.durationInDays }} jours)</small>
+                                </div>
+                            </div>
+
+                            {% if contract.notes %}
+                                <div class="mb-4">
+                                    <h6 class="text-uppercase text-muted small">Notes</h6>
+                                    <p class="text-muted">{{ contract.notes|nl2br }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if contract.isSigned %}
+                                <div class="alert alert-success border-start border-success border-4">
+                                    <h6 class="alert-heading">
+                                        <i class="bi bi-check-circle"></i> Contrat Signé
+                                    </h6>
+                                    <p class="mb-0">
+                                        Signé par <strong>{{ contract.signedBy.fullName }}</strong>
+                                        le {{ contract.signedAt|date('d/m/Y à H:i') }}
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Actions -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm mb-4 sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-gear"></i> Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Actions selon le statut et l'utilisateur -->
+                            {% if is_granted('ROLE_PUBLISHER') and contract.publisher == app.user %}
+                                {% if contract.status == 'draft' %}
+                                    <form method="post" action="{{ path('app_contract_propose', {id: contract.id}) }}" class="mb-2">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('propose' ~ contract.id) }}">
+                                        <button type="submit" class="btn btn-warning w-100">
+                                            <i class="bi bi-send"></i> Proposer à l'Artiste
+                                        </button>
+                                    </form>
+                                {% elseif contract.status == 'signed' %}
+                                    <form method="post" action="{{ path('app_contract_activate', {id: contract.id}) }}" class="mb-2">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ contract.id) }}">
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="bi bi-check-circle"></i> Activer le Contrat
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if is_granted('CONTRACT_SIGN', contract) %}
+                                <a href="{{ path('app_contract_sign', {id: contract.id}) }}" class="btn btn-success w-100 mb-2">
+                                    <i class="bi bi-pen"></i> Signer le Contrat
+                                </a>
+                            {% endif %}
+
+                            {% if is_granted('CONTRACT_TERMINATE', contract) %}
+                                <form method="post" action="{{ path('app_contract_terminate', {id: contract.id}) }}" class="mb-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('terminate' ~ contract.id) }}">
+                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Voulez-vous vraiment terminer ce contrat ?');">
+                                        <i class="bi bi-x-circle"></i> Terminer
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <a href="{{ path('app_discussion_show', {id: contract.discussion.id}) }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="bi bi-chat-dots"></i> Voir la Discussion
+                            </a>
+
+                            {% if is_granted('CONTRACT_DELETE', contract) %}
+                                <hr>
+                                <form method="post" action="{{ path('app_contract_delete', {id: contract.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contract.id) }}">
+                                    <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Voulez-vous vraiment supprimer ce contrat ?');">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Informations complémentaires -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h6>
+                        </div>
+                        <div class="card-body small">
+                            <p class="mb-2">
+                                <strong>Créé le:</strong><br>
+                                {{ contract.createdAt|date('d/m/Y à H:i') }}
+                            </p>
+                            {% if contract.updatedAt %}
+                                <p class="mb-2">
+                                    <strong>Modifié le:</strong><br>
+                                    {{ contract.updatedAt|date('d/m/Y à H:i') }}
+                                </p>
+                            {% endif %}
+                            {% if contract.isExpired %}
+                                <div class="alert alert-danger p-2 mb-0">
+                                    <i class="bi bi-exclamation-triangle"></i> Contrat expiré
+                                </div>
+                            {% elseif contract.isExpiringSoon %}
+                                <div class="alert alert-warning p-2 mb-0">
+                                    <i class="bi bi-exclamation-triangle"></i> Expire bientôt
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

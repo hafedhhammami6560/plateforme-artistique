@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Hero Section -->
+            <div class="bg-white rounded shadow-sm p-5 my-4">
+                <div class="text-center">
+                    <h1 class="display-4 fw-bold text-primary mb-4">
+                        <i class="bi bi-palette"></i> Bienvenue sur ArtConnect
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        La plateforme collaborative qui connecte les artistes et les publishers
+                    </p>
+                    {% if is_granted('ROLE_USER') %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{{ path('app_discussion_index') }}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-chat-dots"></i> Mes Discussions
+                            </a>
+                            <a href="{{ path('app_contract_index') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-file-text"></i> Mes Contrats
+                            </a>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Se Connecter
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="display-4 text-primary mb-3">
+                                <i class="bi bi-chat-dots"></i>
+                            </div>
+                            <h5 class="card-title">Discussions Facilitées</h5>
+                            <p class="card-text text-muted">
+                                Négociez directement avec les artistes ou publishers via notre système de messagerie intégré
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="display-4 text-success mb-3">
+                                <i class="bi bi-file-text"></i>
+                            </div>
+                            <h5 class="card-title">Contrats Sécurisés</h5>
+                            <p class="card-text text-muted">
+                                Créez, signez et gérez vos contrats en toute sécurité avec un système de validation robuste
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="display-4 text-warning mb-3">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <h5 class="card-title">Suivi en Temps Réel</h5>
+                            <p class="card-text text-muted">
+                                Suivez l'évolution de vos discussions et contrats avec des statistiques détaillées
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if is_granted('ROLE_PUBLISHER') %}
+                <!-- Quick Actions for Publishers -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions Rapides - Publisher</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ path('app_discussion_new') }}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-plus-circle"></i> Nouvelle Discussion
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ path('app_contract_new') }}" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-file-earmark-plus"></i> Nouveau Contrat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if is_granted('ROLE_ADMIN') %}
+                <!-- Admin Dashboard Link -->
+                <div class="alert alert-info mt-4" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-shield-check"></i> Espace Administrateur</h5>
+                    <p class="mb-0">
+                        Accédez au tableau de bord administrateur pour gérer la plateforme.
+                        <a href="{{ path('app_admin_dashboard') }}" class="alert-link">Accéder au Dashboard</a>
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

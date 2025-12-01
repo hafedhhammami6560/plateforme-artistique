@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\User;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
+
+/**
+ * @extends ServiceEntityRepository<User>
+ */
+class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, User::class);
+    }
+
+    /**
+     * Utilisé pour mettre à jour le mot de passe de l'utilisateur automatiquement
+     */
+    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    {
+        if (!$user instanceof User) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+        }
+
+        $user->setPassword($newHashedPassword);
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * Récupère tous les artistes
+     * 
+     * @return User[]
+     */
+    public function findArtists(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.type = :type')
+            ->setParameter('type', 'artist')
+            ->orderBy('u.username', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Récupère tous les publishers
+     * 
+     * @return User[]
+     */
+    public function findPublishers(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.type = :type')
+            ->setParameter('type', 'publisher')
+            ->orderBy('u.username', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Récupère les artistes vérifiés
+     * 
+     * @return User[]
+     */
+    public function findVerifiedArtists(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.type = :type')
+            ->andWhere('u.isVerified = :verified')
+            ->setParameter('type', 'artist')
+            ->setParameter('verified', true)
+            ->orderBy('u.username', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+}

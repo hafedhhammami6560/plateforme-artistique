@@ -2,6 +2,9 @@
 namespace App\Form;
 
 use App\Entity\Feedback;
+use App\Entity\Communite;
+use App\Entity\Organisation;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -36,11 +39,6 @@ class FeedbackType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'placeholder' => 'product, artist, publisher...']
             ])
-            ->add('targetId', IntegerType::class, [
-                'label' => 'ID de la cible',
-                'required' => false,
-                'attr' => ['class' => 'form-control']
-            ])
             ->add('rating', ChoiceType::class, [
                 'label' => 'Note',
                 'choices' => [
@@ -59,13 +57,20 @@ class FeedbackType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'rows' => 5]
             ])
-            ->add('status', ChoiceType::class, [
-                'label' => 'Statut',
-                'choices' => [
-                    'Publié' => 'published',
-                    'En attente' => 'pending',
-                    'Archivé' => 'archived',
-                ],
+            ->add('communite', EntityType::class, [
+                'label' => 'Communauté',
+                'class' => Communite::class,
+                'choice_label' => 'name',
+                'placeholder' => 'Sélectionnez une communauté (optionnel)',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('organisation', EntityType::class, [
+                'label' => 'Organisation',
+                'class' => Organisation::class,
+                'choice_label' => 'name',
+                'placeholder' => 'Sélectionnez une organisation (optionnel)',
+                'required' => false,
                 'attr' => ['class' => 'form-control']
             ]);
     }

@@ -32,7 +32,7 @@
         </div>
         <div class="card-body">
             <form method="get" action="{{ path('feedback_index') }}" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="search" class="form-label"><i class="fas fa-search"></i> Rechercher</label>
                     <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="Contenu ou auteur...">
                 </div>
@@ -47,12 +47,14 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="status" class="form-label"><i class="fas fa-flag"></i> Statut</label>
-                    <select class="form-control" id="status" name="status">
-                        <option value="">Tous</option>
-                        <option value="published" {% if status == 'published' %}selected{% endif %}>Publié</option>
-                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>En attente</option>
-                        <option value="archived" {% if status == 'archived' %}selected{% endif %}>Archivé</option>
+                    <label for="rating" class="form-label"><i class="fas fa-star"></i> Note</label>
+                    <select class="form-control" id="rating" name="rating">
+                        <option value="">Toutes</option>
+                        <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                        <option value="4">⭐⭐⭐⭐ (4+)</option>
+                        <option value="3">⭐⭐⭐ (3+)</option>
+                        <option value="2">⭐⭐ (2+)</option>
+                        <option value="1">⭐ (1+)</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -61,15 +63,13 @@
                         <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date</option>
                         <option value="rating" {% if sortBy == 'rating' %}selected{% endif %}>Note</option>
                         <option value="authorName" {% if sortBy == 'authorName' %}selected{% endif %}>Auteur</option>
-                        <option value="type" {% if sortBy == 'type' %}selected{% endif %}>Type</option>
-                        <option value="status" {% if sortBy == 'status' %}selected{% endif %}>Statut</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label for="order" class="form-label">Ordre</label>
                     <select class="form-control" id="order" name="order">
-                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑ Croissant</option>
-                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓ Décroissant</option>
+                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑</option>
+                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓</option>
                     </select>
                 </div>
                 <div class="col-12">

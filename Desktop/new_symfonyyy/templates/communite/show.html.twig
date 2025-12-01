@@ -24,9 +24,43 @@
         {% endfor %}
     </ul>
 
+    <h2 class="mt-4">Feedbacks</h2>
+    {% if feedbacks|length > 0 %}
+        <div class="row">
+            {% for feedback in feedbacks %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ feedback.authorName ?? 'Anonyme' }}</h5>
+                                {% if feedback.rating %}
+                                    <div class="text-warning">
+                                        {% for i in 1..feedback.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for i in feedback.rating+1..5 %}
+                                            <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <p class="card-text">{{ feedback.content }}</p>
+                            <small class="text-muted">{{ feedback.createdAt|date('d/m/Y H:i') }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">Aucun feedback pour cette communauté.</p>
+    {% endif %}
+
     <div class="mt-4">
         <a href="{{ path('communite_index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <a href="{{ path('feedback_new', {communiteId: communite.id}) }}" class="btn btn-success">
+            <i class="fas fa-comment"></i> Laisser un Feedback
         </a>
         <a href="{{ path('communite_edit', {'id': communite.id}) }}" class="btn btn-warning">
             <i class="fas fa-edit"></i> Modifier

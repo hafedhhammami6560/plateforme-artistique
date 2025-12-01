@@ -155,10 +155,22 @@ class OrganisationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'organisation_show', methods: ['GET'])]
-    public function show(Organisation $organisation): Response
+    public function show(Organisation $organisation, EntityManagerInterface $em): Response
     {
+        // Récupérer les feedbacks liés à cette organisation
+        $feedbacks = $em->getRepository(\App\Entity\Feedback::class)
+            ->createQueryBuilder('f')
+            ->where('f.organisation = :organisation')
+            ->andWhere('f.status = :status')
+            ->setParameter('organisation', $organisation)
+            ->setParameter('status', 'published')
+            ->orderBy('f.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+        
         return $this->render('organisation/show.html.twig', [
             'organisation' => $organisation,
+            'feedbacks' => $feedbacks,
         ]);
     }
 

@@ -52,11 +52,47 @@
 
                     <hr>
 
+                    <h4 class="mt-4 mb-3"><i class="fas fa-comments"></i> Feedbacks</h4>
+                    {% if feedbacks|length > 0 %}
+                        <div class="row">
+                            {% for feedback in feedbacks %}
+                                <div class="col-md-12 mb-3">
+                                    <div class="card border-left-primary">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="font-weight-bold">{{ feedback.authorName ?? 'Anonymous' }}</h6>
+                                                {% if feedback.rating %}
+                                                    <div class="text-warning">
+                                                        {% for i in 1..feedback.rating %}
+                                                            <i class="fas fa-star"></i>
+                                                        {% endfor %}
+                                                        {% for i in feedback.rating+1..5 %}
+                                                            <i class="far fa-star"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <p class="mb-1">{{ feedback.content }}</p>
+                                            <small class="text-muted"><i class="fas fa-clock"></i> {{ feedback.createdAt|date('F d, Y H:i') }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No feedback yet for this organisation.</p>
+                    {% endif %}
+
+                    <hr>
+
                     <div class="d-flex justify-content-between">
                         <a href="{{ path('organisation_index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back to List
                         </a>
                         <div>
+                            <a href="{{ path('feedback_new', {organisationId: organisation.id}) }}" class="btn btn-success">
+                                <i class="fas fa-comment"></i> Leave Feedback
+                            </a>
                             <a href="{{ path('organisation_edit', {'id': organisation.id}) }}" class="btn btn-warning">
                                 <i class="fas fa-edit"></i> Edit
                             </a>

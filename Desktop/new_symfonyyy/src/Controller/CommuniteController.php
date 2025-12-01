@@ -148,12 +148,22 @@ class CommuniteController extends AbstractController
      * @return Response Page HTML de détail
      */
     #[Route('/{id}', name: 'communite_show', methods: ['GET'])]
-    public function show(Communite $communite): Response
+    public function show(Communite $communite, EntityManagerInterface $em): Response
     {
-        // Affichage simple de la vue détaillée
-        // Pas de gestion d'erreur nécessaire: Symfony gère le 404 automatiquement
+        // Récupérer les feedbacks liés à cette communauté
+        $feedbacks = $em->getRepository(\App\Entity\Feedback::class)
+            ->createQueryBuilder('f')
+            ->where('f.communite = :communite')
+            ->andWhere('f.status = :status')
+            ->setParameter('communite', $communite)
+            ->setParameter('status', 'published')
+            ->orderBy('f.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+        
         return $this->render('communite/show.html.twig', [
             'communite' => $communite,
+            'feedbacks' => $feedbacks,
         ]);
     }
 

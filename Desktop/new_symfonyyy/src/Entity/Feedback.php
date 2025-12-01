@@ -42,6 +42,14 @@ class Feedback
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\ManyToOne(targetEntity: Communite::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Communite $communite = null;
+
+    #[ORM\ManyToOne(targetEntity: Organisation::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Organisation $organisation = null;
+
     #[ORM\OneToMany(mappedBy: 'feedback', targetEntity: FeedbackComment::class, cascade: ['persist','remove'])]
     private Collection $comments;
 
@@ -69,4 +77,12 @@ class Feedback
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $s): self { $this->status = $s; return $this; }
     public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
+    
+    public function getCommunite(): ?Communite { return $this->communite; }
+    public function setCommunite(?Communite $c): self { $this->communite = $c; return $this; }
+    
+    public function getOrganisation(): ?Organisation { return $this->organisation; }
+    public function setOrganisation(?Organisation $o): self { $this->organisation = $o; return $this; }
+    
+    public function getComments(): Collection { return $this->comments; }
 }

@@ -87,6 +87,24 @@ class FeedbackController extends AbstractController
         $feedback = new Feedback();
         $feedback->setAuthorName('user_static');
 
+        // Pré-remplir la communauté ou l'organisation depuis les paramètres d'URL
+        $communiteId = $request->query->get('communiteId');
+        $organisationId = $request->query->get('organisationId');
+        
+        if ($communiteId) {
+            $communite = $em->getRepository(\App\Entity\Communite::class)->find($communiteId);
+            if ($communite) {
+                $feedback->setCommunite($communite);
+            }
+        }
+        
+        if ($organisationId) {
+            $organisation = $em->getRepository(\App\Entity\Organisation::class)->find($organisationId);
+            if ($organisation) {
+                $feedback->setOrganisation($organisation);
+            }
+        }
+
         $form = $this->createForm(FeedbackType::class, $feedback);
         $form->handleRequest($request);
 

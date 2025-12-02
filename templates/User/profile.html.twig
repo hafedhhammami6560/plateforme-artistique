@@ -743,7 +743,7 @@
       {% endfor %}
       
       <div class="header">
-        <img src="https://i.pravatar.cc/72" alt="User profile photo" />
+        <img src="https://ui-avatars.com/api/?name={{ user.name|url_encode }}&size=72&background=344BE2&color=fff&bold=true" alt="User profile photo" />
         <div class="header-info">
           <div class="name">{{ user.name }}</div>
           <div class="email">{{ user.email }}</div>

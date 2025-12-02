@@ -1,6 +1,7 @@
-{% extends 'base.html.twig' %}
+{% extends 'backoffice/base.html.twig' %}
 
 {% block title %}Contrat {{ contract.referenceNumber }} - ArtConnect{% endblock %}
+{% block page_title %}Contrat {{ contract.referenceNumber }}{% endblock %}
 
 {% block body %}
 <div class="container py-4">
@@ -146,10 +147,16 @@
                             {% endif %}
 
                             {% if is_granted('CONTRACT_SIGN', contract) %}
-                                <a href="{{ path('app_contract_sign', {id: contract.id}) }}" class="btn btn-success w-100 mb-2">
-                                    <i class="bi bi-pen"></i> Signer le Contrat
-                                </a>
-                            {% endif %}
+                                        <a href="{{ path('app_contract_sign', {id: contract.id}) }}" class="btn btn-success w-100 mb-2">
+                                            <i class="bi bi-pen"></i> Signer le Contrat
+                                        </a>
+                                        <form method="post" action="{{ path('app_contract_quick_sign', {id: contract.id}) }}" class="mb-2">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('quick_sign' ~ contract.id) }}">
+                                            <button type="submit" class="btn btn-outline-success w-100">
+                                                <i class="bi bi-lightning"></i> Signature rapide (1 clic)
+                                            </button>
+                                        </form>
+                                    {% endif %}
 
                             {% if is_granted('CONTRACT_TERMINATE', contract) %}
                                 <form method="post" action="{{ path('app_contract_terminate', {id: contract.id}) }}" class="mb-2">

@@ -241,6 +241,10 @@ class ContractController extends AbstractController
         if ($request->isMethod('POST')) {
             if ($this->isCsrfTokenValid('sign' . $contract->getId(), $request->request->get('_token'))) {
                 $contract->sign($this->getUser());
+                // Générer un identifiant de signature léger et l'enregistrer dans les notes
+                $sig = substr(hash('sha256', (string)($this->getUser()->getUserIdentifier() . '|' . $contract->getId() . '|' . microtime(true))), 0, 16);
+                $noteLine = sprintf("\nSignatureID: %s — %s", $sig, (new \DateTime())->format('Y-m-d H:i'));
+                $contract->setNotes(rtrim((string)$contract->getNotes()) . $noteLine);
                 $this->entityManager->flush();
 
                 $this->addFlash('success', 'Vous avez signé le contrat avec succès.');
@@ -252,6 +256,31 @@ class ContractController extends AbstractController
         return $this->render('contract/sign.html.twig', [
             'contract' => $contract,
         ]);
+    }
+
+    /**
+     * Signature rapide (un clic) — génère la signature sans étapes intermédiaires
+     */
+    #[Route('/{id}/quick-sign', name: 'app_contract_quick_sign', methods: ['POST'])]
+    #[IsGranted('ROLE_ARTIST')]
+    public function quickSign(Request $request, Contract $contract): Response
+    {
+        $this->denyAccessUnlessGranted(ContractVoter::SIGN, $contract);
+
+        if (!$this->isCsrfTokenValid('quick_sign' . $contract->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_contract_show', ['id' => $contract->getId()]);
+        }
+
+        $contract->sign($this->getUser());
+        $sig = substr(hash('sha256', (string)($this->getUser()->getUserIdentifier() . '|' . $contract->getId() . '|' . microtime(true))), 0, 16);
+        $noteLine = sprintf("\nSignatureID: %s — %s", $sig, (new \DateTime())->format('Y-m-d H:i'));
+        $contract->setNotes(rtrim((string)$contract->getNotes()) . $noteLine);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Contrat signé (signature rapide).');
+
+        return $this->redirectToRoute('app_contract_show', ['id' => $contract->getId()]);
     }
 
     /**

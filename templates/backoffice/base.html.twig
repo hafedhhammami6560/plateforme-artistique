@@ -354,10 +354,9 @@
 
                 <!-- User Management -->
                 <div class="sidebar-section-title">Gestion Utilisateurs</div>
-                <a href="#" class="sidebar-nav-link">
+                <a href="{{ path('app_user_dashboard') }}" class="sidebar-nav-link {{ app.request.get('_route') == 'app_user_dashboard' ? 'active' : '' }}">
                     <i class="bi bi-people-fill"></i>
                     <span>Utilisateurs</span>
-                    <span class="badge bg-secondary">à venir</span>
                 </a>
                 <a href="#" class="sidebar-nav-link">
                     <i class="bi bi-shield-lock"></i>

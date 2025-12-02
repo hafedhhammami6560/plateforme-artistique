@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get Started Now</title>
+  <style>
+    /* Reset de base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: white;
+      color: #000;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      width: 90vw;
+      max-width: 1000px;
+      height: 600px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .left-panel {
+      flex: 1;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    h2 {
+      font-weight: 600;
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    input[type="text"]::placeholder,
+    input[type="email"]::placeholder,
+    input[type="password"]::placeholder {
+      color: #bbb;
+      font-size: 0.8rem;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      font-size: 0.75rem;
+      margin-bottom: 1.5rem;
+      user-select: none;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      margin-right: 0.5rem;
+      transform: scale(0.8);
+    }
+
+    .checkbox-container a {
+      text-decoration: underline;
+      color: #000;
+      font-weight: 600;
+      margin-left: 0.25rem;
+    }
+
+    button.signup-btn {
+      background-color: #405d27;
+      color: white;
+      border: none;
+      padding: 0.6rem 0;
+      width: 100%;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 3px 3px #a0a087;
+      transition: background-color 0.3s;
+    }
+
+    button.signup-btn:hover {
+      background-color: #5d7d35;
+    }
+
+    .or-separator {
+      display: flex;
+      align-items: center;
+      font-size: 0.75rem;
+      color: #444;
+      margin: 1.5rem 0;
+    }
+
+    .or-separator::before,
+    .or-separator::after {
+      content: "";
+      flex-grow: 1;
+      border-bottom: 1px solid #ccc;
+      margin: 0 0.8rem;
+    }
+
+    .social-buttons {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background-color: white;
+      transition: background-color 0.3s, border-color 0.3s;
+      user-select: none;
+    }
+
+    .social-btn img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .social-btn.google:hover {
+      background-color: #f2f2f2;
+      border-color: #db4437;
+    }
+    .social-btn.apple:hover {
+      background-color: #f2f2f2;
+      border-color: #000;
+    }
+
+    .bottom-text {
+      font-size: 0.8rem;
+      text-align: center;
+      color: #222;
+    }
+
+    .bottom-text a {
+      text-decoration: none;
+      color: #2563eb;
+      font-weight: 600;
+      margin-left: 0.2rem;
+    }
+
+    .right-panel {
+      flex: 1;
+      background: white;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .right-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    
+    <section class="left-panel" aria-label="Sign up form">
+      <h2>Get Started Now</h2>
+      <form method="POST" action="{{ path('app_signup') }}">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required />
+
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Password" required />
+
+        <div class="checkbox-container">
+          <input type="checkbox" id="terms" name="terms" required />
+          <label for="terms">I agree to the <a href="#">terms & policy</a></label>
+        </div>
+
+        <button type="submit" class="signup-btn">Signup</button>
+      </form>
+
+      <div class="or-separator" aria-hidden="true">or</div>
+
+      <div class="social-buttons">
+        <button class="social-btn google" aria-label="Sign in with Google">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_" 
+               alt="Google logo" />
+          Sign in with Google
+        </button>
+        <button class="social-btn apple" aria-label="Sign in with Apple">
+          <img 
+           src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" 
+           alt="Apple logo" />
+          Sign in with Apple
+        </button>
+      </div>
+
+      <p class="bottom-text">Have an account? <a href="{{ path('app_login') }}">Sign In</a></p>
+    </section>
+
+    <aside class="right-panel" aria-hidden="true">
+      <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="" />
+    </aside>
+
+  </div>
+</body>
+</html>

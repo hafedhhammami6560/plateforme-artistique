@@ -20,7 +20,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Utilisé pour mettre à jour le mot de passe de l'utilisateur automatiquement
+     * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
@@ -33,50 +33,28 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    /**
-     * Récupère tous les artistes
-     * 
-     * @return User[]
-     */
-    public function findArtists(): array
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.type = :type')
-            ->setParameter('type', 'artist')
-            ->orderBy('u.username', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
+    //    /**
+    //     * @return User[] Returns an array of User objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('u.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-    /**
-     * Récupère tous les publishers
-     * 
-     * @return User[]
-     */
-    public function findPublishers(): array
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.type = :type')
-            ->setParameter('type', 'publisher')
-            ->orderBy('u.username', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Récupère les artistes vérifiés
-     * 
-     * @return User[]
-     */
-    public function findVerifiedArtists(): array
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.type = :type')
-            ->andWhere('u.isVerified = :verified')
-            ->setParameter('type', 'artist')
-            ->setParameter('verified', true)
-            ->orderBy('u.username', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
+    //    public function findOneBySomeField($value): ?User
+    //    {
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

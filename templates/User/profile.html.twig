@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ArtConnect Galerie Profile</title>
+  <style>
+    /* Base Reset */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #344BE2; /* Changed green to #344BE2 */
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 50px;
+      background-color: #344BE2; /* Changed green to #344BE2 */
+      color: white;
+      font-weight: 400;
+      font-size: 14px;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    /* Nav left */
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 28px;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+    }
+
+    nav ul li {
+      position: relative;
+    }
+
+    nav ul li a,
+    nav ul li span {
+      cursor: pointer;
+      color: white;
+    }
+
+    nav ul li:hover > ul {
+      display: block;
+    }
+
+    /* Dropdown menu for Products */
+    nav ul li ul {
+      position: absolute;
+      top: 28px;
+      left: 0;
+      background: #2a3bc6; /* Slightly darker shade of #344BE2 for dropdown */
+      padding: 6px 0;
+      border-radius: 5px;
+      display: none;
+      min-width: 126px;
+      box-shadow: 0 8px 26px rgb(0 0 0 / 0.25);
+      z-index: 50;
+    }
+
+    nav ul li ul li {
+      padding: 8px 20px;
+      white-space: nowrap;
+      font-size: 13px;
+      color: #e6e6e6;
+    }
+
+    nav ul li ul li:hover {
+      background-color: #2233a1;
+    }
+
+    /* Center logo */
+    .logo {
+      font-weight: 800;
+      font-size: 23px;
+      line-height: 1;
+      color: #fff;
+      font-family: 'Segoe UI Black', serif;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: default;
+      white-space: nowrap;
+    }
+
+    .logo svg {
+      height: 24px;
+      width: 20px;
+      fill: white;
+      margin-top: 3px;
+    }
+
+    /* Changed "Garden" to "Galerie" */
+    .logo small {
+      font-family: cursive;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1;
+      color: #b7cfc1;
+      letter-spacing: -0.03em;
+      display: block;
+      line-height: 1.1;
+      margin-top: 2px;
+      user-select: none;
+    }
+
+    /* Right icons */
+    .right-icons {
+      display: flex;
+      gap: 24px;
+      color: white;
+      align-items: center;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .right-icons svg {
+      stroke: white;
+      stroke-width: 1.75;
+      fill: none;
+      width: 20px;
+      height: 20px;
+    }
+
+    .right-icons svg:hover {
+      stroke: #a4b6a2;
+    }
+
+    /* Main container */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      padding: 30px 40px;
+      gap: 48px;
+      background-color: #344BE2; /* Changed green to #344BE2 */
+      color: #333;
+      flex-wrap: wrap;
+    }
+
+    /* Left column container */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 35px;
+      max-width: 320px;
+      width: 100%;
+    }
+
+    /* Frame card */
+    .frame-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.07);
+      padding: 20px 25px;
+      font-size: 14px;
+      color: #444;
+      width: 100%;
+      position: relative;
+      user-select: none;
+    }
+
+    .frame-card > .user-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #eee;
+      color: #2f2f2f;
+    }
+
+    .frame-card .user-info img {
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+    }
+
+    .frame-card .user-info div {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+
+    .frame-card .user-info div small {
+      font-weight: 400;
+      font-size: 12px;
+      color: #777;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    /* Menu list */
+    .frame-card nav {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .frame-card nav a,
+    .frame-card nav div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #414141;
+      user-select: none;
+      transition: background-color 0.25s;
+      position: relative;
+      justify-content: space-between;
+    }
+
+    .frame-card nav a:hover,
+    .frame-card nav div:hover {
+      background-color: #f5f5f5;
+    }
+
+    /* Icons next to menu items */
+    .icon {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8;
+      stroke: #868686;
+      fill: none;
+      transition: stroke 0.3s ease;
+    }
+
+    .frame-card nav a:hover .icon,
+    .frame-card nav div:hover .icon {
+      stroke: #3040bf; /* Darker blue on hover */
+    }
+
+    /* Right arrow icon for My Profile and Settings */
+    .right-arrow {
+      width: 12px;
+      height: 12px;
+      stroke: #b7b7b7;
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    /* Notification submenu */
+    #notification-menu {
+      position: absolute;
+      top: 50px;
+      right: 22px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.15);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #424242;
+      width: 64px;
+      display: none;
+      flex-direction: column;
+      user-select: none;
+      z-index: 100;
+    }
+
+    #notification-menu div {
+      padding: 10px 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.25s;
+    }
+
+    #notification-menu div:hover {
+      background-color: #f2f2f2;
+    }
+
+    /* Settings card */
+    .settings-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.07);
+      padding: 18px 30px 24px;
+      font-size: 14px;
+      color: #424242;
+      width: 320px;
+      position: relative;
+      user-select: none;
+    }
+
+    .settings-card header {
+      font-weight: 700;
+      font-size: 16px;
+      color: #222;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .settings-card header svg {
+      width: 18px;
+      height: 18px;
+      fill: #a0a0a0;
+      cursor: pointer;
+    }
+
+    /* Settings rows */
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid #eee;
+      font-weight: 500;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .settings-row select {
+      background: transparent;
+      border: none;
+      font-weight: 500;
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+      padding: 3px 0;
+      font-family: inherit;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      text-align-last: right;
+    }
+
+    /* Right column My Profile */
+    .profile-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.07);
+      padding: 30px 40px;
+      width: 480px;
+      position: relative;
+      user-select: none;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .profile-card .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    .profile-card .header img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .profile-card .header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1;
+    }
+
+    .profile-card .header-info .name {
+      font-weight: 600;
+      font-size: 20px;
+      color: #222;
+      line-height: 1.1;
+    }
+
+    .profile-card .header-info .email {
+      font-weight: 400;
+      font-size: 14px;
+      color: #777;
+    }
+
+    /* Edit icon circle on profile image */
+    .edit-icon {
+      position: absolute;
+      left: 56px;
+      bottom: 12px;
+      background: white;
+      border-radius: 50%;
+      border: 1.5px solid #bbb;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #666;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      user-select: none;
+    }
+
+    .edit-icon:hover {
+      background-color: #f5f5f5;
+      color: #3040bf; /* matching blue */
+    }
+
+    .edit-icon svg {
+      stroke: currentColor;
+      stroke-width: 1.9;
+      width: 14px;
+      height: 14px;
+      fill: none;
+    }
+
+    /* Close button top right */
+    .close-btn {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      font-weight: 700;
+      font-size: 24px;
+      color: #777;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.25s;
+    }
+
+    .close-btn:hover {
+      color: #3040bf; /* matching blue */
+    }
+
+    /* Form rows */
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 14px 0;
+      font-weight: 500;
+      font-size: 15px;
+      color: #555;
+    }
+
+    .form-row span {
+      color: #555;
+    }
+
+    .form-label {
+      font-weight: 600;
+      text-align: left;
+      flex-basis: 40%;
+      color: #222;
+    }
+
+    .form-value {
+      flex-basis: 55%;
+      text-align: right;
+      font-weight: 400;
+      color: #777;
+    }
+
+    /* Input fields styling */
+    input.form-value {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #333;
+      transition: border-color 0.3s ease;
+    }
+
+    input.form-value:focus {
+      outline: none;
+      border-color: #344BE2;
+      box-shadow: 0 0 0 2px rgba(52, 75, 226, 0.1);
+    }
+
+    input.form-value::placeholder {
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* Flash message styling */
+    .flash-message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .flash-message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .password-stars {
+      letter-spacing: 3px;
+    }
+
+    /* Add number text style */
+    .add-number {
+      color: #7b7b7b;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+      text-decoration: underline;
+      font-size: 14px;
+    }
+
+    /* Save button */
+    .btn-save {
+      cursor: pointer;
+      background-color: #3040bf; /* Using #344BE2 darkened for button */
+      border: none;
+      border-radius: 5px;
+      padding: 12px 26px;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      align-self: flex-start;
+      box-shadow: 0 6px 14px rgb(48 64 191 / 0.6);
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .btn-save:hover {
+      background-color: #435eee;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      main {
+        flex-direction: column;
+        padding: 30px 20px;
+        align-items: center;
+      }
+
+      .left-column {
+        max-width: 100%;
+        width: 100%;
+        order: 2;
+      }
+
+      .profile-card {
+        width: 100%;
+        max-width: 480px;
+        order: 1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 15px 20px;
+        gap: 15px;
+      }
+
+      nav ul {
+        gap: 16px;
+      }
+
+      .left-column {
+        max-width: 100%;
+      }
+
+      .profile-card {
+        max-width: 100%;
+        padding: 24px 20px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#">Shop</a></li>
+        <li>
+          <span>Products ▼</span>
+          <ul>
+            <li><a href="#">Indoor Plants</a></li>
+            <li><a href="#">Outdoor Plants</a></li>
+            <li><a href="#">Garden Tools</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Fertilizer</a></li>
+        <li><a href="#">Guide</a></li>
+      </ul>
+    </nav>
+
+    <div class="logo" aria-label="ArtConnect Galerie Logo">
+      <svg width="20" height="27" viewBox="0 0 16 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true" focusable="false">
+        <path d="M4 0V11" stroke="white" stroke-width="2" stroke-linecap="round" />
+        <path d="M8 0V11" stroke="white" stroke-width="2" stroke-linecap="round" />
+        <path d="M12 0V11" stroke="white" stroke-width="2" stroke-linecap="round" />
+        <circle cx="8" cy="15" r="6" stroke="white" stroke-width="2" />
+        <path d="M14 22c-1.5-1-3.5-1-5-1-1.5 0-3 0-5 1" stroke="white" stroke-width="2" />
+      </svg>
+      <span>ArtConnect</span>
+      <small>Galerie</small>
+    </div>
+
+    <div class="right-icons" aria-label="User actions icons">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10.5" cy="10.5" r="7.5" />
+        <line x1="21" y1="21" x2="15.8" y2="15.8" />
+      </svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="7" r="4" />
+        <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+      </svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1" />
+        <circle cx="20" cy="21" r="1" />
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.94-1.45l1.54-7.28H6" />
+      </svg>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Frame Card -->
+      <section class="frame-card" aria-label="User menu and frame">
+        <div class="user-info">
+          <img src="https://i.pravatar.cc/52" alt="User Photo" />
+          <div>
+            {{ user.name }}
+            <small>{{ user.email }}</small>
+          </div>
+        </div>
+        <nav>
+          <a href="#" id="profile-link" tabindex="0">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+            </svg>
+            My Profile
+            <svg class="right-arrow" viewBox="0 0 8 12" aria-hidden="true" focusable="false">
+              <path d="M1 1l5 5-5 5" stroke="#b7b7b7" stroke-width="2" fill="none" />
+            </svg>
+          </a>
+          <a href="#" id="settings-link" tabindex="0">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 12a7.42 7.42 0 0 0-.1-1l2.1-1.6-3.3-5.7-2.6.7a7.4 7.4 0 0 0-1-.1V5l-3.5 4-3.5-4v1a7.42 7.42 0 0 0-1 .1l-2.6-.7-3.3 5.7 2.1 1.6a7.42 7.42 0 0 0 0 2l-2.1 1.6 3.3 5.7 2.6-.7a7.4 7.4 0 0 0 1 .1v1l3.5-4 3.5 4v-1a7.42 7.42 0 0 0 1-.1l2.6.7 3.3-5.7-2.1-1.6z" />
+            </svg>
+            Settings
+            <svg class="right-arrow" viewBox="0 0 8 12" aria-hidden="true" focusable="false">
+              <path d="M1 1l5 5-5 5" stroke="#b7b7b7" stroke-width="2" fill="none" />
+            </svg>
+          </a>
+          <div id="notification-item" tabindex="0" aria-haspopup="true" aria-expanded="false" role="menuitem">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-5v-5a6 6 0 0 0-12 0v5l-2 2v1h16v-1l-2-2z" />
+            </svg>
+            Notification
+            <span style="font-weight: 600; font-size: 11px; color:#3040bf;">Allow</span>
+            <div id="notification-menu" role="menu" aria-label="Notification menu">
+              <div tabindex="0" role="menuitem">Allow</div>
+              <div tabindex="0" role="menuitem">Mute</div>
+            </div>
+          </div>
+          <a href="#" tabindex="0">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M16 17l-4-4-4 4" />
+              <path d="M12 12v8" />
+            </svg>
+            Log Out
+          </a>
+        </nav>
+      </section>
+
+      <!-- Settings Card -->
+      <section class="settings-card" aria-label="User settings panel" hidden>
+        <header>
+          Settings
+          <svg role="button" aria-label="Close settings" id="settings-close" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </header>
+        <div class="settings-row">
+          Theme
+          <select aria-label="Select theme">
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Auto</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          Language
+          <select aria-label="Select language">
+            <option value="eng" selected>Eng</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right column My Profile -->
+    <section class="profile-card" aria-label="User profile">
+      <form method="POST" action="{{ path('app_profile') }}" id="profile-form">
+      
+      {% for message in app.flashes('success') %}
+        <div class="flash-message success">
+          {{ message }}
+        </div>
+      {% endfor %}
+      
+      <div class="header">
+        <img src="https://ui-avatars.com/api/?name={{ user.name|url_encode }}&size=72&background=344BE2&color=fff&bold=true" alt="User profile photo" />
+        <div class="header-info">
+          <div class="name">{{ user.name }}</div>
+          <div class="email">{{ user.email }}</div>
+        </div>
+        <button class="close-btn" aria-label="Close profile" id="profile-close">&times;</button>
+        <div class="edit-icon" title="Edit profile" aria-label="Edit profile" tabindex="0">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="name">Name</label>
+        <input type="text" class="form-value" id="name" name="name" value="{{ user.name }}" required />
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="email">Email account</label>
+        <input type="email" class="form-value" id="email" name="email" value="{{ user.email }}" required />
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" class="form-value" id="password" name="password" placeholder="Leave blank to keep current" />
+      </div>
+      <div class="form-row">
+        <span class="form-label">Mobile number</span>
+        <span class="form-value add-number" tabindex="0" role="button" aria-label="Add mobile number">Add number</span>
+      </div>
+
+      <button type="submit" class="btn-save">Save Change</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    // Notification menu toggle
+    const notificationTrigger = document.getElementById('notification-item');
+    const notificationMenu = document.getElementById('notification-menu');
+
+    notificationTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const expanded = notificationTrigger.getAttribute('aria-expanded') === 'true';
+      notificationTrigger.setAttribute('aria-expanded', !expanded);
+      notificationMenu.style.display = expanded ? 'none' : 'flex';
+    });
+
+    // Close notification menu on outside click
+    document.addEventListener('click', () => {
+      notificationMenu.style.display = 'none';
+      notificationTrigger.setAttribute('aria-expanded', 'false');
+    });
+
+    // Prevent menu clicks from closing
+    notificationMenu.addEventListener('click', e => e.stopPropagation());
+
+    // Settings panel toggle
+    const settingsLink = document.getElementById('settings-link');
+    const settingsCard = document.querySelector('.settings-card');
+    const settingsClose = document.getElementById('settings-close');
+
+    settingsLink.addEventListener('click', e => {
+      e.preventDefault();
+      settingsCard.hidden = false;
+    });
+
+    settingsClose.addEventListener('click', () => {
+      settingsCard.hidden = true;
+    });
+
+    // Profile close
+    const profileClose = document.getElementById('profile-close');
+    const profileCard = document.querySelector('.profile-card');
+
+    profileClose.addEventListener('click', () => {
+      profileCard.style.display = 'none';
+    });
+
+    // Profile link (scroll into view or show if hidden)
+    const profileLink = document.getElementById('profile-link');
+    profileLink.addEventListener('click', e => {
+      e.preventDefault();
+      profileCard.style.display = 'flex';
+      profileCard.scrollIntoView({ behavior: "smooth" });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Éditer communauté{% endblock %}
+
+{% block body %}
+    <h1>Éditer {{ communite.name }}</h1>
+    {{ include('communite/_form.html.twig') }}
+    <a href="{{ path('communite_index') }}">Retour</a>
+{% endblock %}

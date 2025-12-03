@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ organisation.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #344BE2; color: white;">
+                    <h3 class="mb-0"><i class="fas fa-building"></i> {{ organisation.name }}</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Email</h6>
+                            <p><i class="fas fa-envelope"></i> {{ organisation.email ?? 'Not provided' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Address</h6>
+                            <p><i class="fas fa-map-marker-alt"></i> {{ organisation.address ?? 'Not provided' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Community</h6>
+                            {% if organisation.communite %}
+                                <a href="{{ path('communite_show', {id: organisation.communite.id}) }}" class="badge bg-info text-decoration-none">
+                                    {{ organisation.communite.name }}
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary">None</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Created By</h6>
+                            <p>{{ organisation.createdBy }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted">Created At</h6>
+                            <p>{{ organisation.createdAt|date('F d, Y H:i') }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h4 class="mt-4 mb-3"><i class="fas fa-comments"></i> Feedbacks</h4>
+                    {% if feedbacks|length > 0 %}
+                        <div class="row">
+                            {% for feedback in feedbacks %}
+                                <div class="col-md-12 mb-3">
+                                    <div class="card border-left-primary">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="font-weight-bold">{{ feedback.authorName ?? 'Anonymous' }}</h6>
+                                                {% if feedback.rating %}
+                                                    <div class="text-warning">
+                                                        {% for i in 1..feedback.rating %}
+                                                            <i class="fas fa-star"></i>
+                                                        {% endfor %}
+                                                        {% for i in feedback.rating+1..5 %}
+                                                            <i class="far fa-star"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <p class="mb-1">{{ feedback.content }}</p>
+                                            <small class="text-muted"><i class="fas fa-clock"></i> {{ feedback.createdAt|date('F d, Y H:i') }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No feedback yet for this organisation.</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('organisation_index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                        <div>
+                            <a href="{{ path('feedback_new', {organisationId: organisation.id}) }}" class="btn btn-success">
+                                <i class="fas fa-comment"></i> Leave Feedback
+                            </a>
+                            <a href="{{ path('organisation_edit', {'id': organisation.id}) }}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the organisation <strong>{{ organisation.name }}</strong>? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{{ path('organisation_delete', {'id': organisation.id}) }}" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ organisation.id) }}">
+                    <button type="submit" class="btn btn-danger">Delete Organisation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

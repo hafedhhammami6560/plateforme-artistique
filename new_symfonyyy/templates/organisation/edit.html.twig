@@ -1,9 +1,0 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}Éditer organisation{% endblock %}
-
-{% block body %}
-    <h1>Éditer {{ organisation.name }}</h1>
-    {{ include('organisation/_form.html.twig') }}
-    <a href="{{ path('organisation_index') }}">Retour</a>
-{% endblock %}

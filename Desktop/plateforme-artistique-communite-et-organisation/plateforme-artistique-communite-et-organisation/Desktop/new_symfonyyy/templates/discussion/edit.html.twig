@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Discussion{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit"></i> Modifier la Discussion #{{ discussion.id }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_row(form.titre, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_row(form.sujet, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_row(form.statut, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_row(form.destinataire, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_row(form.contenu, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        {% if form.contrat is defined %}
+                        <div class="mb-3">
+                            {{ form_row(form.contrat, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('discussion_show', {'id': discussion.id}) }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

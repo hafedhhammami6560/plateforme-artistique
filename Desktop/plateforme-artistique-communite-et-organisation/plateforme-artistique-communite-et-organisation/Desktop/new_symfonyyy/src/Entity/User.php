@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -39,6 +41,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     private bool $isVerified = false;
+
+    #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'producteur')]
+    private Collection $contratsAsProducteur;
+
+    #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'artiste')]
+    private Collection $contratsAsArtiste;
+
+    #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'initiateur')]
+    private Collection $discussionsInitiees;
+
+    #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'destinataire')]
+    private Collection $discussionsRecues;
+
+    public function __construct()
+    {
+        $this->contratsAsProducteur = new ArrayCollection();
+        $this->contratsAsArtiste = new ArrayCollection();
+        $this->discussionsInitiees = new ArrayCollection();
+        $this->discussionsRecues = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -130,6 +152,122 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Contrat>
+     */
+    public function getContratsAsProducteur(): Collection
+    {
+        return $this->contratsAsProducteur;
+    }
+
+    public function addContratAsProducteur(Contrat $contrat): static
+    {
+        if (!$this->contratsAsProducteur->contains($contrat)) {
+            $this->contratsAsProducteur->add($contrat);
+            $contrat->setProducteur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContratAsProducteur(Contrat $contrat): static
+    {
+        if ($this->contratsAsProducteur->removeElement($contrat)) {
+            if ($contrat->getProducteur() === $this) {
+                $contrat->setProducteur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Contrat>
+     */
+    public function getContratsAsArtiste(): Collection
+    {
+        return $this->contratsAsArtiste;
+    }
+
+    public function addContratAsArtiste(Contrat $contrat): static
+    {
+        if (!$this->contratsAsArtiste->contains($contrat)) {
+            $this->contratsAsArtiste->add($contrat);
+            $contrat->setArtiste($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContratAsArtiste(Contrat $contrat): static
+    {
+        if ($this->contratsAsArtiste->removeElement($contrat)) {
+            if ($contrat->getArtiste() === $this) {
+                $contrat->setArtiste(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Discussion>
+     */
+    public function getDiscussionsInitiees(): Collection
+    {
+        return $this->discussionsInitiees;
+    }
+
+    public function addDiscussionInitiee(Discussion $discussion): static
+    {
+        if (!$this->discussionsInitiees->contains($discussion)) {
+            $this->discussionsInitiees->add($discussion);
+            $discussion->setInitiateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDiscussionInitiee(Discussion $discussion): static
+    {
+        if ($this->discussionsInitiees->removeElement($discussion)) {
+            if ($discussion->getInitiateur() === $this) {
+                $discussion->setInitiateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Discussion>
+     */
+    public function getDiscussionsRecues(): Collection
+    {
+        return $this->discussionsRecues;
+    }
+
+    public function addDiscussionRecue(Discussion $discussion): static
+    {
+        if (!$this->discussionsRecues->contains($discussion)) {
+            $this->discussionsRecues->add($discussion);
+            $discussion->setDestinataire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDiscussionRecue(Discussion $discussion): static
+    {
+        if ($this->discussionsRecues->removeElement($discussion)) {
+            if ($discussion->getDestinataire() === $this) {
+                $discussion->setDestinataire(null);
+            }
+        }
 
         return $this;
     }

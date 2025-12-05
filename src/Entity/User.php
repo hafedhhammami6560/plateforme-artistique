@@ -42,6 +42,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private bool $isVerified = false;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $userType = null;
+
     #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'producteur')]
     private Collection $contratsAsProducteur;
 
@@ -269,6 +278,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
 
+        return $this;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
+    }
+
+    public function getUserType(): ?string
+    {
+        return $this->userType;
+    }
+
+    public function setUserType(?string $userType): static
+    {
+        $this->userType = $userType;
         return $this;
     }
 }

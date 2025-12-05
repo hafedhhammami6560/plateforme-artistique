@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-users-cog"></i> User Dashboard</h1>
-        <a href="#" class="btn btn-primary" style="background-color: #344BE2; border-color: #344BE2;">
+        <a href="{{ path('app_admin_user_new') }}" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
             <i class="fas fa-plus"></i> Ajouter un utilisateur
         </a>
     </div>
@@ -25,16 +25,51 @@
         </div>
     {% endfor %}
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text" style="background-color: #05468b; color: white;">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name or email...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="roleFilter" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="ROLE_ADMIN">Admin</option>
+                        <option value="ROLE_USER">User</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="verified">Verified</option>
+                        <option value="unverified">Not Verified</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body">
             {% if users|length > 0 %}
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead style="background-color: #344BE2; color: white;">
+                <table class="table table-hover" id="usersTable">
+                    <thead style="background-color: #05468b; color: white;">
                         <tr>
-                            <th>ID</th>
-                            <th>Nom</th>
-                            <th>Email</th>
+                            <th class="sortable" data-sort="id" style="cursor: pointer;">
+                                ID <i class="fas fa-sort"></i>
+                            </th>
+                            <th class="sortable" data-sort="name" style="cursor: pointer;">
+                                Nom <i class="fas fa-sort"></i>
+                            </th>
+                            <th class="sortable" data-sort="email" style="cursor: pointer;">
+                                Email <i class="fas fa-sort"></i>
+                            </th>
                             <th>Rôle</th>
                             <th>Vérifié</th>
                             <th class="text-center">Actions</th>
@@ -128,5 +163,85 @@
         font-size: 0.85rem;
         letter-spacing: 0.5px;
     }
+    .sortable:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const table = document.getElementById('usersTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    let sortDirection = {};
+
+    // Search functionality
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const roleValue = roleFilter.value;
+        const statusValue = statusFilter.value;
+
+        rows.forEach(row => {
+            const name = row.cells[1].textContent.toLowerCase();
+            const email = row.cells[2].textContent.toLowerCase();
+            const role = row.querySelector('.badge')?.textContent.includes('ADMIN') ? 'ROLE_ADMIN' : 'ROLE_USER';
+            const isVerified = row.cells[4].textContent.includes('Oui');
+
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesRole = !roleValue || role === roleValue;
+            const matchesStatus = !statusValue || 
+                (statusValue === 'verified' && isVerified) || 
+                (statusValue === 'unverified' && !isVerified);
+
+            row.style.display = (matchesSearch && matchesRole && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    roleFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+
+    // Sort functionality
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.sort;
+            const columnIndex = Array.from(this.parentElement.children).indexOf(this);
+            
+            // Toggle sort direction
+            sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
+            
+            // Update sort icons
+            document.querySelectorAll('.sortable i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            this.querySelector('i').className = sortDirection[column] === 'asc' ? 
+                'fas fa-sort-up' : 'fas fa-sort-down';
+
+            // Sort rows
+            const sortedRows = rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+
+                // Handle numeric sorting for ID
+                if (column === 'id') {
+                    aValue = parseInt(aValue.replace('#', ''));
+                    bValue = parseInt(bValue.replace('#', ''));
+                }
+
+                if (sortDirection[column] === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+
+            // Re-append sorted rows
+            sortedRows.forEach(row => tbody.appendChild(row));
+        });
+    });
+});
+</script>
 {% endblock %}

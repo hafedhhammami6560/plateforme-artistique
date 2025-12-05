@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><i class="fas fa-building"></i> Organisations</h1>
-        <a href="{{ path('organisation_new') }}" class="btn btn-primary" style="background-color: #344BE2; border-color: #344BE2;">
+        <a href="{{ path('organisation_new') }}" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
             <i class="fas fa-plus"></i> New Organisation
         </a>
     </div>
@@ -62,7 +62,7 @@
                     </select>
                 </div>
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary" style="background-color: #344BE2; border-color: #344BE2;">
+                    <button type="submit" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
                         <i class="fas fa-search"></i> Apply Filters
                     </button>
                     <a href="{{ path('organisation_index') }}" class="btn btn-outline-secondary">
@@ -81,7 +81,7 @@
             {% if organisations|length > 0 %}
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead style="background-color: #344BE2; color: white;">
+                    <thead style="background-color: #05468b; color: white;">
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
@@ -134,7 +134,7 @@
                 <div class="text-center py-5">
                     <i class="fas fa-building fa-3x text-muted mb-3"></i>
                     <p class="text-muted">No organisations found. Create your first organisation!</p>
-                    <a href="{{ path('organisation_new') }}" class="btn btn-primary" style="background-color: #344BE2;">
+                    <a href="{{ path('organisation_new') }}" class="btn btn-primary" style="background-color: #05468b;">
                         <i class="fas fa-plus"></i> Create Organisation
                     </a>
                 </div>

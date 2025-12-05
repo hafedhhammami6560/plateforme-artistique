@@ -19,7 +19,7 @@
         /* Sidebar */
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, #344BE2 0%, #2a3db8 100%);
+            background: linear-gradient(180deg, #05468b 0%, #0260d3 100%);
             color: white;
             padding: 30px 20px;
             display: flex;
@@ -121,7 +121,7 @@
         }
 
         .breadcrumb span {
-            color: #344BE2;
+            color: #05468b;
             font-weight: 600;
         }
 
@@ -141,7 +141,7 @@
         }
 
         h1 {
-            color: #344BE2;
+            color: #05468b;
             font-size: 32px;
             margin-bottom: 30px;
             font-weight: 600;
@@ -223,12 +223,12 @@
         }
 
         .btn-primary {
-            background-color: #344BE2;
+            background-color: #05468b;
             color: white;
         }
 
         .btn-primary:hover {
-            background-color: #2a3db8;
+            background-color: #0260d3;
         }
 
         .btn-danger {
@@ -260,7 +260,7 @@
         }
 
         th {
-            background-color: #344BE2;
+            background-color: #05468b;
             color: white;
             padding: 16px;
             text-align: left;
@@ -397,7 +397,7 @@
                             <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8z"/>
                             <path d="M8 12a4 4 0 0 1 8 0"/>
                         </svg>
-                        <span>Communaut├®s</span>
+                        <span>Communaut+®s</span>
                     </a>
                 </li>
                 <li>
@@ -530,10 +530,10 @@
 
         {% if app.request.attributes.get('_route') == 'app_dashboard_stats' %}
         <div class="stats-container" style="background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(52,75,226,0.08); padding: 32px; margin-bottom: 32px;">
-            <h2 style="color: #344BE2; margin-bottom: 24px;">Statistiques</h2>
+            <h2 style="color: #05468b; margin-bottom: 24px;">Statistiques</h2>
             <div style="display: flex; gap: 32px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 180px; background: #f4f7fb; border-radius: 8px; padding: 24px; text-align: center;">
-                    <div style="font-size: 32px; font-weight: 700; color: #344BE2;">{{ totalUsers|default(0) }}</div>
+                    <div style="font-size: 32px; font-weight: 700; color: #05468b;">{{ totalUsers|default(0) }}</div>
                     <div style="color: #6c757d;">Total Users</div>
                 </div>
                 <div style="flex: 1; min-width: 180px; background: #f4f7fb; border-radius: 8px; padding: 24px; text-align: center;">

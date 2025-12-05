@@ -52,6 +52,14 @@ class OrganisationController extends AbstractController
     #[Route('/', name: 'organisation_index', methods: ['GET'])]
     public function index(Request $request, OrganisationRepository $repo, EntityManagerInterface $em): Response
     {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        // Redirect to login if not connected
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+        
         // Récupération des paramètres GET
         $search = $request->query->get('search', '');
         $communiteId = $request->query->get('communite', '');

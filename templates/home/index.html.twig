@@ -142,6 +142,78 @@
       font-size: 20px;
       color: #fff;
       cursor: pointer;
+      align-items: center;
+    }
+
+    .header-icons .btn-login {
+      background: #dce9ff;
+      color: #05468b;
+      padding: 10px 28px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 8px rgb(30 60 150 / 0.32);
+    }
+
+    .header-icons .btn-login:hover {
+      background: #aac6fc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgb(30 60 150 / 0.4);
+    }
+
+    /* Profile dropdown */
+    .profile-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .profile-dropdown > svg {
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    .profile-menu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: -10px;
+      background-color: #ffffff;
+      min-width: 200px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      padding: 8px 0;
+    }
+
+    .profile-menu.show {
+      display: block !important;
+    }
+
+    .profile-menu a {
+      color: #333;
+      padding: 12px 20px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      transition: background-color 0.2s ease;
+    }
+
+    .profile-menu a:hover {
+      background-color: #f1f5f9;
+    }
+
+    .profile-menu a svg {
+      width: 18px;
+      height: 18px;
+      stroke: #333;
+      stroke-width: 2;
+      fill: none;
+      flex-shrink: 0;
     }
 
     .header-icons svg {
@@ -492,6 +564,31 @@
       }
     }
   </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileDropdown = document.querySelector('.profile-dropdown');
+      const profileMenu = document.querySelector('.profile-menu');
+      
+      console.log('Profile dropdown:', profileDropdown);
+      console.log('Profile menu:', profileMenu);
+      
+      if (profileDropdown && profileMenu) {
+        // Toggle menu on profile icon click
+        profileDropdown.addEventListener('click', function(e) {
+          e.stopPropagation();
+          console.log('Profile clicked, toggling menu');
+          profileMenu.classList.toggle('show');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!profileDropdown.contains(e.target)) {
+            profileMenu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Righteous&display=swap" rel="stylesheet" />
 </head>
@@ -501,17 +598,22 @@
     <header>
       <nav>
         <ul>
-          <li><a href="{{ path('app_home') }}">Shop</a></li>
-          <li>
-            Products
-            <ul>
-              <li><a href="{{ path('communite_index') }}">Communautés</a></li>
-              <li><a href="{{ path('organisation_index') }}">Organisations</a></li>
-              <li><a href="{{ path('app_admin_user_dashboard') }}">Admin Users</a></li>
-            </ul>
-          </li>
-          <li><a href="{{ path('communite_index') }}">Exhibitions</a></li>
-          <li><a href="{{ path('communite_index') }}">Guide</a></li>
+          {% if app.request.cookies.get('user_id') %}
+            {# User is logged in - show authenticated menu #}
+            {% if app.request.cookies.get('user_role') == 'admin' %}
+              <li><a href="{{ path('app_admin_user_dashboard') }}">Home</a></li>
+            {% else %}
+              <li><a href="{{ path('app_home') }}">Home</a></li>
+            {% endif %}
+            <li><a href="#">Community</a></li>
+            <li><a href="#">Organisation</a></li>
+            <li><a href="#">Post</a></li>
+          {% else %}
+            {# User is not logged in - show default menu #}
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">About</a></li>
+          {% endif %}
         </ul>
       </nav>
 
@@ -530,19 +632,58 @@
       </div>
 
       <div class="header-icons" aria-label="User actions">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="11" cy="11" r="7" />
-          <line x1="20" y1="20" x2="16.65" y2="16.65" />
-        </svg>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="7" r="4" />
-          <path d="M5 21v-2a7 7 0 0114 0v2" />
-        </svg>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="9" cy="21" r="1" />
-          <circle cx="20" cy="21" r="1" />
-          <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.94-1.45l1.54-7.28H6" />
-        </svg>
+        {% if app.request.cookies.get('user_id') %}
+          {# User is logged in - show icons #}
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="20" y1="20" x2="16.65" y2="16.65" />
+          </svg>
+          
+          <div class="profile-dropdown">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M5 21v-2a7 7 0 0114 0v2" />
+            </svg>
+            <div class="profile-menu">
+              <a href="{{ path('app_profile') }}">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="7" r="4" />
+                  <path d="M5 21v-2a7 7 0 0114 0v2" />
+                </svg>
+                Profile
+              </a>
+              <a href="{{ path('app_profile_edit') }}">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3" />
+                </svg>
+                Settings
+              </a>
+              <a href="#">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M3 3h18v18H3z" />
+                  <path d="M8 7h8M8 12h8M8 17h5" />
+                </svg>
+                Historique
+              </a>
+              <a href="{{ path('auth_logout') }}">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" />
+                </svg>
+                Se déconnecter
+              </a>
+            </div>
+          </div>
+          
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.94-1.45l1.54-7.28H6" />
+          </svg>
+        {% else %}
+          {# User is not logged in - show login button #}
+          <a href="{{ path('auth_login') }}" class="btn-login">Login</a>
+        {% endif %}
       </div>
     </header>
 
@@ -551,13 +692,13 @@
       <p>Our environment, the world in which we live and work, is a mirror of our attitudes and expectations.</p>
 
       <nav aria-label="Hero call to actions">
-        <a href="{{ path('communite_index') }}" class="btn-primary">Explore Art</a>
-        <a href="{{ path('organisation_index') }}" class="btn-link" aria-label="Discover artists">
+        <button class="btn-primary" style="cursor: default;" disabled>Explore Art</button>
+        <button class="btn-link" style="cursor: default;" aria-label="Discover artists" disabled>
           Discover artists
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <path d="M6 4l4 4-4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-        </a>
+        </button>
       </nav>
     </section>
 
@@ -566,7 +707,7 @@
         <div class="label-tag">new</div>
         <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Abstract colorful painting with dynamic brush strokes" />
         <div class="small-img-overlay">
-          <a href="{{ path('communite_index') }}" class="small-img-btn">View Details</a>
+          <button class="small-img-btn" style="cursor: default;" disabled>View Details</button>
         </div>
       </article>
 
@@ -574,7 +715,7 @@
         <div class="label-tag">popular</div>
         <img src="https://images.unsplash.com/photo-1549887534-48265ca52ad8?auto=format&fit=crop&w=600&q=80" alt="Modern sculpture with curved metallic structure" />
         <div class="small-img-overlay">
-          <a href="{{ path('organisation_index') }}" class="small-img-btn">View Details</a>
+          <button class="small-img-btn" style="cursor: default;" disabled>View Details</button>
         </div>
       </article>
 
@@ -584,7 +725,7 @@
         <div class="hero-img-large-content">
           <h3>Vivid Geometrics</h3>
           <p>An evocative digital piece blending vibrant color palettes with geometric forms to inspire perspectives and imagination.</p>
-          <a href="{{ path('communite_index') }}" class="read-more-btn" aria-label="Read more about Vivid Geometrics">Read more</a>
+          <button class="read-more-btn" style="cursor: default;" aria-label="Read more about Vivid Geometrics" disabled>Read more</button>
         </div>
       </article>
 

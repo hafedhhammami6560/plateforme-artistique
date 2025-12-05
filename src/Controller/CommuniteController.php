@@ -48,6 +48,14 @@ class CommuniteController extends AbstractController
     #[Route('/', name: 'communite_index', methods: ['GET'])]
     public function index(Request $request, CommuniteRepository $repo): Response
     {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        // Redirect to login if not connected
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+        
         // Récupération des paramètres GET avec valeurs par défaut
         $search = $request->query->get('search', '');
         $sortBy = $request->query->get('sort', 'name');

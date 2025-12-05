@@ -9,8 +9,8 @@
         <style>
             body { font-family: Arial, Helvetica, sans-serif; background:#f5f7fb; margin:0; padding:0; }
             header { display:flex; align-items:center; justify-content:space-between; background:white; padding:15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            nav a { margin-right:20px; text-decoration:none; color:#344BE2; font-weight:500; transition: color 0.3s; }
-            nav a:hover { color:#2837b5; }
+            nav a { margin-right:20px; text-decoration:none; color:#05468b; font-weight:500; transition: color 0.3s; }
+            nav a:hover { color:#0260d3; }
             .container { max-width:1100px; margin:20px auto; }
             
             /* Sidebar styles */
@@ -20,7 +20,7 @@
                 top: 0;
                 width: 250px;
                 height: 100vh;
-                background: linear-gradient(180deg, #344BE2 0%, #2837b5 100%);
+                background: linear-gradient(180deg, #05468b 0%, #0260d3 100%);
                 padding: 20px 0;
                 box-shadow: 2px 0 10px rgba(0,0,0,0.1);
                 z-index: 1000;
@@ -156,7 +156,7 @@
                 left: 20px;
                 top: 20px;
                 z-index: 1001;
-                background: #344BE2;
+                background: #05468b;
                 color: white;
                 border: none;
                 padding: 10px 15px;
@@ -173,61 +173,46 @@
             </a>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="/" class="{{ app.request.attributes.get('_route') == 'app_home' ? 'active' : '' }}">
-                        <i class="fas fa-home"></i>
-                        <span>Accueil</span>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ path('app_dashboard_stats') }}" class="{{ app.request.attributes.get('_route') == 'app_dashboard_stats' ? 'active' : '' }}">
                         <i class="fas fa-chart-bar"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="has-submenu">
-                    <a onclick="this.parentElement.classList.toggle('open')">
-                        <i class="fas fa-box"></i>
-                        <span>Gestion</span>
-                        <i class="fas fa-chevron-down"></i>
+                <li>
+                    <a href="{{ path('communite_index') }}" class="{{ app.request.attributes.get('_route') starts with 'communite_' ? 'active' : '' }}">
+                        <i class="fas fa-users"></i>
+                        <span>Communautés</span>
                     </a>
-                    <ul class="submenu">
-                        <li>
-                            <a href="{{ path('communite_index') }}" class="{{ app.request.attributes.get('_route') starts with 'communite_' ? 'active' : '' }}">
-                                <i class="fas fa-users"></i>
-                                <span>Communautés</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('organisation_index') }}" class="{{ app.request.attributes.get('_route') starts with 'organisation_' ? 'active' : '' }}">
-                                <i class="fas fa-building"></i>
-                                <span>Organisations</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('produit_index') }}" class="{{ app.request.attributes.get('_route') starts with 'produit_' ? 'active' : '' }}">
-                                <i class="fas fa-shopping-bag"></i>
-                                <span>Produits</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
-                                <i class="fas fa-file-contract"></i>
-                                <span>Contrats</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('discussion_index') }}" class="{{ app.request.attributes.get('_route') starts with 'discussion_' ? 'active' : '' }}">
-                                <i class="fas fa-comment-dots"></i>
-                                <span>Discussions</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('app_admin_user_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'app_admin_user_' ? 'active' : '' }}">
-                                <i class="fas fa-user-shield"></i>
-                                <span>Admin Users</span>
-                            </a>
-                        </li>
-                    </ul>
+                </li>
+                <li>
+                    <a href="{{ path('organisation_index') }}" class="{{ app.request.attributes.get('_route') starts with 'organisation_' ? 'active' : '' }}">
+                        <i class="fas fa-building"></i>
+                        <span>Organisations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('produit_index') }}" class="{{ app.request.attributes.get('_route') starts with 'produit_' ? 'active' : '' }}">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Produits</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Contrats</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('discussion_index') }}" class="{{ app.request.attributes.get('_route') starts with 'discussion_' ? 'active' : '' }}">
+                        <i class="fas fa-comment-dots"></i>
+                        <span>Discussions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_admin_user_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'app_admin_user_' ? 'active' : '' }}">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin Users</span>
+                    </a>
                 </li>
                 <li>
                     <a href="{{ path('feedback_index') }}" class="{{ app.request.attributes.get('_route') starts with 'feedback_' ? 'active' : '' }}">

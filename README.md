@@ -105,7 +105,7 @@ plateforme-artistique/
 - **Gestion d'organisations** : CRUD complet
 - **Gestion de produits** : Catalogue de produits artistiques
 - **Gestion de contrats** : Suivi des contrats
-- **Discussions** : Système de messagerie
+- **Discussions** : Système de messagerie ([voir documentation](docs/DISCUSSIONS.md))
 - **Feedback** : Commentaires et retours
 - **Administration** : Dashboard utilisateurs
 - **Statistiques** : Tableau de bord analytique

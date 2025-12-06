@@ -605,9 +605,10 @@
             {% else %}
               <li><a href="{{ path('app_home') }}">Home</a></li>
             {% endif %}
-            <li><a href="#">Community</a></li>
-            <li><a href="#">Organisation</a></li>
-            <li><a href="#">Post</a></li>
+            <li><a href="{{ path('communite_index') }}">Community</a></li>
+            <li><a href="{{ path('organisation_index') }}">Organisation</a></li>
+            <li><a href="{{ path('app_discussion_index') }}">Discussions</a></li>
+            <li><a href="{{ path('app_contrat_index') }}">Contrats</a></li>
           {% else %}
             {# User is not logged in - show default menu #}
             <li><a href="#">Home</a></li>

@@ -1,40 +1,140 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails de la Discussion{% endblock %}
+{% block title %}{{ discussion.titre }}{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>{{ discussion.titre }}</h1>
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_discussion_index') }}">Discussions</a></li>
+            <li class="breadcrumb-item active">{{ discussion.titre }}</li>
+        </ol>
+    </nav>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>ID</th>
-                <td>{{ discussion.id }}</td>
-            </tr>
-            <tr>
-                <th>Titre</th>
-                <td>{{ discussion.titre }}</td>
-            </tr>
-            <tr>
-                <th>Sujet</th>
-                <td>{{ discussion.sujet }}</td>
-            </tr>
-            <tr>
-                <th>Contenu</th>
-                <td>{{ discussion.contenu }}</td>
-            </tr>
-            <tr>
-                <th>Statut</th>
-                <td>{{ discussion.statut }}</td>
-            </tr>
-            <tr>
-                <th>Date de création</th>
-                <td>{{ discussion.createdAt ? discussion.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
 
-    <a href="{{ path('discussion_index') }}" class="btn btn-secondary">Retour à la liste</a>
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    {% if discussion.type == 'publication_rights' %}
+                        <span class="badge bg-primary">Publication Rights</span>
+                    {% else %}
+                        <span class="badge bg-success">Custom Order</span>
+                    {% endif %}
+                    {{ discussion.titre }}
+                </h2>
+                <div>
+                    {% if discussion.statut == 'en_cours' %}
+                        <span class="badge bg-success">En cours</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Terminée</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Initiateur:</strong> {{ discussion.initiateur.name }}</p>
+                    <p><strong>Destinataire:</strong> {{ discussion.destinataire.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    {% if discussion.produit %}
+                        <p><strong>Produit:</strong> {{ discussion.produit.nom }}</p>
+                        <p><strong>Prix produit:</strong> {{ discussion.produit.prix }}€</p>
+                    {% else %}
+                        <p><em>Aucun produit (commande personnalisée)</em></p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if discussion.contrat %}
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-file-earmark-text"></i> 
+                    Contrat lié : 
+                    <a href="{{ path('app_contrat_show', {id: discussion.contrat.id}) }}" class="alert-link">
+                        {{ discussion.contrat.numeroContrat }}
+                    </a>
+                </div>
+            {% else %}
+                {% if is_granted('ROLE_ARTIST') and app.user == discussion.destinataire %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Aucun contrat lié. 
+                        <a href="{{ path('app_contrat_new_from_discussion', {discussion: discussion.id}) }}" class="alert-link">
+                            Créer un contrat pour cette discussion
+                        </a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0"><i class="bi bi-chat-left-text"></i> Messages</h3>
+        </div>
+        <div class="card-body">
+            {% if discussion.messages is empty %}
+                <p class="text-muted">Aucun message</p>
+            {% else %}
+                <div class="list-group list-group-flush">
+                    {% for message in discussion.messages %}
+                        <div class="list-group-item {% if message.auteur == app.user %}bg-light{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {{ message.auteur.name }}
+                                    {% if message.auteur == discussion.initiateur %}
+                                        <span class="badge bg-primary">Initiateur</span>
+                                    {% endif %}
+                                </h6>
+                                <small>{{ message.createdAt|date('d/m/Y H:i') }}</small>
+                            </div>
+                            <p class="mb-1">{{ message.contenu|nl2br }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if discussion.statut == 'en_cours' and is_granted('ADD_MESSAGE', discussion) %}
+                <hr class="my-4">
+                <h5>Ajouter un message</h5>
+                {{ form_start(form) }}
+                    {{ form_row(form.contenu) }}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Envoyer
+                    </button>
+                {{ form_end(form) }}
+            {% elseif discussion.statut != 'en_cours' %}
+                <div class="alert alert-secondary mt-3">
+                    <i class="bi bi-lock"></i> Discussion terminée - impossible d'ajouter des messages
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        
+        {% if is_granted('EDIT', discussion) and discussion.statut == 'en_cours' %}
+            <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette discussion ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('terminer' ~ discussion.id) }}">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Terminer la Discussion
+                </button>
+            </form>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

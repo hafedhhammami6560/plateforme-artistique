@@ -13,9 +13,37 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[Route('/admin/users', name: 'app_admin_user_')]
 class UserController extends AbstractController
 {
-    #[Route('/', name: 'dashboard', methods: ['GET'])]
-    public function dashboard(UserRepository $userRepository): Response
+    /**
+     * Vérifie si l'utilisateur connecté a les droits administrateur
+     */
+    private function checkAdminAccess(Request $request, UserRepository $userRepository): ?Response
     {
+        $userRole = $request->cookies->get('user_role');
+        $userId = $request->cookies->get('user_id');
+        
+        if (!$userId || $userRole !== 'admin') {
+            $this->addFlash('error', 'Accès refusé. Vous devez être administrateur pour accéder à cette page.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        // Vérifier que l'utilisateur a bien le rôle ROLE_ADMIN dans la base
+        $currentUser = $userRepository->find($userId);
+        if (!$currentUser || !in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+            $this->addFlash('error', 'Accès refusé. Droits administrateur requis.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        return null;
+    }
+
+    #[Route('/', name: 'dashboard', methods: ['GET'])]
+    public function dashboard(UserRepository $userRepository, Request $request): Response
+    {
+        // Vérifier les droits admin
+        if ($response = $this->checkAdminAccess($request, $userRepository)) {
+            return $response;
+        }
+
         // Get all users from the database
         $users = $userRepository->findAll();
 
@@ -25,8 +53,13 @@ class UserController extends AbstractController
     }
 
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
-    public function new(Request $request, \Doctrine\ORM\EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    public function new(Request $request, \Doctrine\ORM\EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository): Response
     {
+        // Vérifier les droits admin
+        if ($response = $this->checkAdminAccess($request, $userRepository)) {
+            return $response;
+        }
+
         if ($request->isMethod('POST')) {
             $name = $request->request->get('name');
             $email = $request->request->get('email');
@@ -58,6 +91,11 @@ class UserController extends AbstractController
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, int $id, UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
     {
+        // Vérifier les droits admin
+        if ($response = $this->checkAdminAccess($request, $userRepository)) {
+            return $response;
+        }
+
         $user = $userRepository->find($id);
         
         if (!$user) {
@@ -88,8 +126,13 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
-    public function delete(int $id, UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, int $id, UserRepository $userRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
     {
+        // Vérifier les droits admin
+        if ($response = $this->checkAdminAccess($request, $userRepository)) {
+            return $response;
+        }
+
         $user = $userRepository->find($id);
         
         if (!$user) {

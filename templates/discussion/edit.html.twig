@@ -1,52 +1,76 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier Discussion{% endblock %}
+{% block title %}Modifier la Discussion{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h3 class="mb-0">
-                        <i class="fas fa-edit"></i> Modifier la Discussion #{{ discussion.id }}
-                    </h3>
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_discussion_index') }}">Discussions</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_discussion_show', {id: discussion.id}) }}">Discussion #{{ discussion.id }}</a></li>
+            <li class="breadcrumb-item active">Modifier</li>
+        </ol>
+    </nav>
+
+    <h1><i class="bi bi-pencil"></i> Modifier la Discussion</h1>
+
+    <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle"></i> <strong>Note:</strong> Seul l'initiateur de la discussion peut la modifier, et uniquement si elle n'est pas terminée.
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            {{ form_start(form) }}
+                
+                {{ form_row(form.type) }}
+                
+                {% if form.produit is defined %}
+                    <div id="produit-field">
+                        {{ form_row(form.produit) }}
+                    </div>
+                {% endif %}
+
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Rappel</h5>
+                    <ul class="mb-0">
+                        <li><strong>Type A (Publication Rights):</strong> Nécessite un produit existant</li>
+                        <li><strong>Type B (Custom Order):</strong> Pour une commande personnalisée</li>
+                    </ul>
                 </div>
-                <div class="card-body">
-                    {{ form_start(form) }}
-                        <div class="mb-3">
-                            {{ form_row(form.titre, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.sujet, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.statut, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.destinataire, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.contenu, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        {% if form.contrat is defined %}
-                        <div class="mb-3">
-                            {{ form_row(form.contrat, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        {% endif %}
-                        
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ path('discussion_show', {'id': discussion.id}) }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Annuler
-                            </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-save"></i> Enregistrer
-                            </button>
-                        </div>
-                    {{ form_end(form) }}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ path('app_discussion_show', {id: discussion.id}) }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Enregistrer les Modifications
+                    </button>
                 </div>
-            </div>
+
+            {{ form_end(form) }}
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeRadios = document.querySelectorAll('input[name="discussion[type]"]');
+        const produitField = document.getElementById('produit-field');
+        
+        if (typeRadios.length && produitField) {
+            function toggleProduitField() {
+                const selectedType = document.querySelector('input[name="discussion[type]"]:checked');
+                if (selectedType) {
+                    produitField.style.display = selectedType.value === 'publication_rights' ? 'block' : 'none';
+                }
+            }
+            
+            typeRadios.forEach(radio => {
+                radio.addEventListener('change', toggleProduitField);
+            });
+            
+            toggleProduitField();
+        }
+    });
+</script>
 {% endblock %}

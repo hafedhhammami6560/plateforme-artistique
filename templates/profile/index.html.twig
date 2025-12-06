@@ -265,8 +265,10 @@
                 <div class="profile-badge">
                     {% if 'ROLE_ADMIN' in user.roles %}
                         Administrateur
+                    {% elseif user.userType %}
+                        {{ user.userType|capitalize }}
                     {% else %}
-                        Artiste
+                        Utilisateur
                     {% endif %}
                 </div>
             </div>
@@ -294,12 +296,14 @@
                             </div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Rôle</div>
+                            <div class="info-label">Type d'utilisateur</div>
                             <div class="info-value">
                                 {% if 'ROLE_ADMIN' in user.roles %}
                                     Administrateur
+                                {% elseif user.userType %}
+                                    {{ user.userType|capitalize }}
                                 {% else %}
-                                    Artiste
+                                    Utilisateur
                                 {% endif %}
                             </div>
                         </div>

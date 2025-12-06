@@ -1,40 +1,197 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails du Contrat{% endblock %}
+{% block title %}Contrat {{ contrat.numeroContrat }}{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>Contrat #{{ contrat.id }}</h1>
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_contrat_index') }}">Contrats</a></li>
+            <li class="breadcrumb-item active">{{ contrat.numeroContrat }}</li>
+        </ol>
+    </nav>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>ID</th>
-                <td>{{ contrat.id }}</td>
-            </tr>
-            <tr>
-                <th>Montant</th>
-                <td>{{ contrat.montant }} €</td>
-            </tr>
-            <tr>
-                <th>Date début</th>
-                <td>{{ contrat.dateDebut ? contrat.dateDebut|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Date fin</th>
-                <td>{{ contrat.dateFin ? contrat.dateFin|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Statut</th>
-                <td>{{ contrat.statut }}</td>
-            </tr>
-            <tr>
-                <th>Termes</th>
-                <td>{{ contrat.termes }}</td>
-            </tr>
-        </tbody>
-    </table>
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
 
-    <a href="{{ path('contrat_index') }}" class="btn btn-secondary">Retour à la liste</a>
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i> {{ contrat.numeroContrat }}
+                </h1>
+                <div>
+                    {% if contrat.statut == 'signe' %}
+                        <span class="badge bg-success fs-5">Signé</span>
+                    {% elseif contrat.statut == 'en_attente_signature' %}
+                        <span class="badge bg-warning fs-5">En attente signature</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-5">Brouillon</span>
+                    {% endif %}
+
+                    {% if contrat.type == 'publication_rights' %}
+                        <span class="badge bg-primary fs-5 ms-2">Publication Rights</span>
+                    {% else %}
+                        <span class="badge bg-success fs-5 ms-2">Custom Order</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-people"></i> Parties</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Artiste:</th>
+                            <td>{{ contrat.artiste.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Client:</th>
+                            <td>{{ contrat.producteur.name }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5><i class="bi bi-calendar"></i> Période</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Début:</th>
+                            <td>{{ contrat.dateDebut|date('d/m/Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fin:</th>
+                            <td>{{ contrat.dateFin|date('d/m/Y') }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-currency-euro"></i> Montant</h5>
+                    <p class="fs-3 text-primary"><strong>{{ contrat.prix }}€</strong></p>
+                </div>
+                <div class="col-md-6">
+                    {% if contrat.produit %}
+                        <h5><i class="bi bi-box"></i> Produit</h5>
+                        <p><strong>{{ contrat.produit.nom }}</strong></p>
+                        <p class="text-muted small">{{ contrat.produit.description|slice(0, 100) }}...</p>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Le produit sera créé après signature complète (Type B)
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr>
+
+            <h5><i class="bi bi-file-text"></i> Conditions du Contrat</h5>
+            <div class="border p-3 bg-light">
+                {{ contrat.conditionsTexte|nl2br }}
+            </div>
+
+            <hr>
+
+            <h5><i class="bi bi-pen"></i> Signatures</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card {% if contrat.signatureArtist %}border-success{% else %}border-warning{% endif %}">
+                        <div class="card-body">
+                            <h6>
+                                <i class="bi bi-person"></i> Artiste: {{ contrat.artiste.name }}
+                            </h6>
+                            {% if contrat.signatureArtist %}
+                                <p class="text-success">
+                                    <i class="bi bi-check-circle-fill"></i> Signé
+                                    {% if contrat.dateSignature %}
+                                        le {{ contrat.dateSignature|date('d/m/Y à H:i') }}
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <p class="text-warning">
+                                    <i class="bi bi-clock"></i> En attente de signature
+                                </p>
+                                {% if is_granted('SIGN_ARTIST', contrat) %}
+                                    <form method="post" action="{{ path('app_contrat_signer_artist', {id: contrat.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir signer ce contrat ?');">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-pen"></i> Signer en tant qu'Artiste
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card {% if contrat.signatureClient %}border-success{% else %}border-warning{% endif %}">
+                        <div class="card-body">
+                            <h6>
+                                <i class="bi bi-person"></i> Client: {{ contrat.producteur.name }}
+                            </h6>
+                            {% if contrat.signatureClient %}
+                                <p class="text-success">
+                                    <i class="bi bi-check-circle-fill"></i> Signé
+                                    {% if contrat.dateSignature %}
+                                        le {{ contrat.dateSignature|date('d/m/Y à H:i') }}
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <p class="text-warning">
+                                    <i class="bi bi-clock"></i> En attente de signature
+                                </p>
+                                {% if is_granted('SIGN_CLIENT', contrat) %}
+                                    <form method="post" action="{{ path('app_contrat_signer_client', {id: contrat.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir signer ce contrat ?');">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-pen"></i> Signer en tant que Client
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if contrat.isFullySigned %}
+                <div class="alert alert-success mt-3">
+                    <i class="bi bi-check-circle-fill"></i> Ce contrat a été entièrement signé par les deux parties le {{ contrat.dateSignature|date('d/m/Y à H:i') }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('app_contrat_index') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+                <div>
+                    {% if is_granted('EDIT', contrat) and contrat.canBeModified %}
+                        <a href="{{ path('app_contrat_edit', {id: contrat.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                    {% endif %}
+                    {% if contrat.isFullySigned %}
+                        <a href="{{ path('app_contrat_export_pdf', {id: contrat.id}) }}" class="btn btn-primary">
+                            <i class="bi bi-file-pdf"></i> Télécharger PDF
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

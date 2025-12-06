@@ -197,23 +197,25 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
+                    <a href="{{ path('app_contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
                         <i class="fas fa-file-contract"></i>
                         <span>Contrats</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('discussion_index') }}" class="{{ app.request.attributes.get('_route') starts with 'discussion_' ? 'active' : '' }}">
+                    <a href="{{ path('app_discussion_index') }}" class="{{ app.request.attributes.get('_route') starts with 'discussion_' ? 'active' : '' }}">
                         <i class="fas fa-comment-dots"></i>
                         <span>Discussions</span>
                     </a>
                 </li>
+                {% if app.request.cookies.get('user_role') == 'admin' %}
                 <li>
                     <a href="{{ path('app_admin_user_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'app_admin_user_' ? 'active' : '' }}">
                         <i class="fas fa-user-shield"></i>
                         <span>Admin Users</span>
                     </a>
                 </li>
+                {% endif %}
                 <li>
                     <a href="{{ path('feedback_index') }}" class="{{ app.request.attributes.get('_route') starts with 'feedback_' ? 'active' : '' }}">
                         <i class="fas fa-comments"></i>
@@ -225,12 +227,12 @@
                 {% if app.request.cookies.get('user_role') == 'admin' %}
                     <a href="{{ path('auth_logout') }}">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span>Déconnexion</span>
+                        <span>Déconnexion Admin</span>
                     </a>
                 {% else %}
-                    <a href="{{ path('auth_login') }}">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Connexion Admin</span>
+                    <a href="{{ path('auth_logout') }}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Déconnexion</span>
                     </a>
                 {% endif %}
             </div>

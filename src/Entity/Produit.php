@@ -34,14 +34,25 @@ class Produit
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $categorie = null;
 
-    // Relation avec Contrat
-    #[ORM\ManyToMany(targetEntity: Contrat::class, mappedBy: 'produits')]
-    private Collection $contrats;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $artist = null;
+
+    #[ORM\Column]
+    private bool $sousContrat = false;
+
+    #[ORM\Column(length: 50)]
+    private ?string $statut = 'disponible';
+
+    // Relation avec Contrat - One to One
+    #[ORM\OneToOne(targetEntity: Contrat::class, mappedBy: 'produit')]
+    private ?Contrat $contrat = null;
 
     public function __construct()
     {
         $this->dateCreation = new \DateTimeImmutable();
-        $this->contrats = new ArrayCollection();
+        $this->sousContrat = false;
+        $this->statut = 'disponible';
     }
 
     public function getId(): ?int
@@ -121,29 +132,74 @@ class Produit
         return $this;
     }
 
-    /**
-     * @return Collection<int, Contrat>
-     */
-    public function getContrats(): Collection
+    public function getArtist(): ?User
     {
-        return $this->contrats;
+        return $this->artist;
     }
 
-    public function addContrat(Contrat $contrat): static
+    public function setArtist(?User $artist): static
     {
-        if (!$this->contrats->contains($contrat)) {
-            $this->contrats->add($contrat);
-            $contrat->addProduit($this);
-        }
+        $this->artist = $artist;
 
         return $this;
     }
 
-    public function removeContrat(Contrat $contrat): static
+    public function isSousContrat(): bool
     {
-        if ($this->contrats->removeElement($contrat)) {
-            $contrat->removeProduit($this);
+        return $this->sousContrat;
+    }
+
+    public function setSousContrat(bool $sousContrat): static
+    {
+        $this->sousContrat = $sousContrat;
+
+        return $this;
+    }
+
+    public function getStatut(): ?string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(string $statut): static
+    {
+        $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getContrat(): ?Contrat
+    {
+        return $this->contrat;
+    }
+
+    public function setContrat(?Contrat $contrat): static
+    {
+        // Unset the owning side of the relation if necessary
+        if ($contrat === null && $this->contrat !== null) {
+            $this->contrat->setProduit(null);
         }
+
+        // Set the owning side of the relation if necessary
+        if ($contrat !== null && $contrat->getProduit() !== $this) {
+            $contrat->setProduit($this);
+        }
+
+        $this->contrat = $contrat;
+
+        return $this;
+    }
+
+    public function isDisponible(): bool
+    {
+        return $this->statut === 'disponible' && !$this->sousContrat;
+    }
+
+    public function marquerSousContrat(Contrat $contrat): static
+    {
+        $this->sousContrat = true;
+        $this->contrat = $contrat;
+        $this->statut = 'sous_contrat';
 
         return $this;
     }

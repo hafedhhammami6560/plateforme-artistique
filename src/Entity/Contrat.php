@@ -11,6 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ContratRepository::class)]
 class Contrat
 {
+    const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
+    const TYPE_CUSTOM_ORDER = 'custom_order';
+    
+    const STATUT_BROUILLON = 'brouillon';
+    const STATUT_EN_ATTENTE_SIGNATURE = 'en_attente_signature';
+    const STATUT_SIGNE = 'signe';
+    
+    // Anciens statuts pour rétrocompatibilité
     const STATUT_EN_ATTENTE = 'EN_ATTENTE';
     const STATUT_ACCEPTE = 'ACCEPTE';
     const STATUT_ANNULE = 'ANNULE';
@@ -22,8 +30,35 @@ class Contrat
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 50, unique: true)]
+    private ?string $numeroContrat = null;
+
+    #[ORM\Column(length: 50)]
+    private ?string $type = self::TYPE_PUBLICATION_RIGHTS;
+
     #[ORM\Column]
     private ?float $montant = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    private ?string $prix = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $conditionsTexte = null;
+
+    #[ORM\Column]
+    private bool $signatureArtist = false;
+
+    #[ORM\Column]
+    private bool $signatureClient = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateSignature = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateSignatureArtist = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateSignatureClient = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $dateDebut = null;
@@ -55,8 +90,9 @@ class Contrat
     #[ORM\JoinColumn(nullable: false)]
     private ?User $artiste = null;
 
-    #[ORM\ManyToMany(targetEntity: Produit::class, inversedBy: 'contrats')]
-    private Collection $produits;
+    #[ORM\OneToOne(targetEntity: Produit::class, inversedBy: 'contrat')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Produit $produit = null;
 
     #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'contrat', cascade: ['remove'])]
     private Collection $discussions;
@@ -64,9 +100,11 @@ class Contrat
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->statut = self::STATUT_EN_ATTENTE;
-        $this->produits = new ArrayCollection();
+        $this->statut = self::STATUT_BROUILLON;
+        $this->type = self::TYPE_PUBLICATION_RIGHTS;
         $this->discussions = new ArrayCollection();
+        $this->signatureArtist = false;
+        $this->signatureClient = false;
     }
 
     public function getId(): ?int
@@ -194,28 +232,136 @@ class Contrat
         return $this;
     }
 
-    /**
-     * @return Collection<int, Produit>
-     */
-    public function getProduits(): Collection
+    public function getNumeroContrat(): ?string
     {
-        return $this->produits;
+        return $this->numeroContrat;
     }
 
-    public function addProduit(Produit $produit): static
+    public function setNumeroContrat(string $numeroContrat): static
     {
-        if (!$this->produits->contains($produit)) {
-            $this->produits->add($produit);
+        $this->numeroContrat = $numeroContrat;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getPrix(): ?string
+    {
+        return $this->prix;
+    }
+
+    public function setPrix(string $prix): static
+    {
+        $this->prix = $prix;
+
+        return $this;
+    }
+
+    public function getConditionsTexte(): ?string
+    {
+        return $this->conditionsTexte;
+    }
+
+    public function setConditionsTexte(string $conditionsTexte): static
+    {
+        $this->conditionsTexte = $conditionsTexte;
+
+        return $this;
+    }
+
+    public function isSignatureArtist(): bool
+    {
+        return $this->signatureArtist;
+    }
+
+    public function setSignatureArtist(bool $signatureArtist): static
+    {
+        $this->signatureArtist = $signatureArtist;
+        if ($signatureArtist && !$this->dateSignatureArtist) {
+            $this->dateSignatureArtist = new \DateTimeImmutable();
         }
 
         return $this;
     }
 
-    public function removeProduit(Produit $produit): static
+    public function isSignatureClient(): bool
     {
-        $this->produits->removeElement($produit);
+        return $this->signatureClient;
+    }
+
+    public function setSignatureClient(bool $signatureClient): static
+    {
+        $this->signatureClient = $signatureClient;
+        if ($signatureClient && !$this->dateSignatureClient) {
+            $this->dateSignatureClient = new \DateTimeImmutable();
+        }
 
         return $this;
+    }
+
+    public function getDateSignature(): ?\DateTimeImmutable
+    {
+        return $this->dateSignature;
+    }
+
+    public function setDateSignature(?\DateTimeImmutable $dateSignature): static
+    {
+        $this->dateSignature = $dateSignature;
+
+        return $this;
+    }
+
+    public function getDateSignatureArtist(): ?\DateTimeImmutable
+    {
+        return $this->dateSignatureArtist;
+    }
+
+    public function getDateSignatureClient(): ?\DateTimeImmutable
+    {
+        return $this->dateSignatureClient;
+    }
+
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
+
+    public function setProduit(?Produit $produit): static
+    {
+        $this->produit = $produit;
+
+        return $this;
+    }
+
+    public function isFullySigned(): bool
+    {
+        return $this->signatureArtist && $this->signatureClient;
+    }
+
+    public function canBeModified(): bool
+    {
+        return !$this->signatureArtist && !$this->signatureClient;
+    }
+
+    public function isTypePublicationRights(): bool
+    {
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS;
+    }
+
+    public function isTypeCustomOrder(): bool
+    {
+        return $this->type === self::TYPE_CUSTOM_ORDER;
     }
 
     /**
@@ -249,6 +395,6 @@ class Contrat
 
     public function __toString(): string
     {
-        return 'Contrat #' . $this->id;
+        return $this->numeroContrat ?? 'Contrat #' . $this->id;
     }
 }

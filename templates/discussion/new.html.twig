@@ -3,44 +3,80 @@
 {% block title %}Nouvelle Discussion{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container-fluid px-4 py-4">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="fas fa-comment-dots"></i> Créer une Nouvelle Discussion
-                    </h3>
+        <div class="col-12">
+            <h1 class="mb-4"><i class="bi bi-plus-circle"></i> Nouvelle Discussion</h1>
+            
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Deux types de discussions :</h5>
+                <ul class="mb-0">
+                    <li><strong>Publication Rights</strong> : Pour acquérir les droits d'un produit existant</li>
+                    <li><strong>Custom Order</strong> : Pour commander une œuvre personnalisée</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 col-md-10 col-12">
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
+            {% endfor %}
+
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    {{ form_start(form) }}
-                        <div class="mb-3">
-                            {{ form_row(form.titre, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Type de discussion</label>
+                            <div class="d-flex flex-column gap-2">
+                                {% for choice in form.type %}
+                                    <div class="form-check">
+                                        {{ form_widget(choice, {'attr': {'class': 'form-check-input'}}) }}
+                                        {{ form_label(choice, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {{ form_help(form.type) }}
+                            {{ form_errors(form.type) }}
                         </div>
+
                         <div class="mb-3">
-                            {{ form_row(form.sujet, {'attr': {'class': 'form-control'}}) }}
+                            <label class="form-label fw-bold">{{ form_label(form.titre) }}</label>
+                            {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Acquisition droits album ou Commande sculpture'}}) }}
+                            {{ form_errors(form.titre) }}
                         </div>
+
                         <div class="mb-3">
-                            {{ form_row(form.statut, {'attr': {'class': 'form-select'}}) }}
+                            <label class="form-label fw-bold">{{ form_label(form.destinataire) }}</label>
+                            {{ form_widget(form.destinataire, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.destinataire) }}
                         </div>
+
+                        <div class="mb-3" id="produit-field" style="display: none;">
+                            {% if form.produit is defined %}
+                                <label class="form-label fw-bold">Produit concerné</label>
+                                <small class="text-muted d-block mb-2">Obligatoire pour Type A (Publication Rights)</small>
+                                {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.produit) }}
+                            {% endif %}
+                        </div>
+
                         <div class="mb-3">
-                            {{ form_row(form.destinataire, {'attr': {'class': 'form-select'}}) }}
+                            <label class="form-label fw-bold">{{ form_label(form.messageInitial) }}</label>
+                            {{ form_widget(form.messageInitial, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Décrivez votre demande...'}}) }}
+                            {{ form_errors(form.messageInitial) }}
                         </div>
-                        <div class="mb-3">
-                            {{ form_row(form.contenu, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        {% if form.contrat is defined %}
-                        <div class="mb-3">
-                            {{ form_row(form.contrat, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        {% endif %}
-                        
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ path('discussion_index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Annuler
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annuler
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> Créer la Discussion
+                                <i class="bi bi-check-circle"></i> Créer la Discussion
                             </button>
                         </div>
                     {{ form_end(form) }}
@@ -49,4 +85,26 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeInputs = document.querySelectorAll('input[name="discussion[type]"]');
+    const produitField = document.getElementById('produit-field');
+    
+    function updateProduitVisibility() {
+        const selectedType = document.querySelector('input[name="discussion[type]"]:checked');
+        if (selectedType && selectedType.value === 'publication_rights') {
+            produitField.style.display = 'block';
+        } else {
+            produitField.style.display = 'none';
+        }
+    }
+    
+    typeInputs.forEach(input => {
+        input.addEventListener('change', updateProduitVisibility);
+    });
+    
+    updateProduitVisibility();
+});
+</script>
 {% endblock %}

@@ -7,14 +7,6 @@
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4"><i class="bi bi-plus-circle"></i> Nouvelle Discussion</h1>
-            
-            <div class="alert alert-info">
-                <h5><i class="bi bi-info-circle"></i> Deux types de discussions :</h5>
-                <ul class="mb-0">
-                    <li><strong>Publication Rights</strong> : Pour acquérir les droits d'un produit existant</li>
-                    <li><strong>Custom Order</strong> : Pour commander une œuvre personnalisée</li>
-                </ul>
-            </div>
         </div>
     </div>
 
@@ -30,18 +22,9 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Type de discussion</label>
-                            <div class="d-flex flex-column gap-2">
-                                {% for choice in form.type %}
-                                    <div class="form-check">
-                                        {{ form_widget(choice, {'attr': {'class': 'form-check-input'}}) }}
-                                        {{ form_label(choice, null, {'label_attr': {'class': 'form-check-label'}}) }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            {{ form_help(form.type) }}
-                            {{ form_errors(form.type) }}
+                        {# Champ type caché mais toujours présent dans le formulaire #}
+                        <div style="display: none;">
+                            {{ form_row(form.type) }}
                         </div>
 
                         <div class="mb-3">
@@ -59,7 +42,6 @@
                         <div class="mb-3" id="produit-field" style="display: none;">
                             {% if form.produit is defined %}
                                 <label class="form-label fw-bold">Produit concerné</label>
-                                <small class="text-muted d-block mb-2">Obligatoire pour Type A (Publication Rights)</small>
                                 {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
                                 {{ form_errors(form.produit) }}
                             {% endif %}

@@ -15,7 +15,15 @@
 
     {% if discussion is defined and discussion %}
         <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Ce contrat est lié à la discussion avec <strong>{{ discussion.participant.name }}</strong>
+            <i class="bi bi-chat-dots"></i> <strong>Contrat lié à une discussion</strong>
+            <ul class="mb-0 mt-2">
+                <li>Discussion: <strong>{{ discussion.titre }}</strong></li>
+                <li>Artiste: <strong>{{ discussion.initiateur.name }}</strong></li>
+                <li>Client: <strong>{{ discussion.destinataire.name }}</strong></li>
+                {% if discussion.produit %}
+                    <li>Produit: <strong>{{ discussion.produit.nom }}</strong> ({{ discussion.produit.prix }}€)</li>
+                {% endif %}
+            </ul>
         </div>
     {% endif %}
 
@@ -23,7 +31,7 @@
         <div class="card-body">
             {{ form_start(form) }}
                 
-                <div class="row">
+                <div class="row mb-3">
                     <div class="col-md-6">
                         {{ form_row(form.artiste) }}
                     </div>
@@ -32,18 +40,24 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form_row(form.type) }}
-                    </div>
-                    <div class="col-md-6">
-                        {% if form.produit is defined %}
-                            {{ form_row(form.produit) }}
-                        {% endif %}
-                    </div>
+                {# Champs cachés quand pré-remplis depuis une discussion #}
+                <div style="display: none;">
+                    {{ form_row(form.type) }}
+                    {% if form.produit is defined and discussion is defined and discussion %}
+                        {{ form_row(form.produit) }}
+                    {% endif %}
                 </div>
 
-                <div class="row">
+                {# Afficher le champ produit uniquement si pas de discussion #}
+                {% if form.produit is defined and (discussion is not defined or not discussion) %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            {{ form_row(form.produit, {'help': ''}) }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row mb-3">
                     <div class="col-md-4">
                         {{ form_row(form.prix) }}
                     </div>
@@ -70,16 +84,6 @@
 
             {{ form_end(form) }}
         </div>
-    </div>
-
-    <div class="alert alert-warning mt-4">
-        <h5><i class="bi bi-exclamation-triangle"></i> À propos des contrats</h5>
-        <ul class="mb-0">
-            <li><strong>Type A (Publication Rights):</strong> Pour accorder des droits sur un produit existant</li>
-            <li><strong>Type B (Custom Order):</strong> Pour une commande personnalisée (le produit sera créé après signature)</li>
-            <li>Une fois créé, le contrat devra être signé par l'artiste puis le client</li>
-            <li>Le contrat ne peut plus être modifié une fois qu'une signature est apposée</li>
-        </ul>
     </div>
 </div>
 {% endblock %}

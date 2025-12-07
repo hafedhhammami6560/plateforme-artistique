@@ -97,9 +97,12 @@ class DiscussionController extends AbstractController
         }
         
         $discussions = $qb->getQuery()->getResult();
+        
+        $currentUser = $this->userRepository->find($userId);
 
         return $this->render('discussion/index.html.twig', [
             'discussions' => $discussions,
+            'currentUser' => $currentUser,
             'search' => $search,
             'typeFilter' => $typeFilter,
             'statutFilter' => $statutFilter,
@@ -247,6 +250,7 @@ class DiscussionController extends AbstractController
         return $this->render('discussion/show.html.twig', [
             'discussion' => $discussion,
             'form' => $form,
+            'currentUser' => $currentUser,
         ]);
     }
 

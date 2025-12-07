@@ -98,7 +98,7 @@
                     </div>
                     <p class="mb-1">
                         <strong>Avec:</strong>
-                        {% if app.user == discussion.initiateur %}
+                        {% if currentUser.id == discussion.initiateur.id %}
                             {{ discussion.destinataire.name }}
                         {% else %}
                             {{ discussion.initiateur.name }}

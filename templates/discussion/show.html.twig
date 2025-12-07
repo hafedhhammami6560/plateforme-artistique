@@ -88,12 +88,14 @@
             {% else %}
                 <div class="list-group list-group-flush">
                     {% for message in discussion.messages %}
-                        <div class="list-group-item {% if message.auteur == app.user %}bg-light{% endif %}">
+                        <div class="list-group-item {% if message.auteur.id == currentUser.id %}bg-light{% endif %}">
                             <div class="d-flex w-100 justify-content-between">
                                 <h6 class="mb-1">
                                     {{ message.auteur.name }}
-                                    {% if message.auteur == discussion.initiateur %}
+                                    {% if message.auteur.id == discussion.initiateur.id %}
                                         <span class="badge bg-primary">Initiateur</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Destinataire</span>
                                     {% endif %}
                                 </h6>
                                 <small>{{ message.createdAt|date('d/m/Y H:i') }}</small>
@@ -104,16 +106,16 @@
                 </div>
             {% endif %}
 
-            {% if discussion.statut == 'en_cours' and is_granted('ADD_MESSAGE', discussion) %}
+            {% if discussion.statut == 'en_cours' %}
                 <hr class="my-4">
-                <h5>Ajouter un message</h5>
+                <h5>Répondre</h5>
                 {{ form_start(form) }}
-                    {{ form_row(form.contenu) }}
+                    {{ form_row(form.contenu, {'attr': {'rows': 3, 'placeholder': 'Tapez votre message...'}}) }}
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-send"></i> Envoyer
                     </button>
                 {{ form_end(form) }}
-            {% elseif discussion.statut != 'en_cours' %}
+            {% else %}
                 <div class="alert alert-secondary mt-3">
                     <i class="bi bi-lock"></i> Discussion terminée - impossible d'ajouter des messages
                 </div>
@@ -126,7 +128,7 @@
             <i class="bi bi-arrow-left"></i> Retour
         </a>
         
-        {% if is_granted('EDIT', discussion) and discussion.statut == 'en_cours' %}
+        {% if discussion.statut == 'en_cours' %}
             <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}" 
                   onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette discussion ?');">
                 <input type="hidden" name="_token" value="{{ csrf_token('terminer' ~ discussion.id) }}">

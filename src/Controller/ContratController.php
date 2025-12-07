@@ -149,6 +149,11 @@ class ContratController extends AbstractController
             }
             
             $contrat->setType($discussion->getType());
+            
+            // Déterminer qui est l'artiste et qui est le producteur
+            // L'initiateur de la discussion est toujours l'artiste
+            // Le destinataire est toujours le publisher/sponsor
+            $contrat->setArtiste($discussion->getInitiateur());
             $contrat->setProducteur($discussion->getDestinataire());
             
             // Type A : pré-remplir avec le produit
@@ -157,10 +162,15 @@ class ContratController extends AbstractController
             } else {
                 $showProduit = false;
             }
+        } else {
+            // Création directe sans discussion : l'utilisateur connecté est l'artiste
+            $contrat->setArtiste($currentUser);
         }
 
         $form = $this->createForm(ContratType::class, $contrat, [
-            'show_produit' => $showProduit
+            'show_produit' => $showProduit,
+            'current_user' => $contrat->getArtiste(), // Utiliser l'artiste du contrat pour filtrer les produits
+            'from_discussion' => $discussion !== null
         ]);
         $form->handleRequest($request);
 
@@ -242,7 +252,8 @@ class ContratController extends AbstractController
 
         $form = $this->createForm(ContratType::class, $contrat, [
             'is_edit' => true,
-            'show_produit' => $contrat->isTypePublicationRights()
+            'show_produit' => $contrat->isTypePublicationRights(),
+            'current_user' => $currentUser
         ]);
         $form->handleRequest($request);
 

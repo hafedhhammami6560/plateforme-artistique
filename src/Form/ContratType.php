@@ -30,16 +30,27 @@ class ContratType extends AbstractType
                 'required' => true,
                 'disabled' => $options['is_edit'], // Ne peut pas changer le type en édition
             ])
+            ->add('artiste', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => function(User $user) {
+                    return $user->getName() . ' (' . $user->getEmail() . ')';
+                },
+                'label' => 'Artiste',
+                'attr' => ['class' => 'form-select'],
+                'required' => true,
+                'disabled' => $options['from_discussion'] || $options['is_edit'],
+                'placeholder' => $options['from_discussion'] ? null : 'Sélectionnez l\'artiste',
+            ])
             ->add('producteur', EntityType::class, [
                 'class' => User::class,
                 'choice_label' => function(User $user) {
                     return $user->getName() . ' (' . $user->getEmail() . ')';
                 },
                 'label' => 'Client (Publisher/Sponsor)',
-                'placeholder' => 'Sélectionnez le client',
+                'placeholder' => $options['from_discussion'] ? null : 'Sélectionnez le client',
                 'attr' => ['class' => 'form-select'],
                 'required' => true,
-                'disabled' => $options['is_edit'],
+                'disabled' => $options['from_discussion'] || $options['is_edit'],
             ])
             ->add('prix', MoneyType::class, [
                 'label' => 'Prix du contrat',
@@ -75,7 +86,7 @@ class ContratType extends AbstractType
 
         // Ajouter le champ produit uniquement pour Type Publication Rights
         if ($options['show_produit']) {
-            $builder->add('produit', EntityType::class, [
+            $produitOptions = [
                 'class' => Produit::class,
                 'choice_label' => function(Produit $produit) {
                     return $produit->getNom() . ' - ' . $produit->getPrix() . '€';
@@ -86,7 +97,19 @@ class ContratType extends AbstractType
                 'required' => false,
                 'disabled' => $options['is_edit'],
                 'help' => 'Obligatoire pour les contrats de type Publication Rights'
-            ]);
+            ];
+            
+            // Filtrer les produits par artiste si current_user est fourni
+            if ($options['current_user']) {
+                $produitOptions['query_builder'] = function($repository) use ($options) {
+                    return $repository->createQueryBuilder('p')
+                        ->where('p.artist = :artist')
+                        ->setParameter('artist', $options['current_user'])
+                        ->orderBy('p.nom', 'ASC');
+                };
+            }
+            
+            $builder->add('produit', EntityType::class, $produitOptions);
         }
     }
 
@@ -96,6 +119,8 @@ class ContratType extends AbstractType
             'data_class' => Contrat::class,
             'is_edit' => false,
             'show_produit' => true,
+            'current_user' => null,
+            'from_discussion' => false,
         ]);
     }
 }

@@ -3,12 +3,21 @@
 namespace App\Entity;
 
 use App\Repository\DiscussionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DiscussionRepository::class)]
 class Discussion
 {
+    const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
+    const TYPE_CUSTOM_ORDER = 'custom_order';
+    
+    const STATUT_EN_COURS = 'en_cours';
+    const STATUT_TERMINEE = 'terminee';
+    
+    // Anciens statuts pour rétrocompatibilité
     const STATUT_OUVERTE = 'OUVERTE';
     const STATUT_FERMEE = 'FERMEE';
 
@@ -20,14 +29,17 @@ class Discussion
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 50)]
+    private ?string $type = self::TYPE_PUBLICATION_RIGHTS;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $sujet = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $contenu = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $statut = self::STATUT_OUVERTE;
+    private ?string $statut = self::STATUT_EN_COURS;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
@@ -48,10 +60,20 @@ class Discussion
     #[ORM\JoinColumn(nullable: true)]
     private ?Contrat $contrat = null;
 
+    #[ORM\ManyToOne(targetEntity: Produit::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Produit $produit = null;
+
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'discussion', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $messages;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->statut = self::STATUT_OUVERTE;
+        $this->statut = self::STATUT_EN_COURS;
+        $this->type = self::TYPE_PUBLICATION_RIGHTS;
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -165,6 +187,74 @@ class Discussion
         $this->contrat = $contrat;
 
         return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
+
+    public function setProduit(?Produit $produit): static
+    {
+        $this->produit = $produit;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setDiscussion($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            if ($message->getDiscussion() === $this) {
+                $message->setDiscussion(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function isTypePublicationRights(): bool
+    {
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS;
+    }
+
+    public function isTypeCustomOrder(): bool
+    {
+        return $this->type === self::TYPE_CUSTOM_ORDER;
+    }
+
+    public function isTerminee(): bool
+    {
+        return $this->statut === self::STATUT_TERMINEE || $this->statut === self::STATUT_FERMEE;
     }
 
     public function __toString(): string

@@ -85,7 +85,10 @@ class FeedbackController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $feedback = new Feedback();
-        $feedback->setAuthorName('user_static');
+        $user = $this->getUser();
+        if ($user) {
+            $feedback->setAuthorName(method_exists($user, 'getName') ? $user->getName() : (method_exists($user, 'getUsername') ? $user->getUsername() : $user->getEmail()));
+        }
 
         // Pré-remplir la communauté ou l'organisation depuis les paramètres d'URL
         $communiteId = $request->query->get('communiteId');

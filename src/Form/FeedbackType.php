@@ -22,7 +22,8 @@ class FeedbackType extends AbstractType
             ->add('authorName', TextType::class, [
                 'label' => 'Nom de l\'auteur',
                 'required' => false,
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control', 'readonly' => true],
+                'disabled' => true
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Type',
@@ -34,11 +35,7 @@ class FeedbackType extends AbstractType
                 ],
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('targetType', TextType::class, [
-                'label' => 'Type de cible',
-                'required' => false,
-                'attr' => ['class' => 'form-control', 'placeholder' => 'product, artist, publisher...']
-            ])
+            // Champ 'Type de cible' supprimé
             ->add('rating', ChoiceType::class, [
                 'label' => 'Note',
                 'choices' => [

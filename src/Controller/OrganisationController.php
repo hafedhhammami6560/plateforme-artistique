@@ -123,11 +123,22 @@ class OrganisationController extends AbstractController
         // Création d'une nouvelle instance vide
         $organisation = new Organisation();
         
-        // Utilisateur statique (module User non implémenté)
-        $organisation->setCreatedBy('user_static');
+        // Le créateur sera défini via le formulaire OrganisationType (champ EntityType User)
         
         // Création du formulaire et liaison avec la requête
-        $form = $this->createForm(OrganisationType::class, $organisation);
+        // Récupérer l'utilisateur connecté
+        $user = $this->getUser();
+
+        // Récupérer les organisations créées par cet utilisateur
+        $userOrganisations = [];
+        if ($user) {
+            $userOrganisations = $em->getRepository(Organisation::class)->findBy(['createdBy' => $user]);
+        }
+
+        // Créer le formulaire en passant la liste filtrée
+        $form = $this->createForm(OrganisationType::class, $organisation, [
+            'user_organisations' => $userOrganisations
+        ]);
         $form->handleRequest($request);
 
         // Vérification soumission et validation

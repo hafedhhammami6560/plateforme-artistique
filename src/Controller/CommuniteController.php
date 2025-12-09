@@ -104,8 +104,7 @@ class CommuniteController extends AbstractController
         // Nouvelle instance vide
         $communite = new Communite();
         
-        // Utilisateur statique (module User non disponible)
-        $communite->setCreatedBy('user_static');
+        // Le créateur sera défini via le formulaire CommuniteType (champ EntityType User)
         
         // Création et liaison du formulaire
         $form = $this->createForm(CommuniteType::class, $communite);

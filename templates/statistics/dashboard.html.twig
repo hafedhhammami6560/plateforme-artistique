@@ -26,7 +26,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-file-contract"></i> Contrats</h5>
                     <h2 class="card-text">{{ totalContrats }}</h2>
-                    <a href="{{ path('contrat_index') }}" class="btn btn-light btn-sm mt-2">Voir tous</a>
+                    <a href="{{ path('app_contrat_index') }}" class="btn btn-light btn-sm mt-2">Voir tous</a>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-comment-dots"></i> Discussions</h5>
                     <h2 class="card-text">{{ totalDiscussions }}</h2>
-                    <a href="{{ path('discussion_index') }}" class="btn btn-light btn-sm mt-2">Voir toutes</a>
+                    <a href="{{ path('app_discussion_index') }}" class="btn btn-light btn-sm mt-2">Voir toutes</a>
                 </div>
             </div>
         </div>
@@ -66,12 +66,12 @@
                     
                     <div class="row text-center">
                         <div class="col-md-3">
-                            <a href="{{ path('contrat_new') }}" class="btn btn-outline-success btn-block">
+                            <a href="{{ path('app_contrat_new') }}" class="btn btn-outline-success btn-block">
                                 <i class="fas fa-plus"></i> Nouveau Contrat
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ path('discussion_new') }}" class="btn btn-outline-info btn-block">
+                            <a href="{{ path('app_discussion_new') }}" class="btn btn-outline-info btn-block">
                                 <i class="fas fa-plus"></i> Nouvelle Discussion
                             </a>
                         </div>

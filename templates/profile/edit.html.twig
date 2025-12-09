@@ -243,6 +243,45 @@
                     </div>
                 </div>
 
+                <!-- Signature Électronique Section -->
+                <div class="form-section">
+                    <h2 class="section-title">✍️ Signature Électronique</h2>
+                    
+                    <div class="password-note" style="background: #f0fdf4; border-left-color: #10b981;">
+                        <p><strong>Info :</strong> Enregistrez votre signature pour l'utiliser automatiquement dans tous vos contrats.</p>
+                    </div>
+
+                    {% if user.hasSignature() %}
+                        <div class="form-group">
+                            <label>Signature actuelle</label>
+                            <div style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 20px; background: #f9fafb; text-align: center;">
+                                <img src="{{ user.signatureElectronique }}" alt="Signature" style="max-width: 100%; height: auto; max-height: 150px;" />
+                                <p class="help-text" style="margin-top: 10px;">
+                                    Enregistrée le {{ user.signatureCreatedAt|date('d/m/Y à H:i') }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="signature-canvas">Dessinez votre signature</label>
+                        <div style="border: 2px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+                            <canvas id="signature-canvas" width="620" height="200" style="display: block; cursor: crosshair; background: white;"></canvas>
+                        </div>
+                        <input type="hidden" id="signature_electronique" name="signature_electronique" />
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button type="button" id="clear-signature" class="btn btn-secondary" style="flex: none; padding: 10px 20px;">
+                                🗑️ Effacer
+                            </button>
+                            {% if user.hasSignature() %}
+                                <button type="button" id="delete-signature" class="btn btn-secondary" style="flex: none; padding: 10px 20px; background: #fee; color: #c00;">
+                                    ❌ Supprimer la signature enregistrée
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Password Section -->
                 <div class="form-section">
                     <h2 class="section-title">🔒 Modifier le mot de passe</h2>
@@ -295,5 +334,123 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Signature Canvas Setup
+        const canvas = document.getElementById('signature-canvas');
+        const ctx = canvas.getContext('2d');
+        const signatureInput = document.getElementById('signature_electronique');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Configure canvas drawing
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            lastX = x;
+            lastY = y;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            // Save canvas data to hidden input
+            signatureInput.value = canvas.toDataURL('image/png');
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+        });
+
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            lastX = x;
+            lastY = y;
+            signatureInput.value = canvas.toDataURL('image/png');
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+
+        // Clear button
+        document.getElementById('clear-signature').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            signatureInput.value = '';
+        });
+
+        // Delete stored signature button
+        {% if user.hasSignature() %}
+        document.getElementById('delete-signature').addEventListener('click', () => {
+            if (confirm('Êtes-vous sûr de vouloir supprimer votre signature enregistrée ?')) {
+                // Add hidden input to signal deletion
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'clear_signature';
+                deleteInput.value = '1';
+                document.querySelector('form').appendChild(deleteInput);
+                
+                // Clear canvas and submit
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                signatureInput.value = '';
+                document.querySelector('form').submit();
+            }
+        });
+        {% endif %}
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', (e) => {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (newPassword && newPassword !== confirmPassword) {
+                e.preventDefault();
+                alert('Les nouveaux mots de passe ne correspondent pas.');
+                return false;
+            }
+        });
+    </script>
 </body>
 </html>

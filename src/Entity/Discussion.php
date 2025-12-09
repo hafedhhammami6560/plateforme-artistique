@@ -47,6 +47,13 @@ class Discussion
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    // Soft delete - masquer pour les utilisateurs
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $hiddenByInitiateur = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $hiddenByDestinataire = false;
+
     // Relations
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'discussionsInitiees')]
     #[ORM\JoinColumn(nullable: false)]
@@ -255,6 +262,68 @@ class Discussion
     public function isTerminee(): bool
     {
         return $this->statut === self::STATUT_TERMINEE || $this->statut === self::STATUT_FERMEE;
+    }
+
+    public function isHiddenByInitiateur(): bool
+    {
+        return $this->hiddenByInitiateur;
+    }
+
+    public function setHiddenByInitiateur(bool $hiddenByInitiateur): static
+    {
+        $this->hiddenByInitiateur = $hiddenByInitiateur;
+        return $this;
+    }
+
+    public function isHiddenByDestinataire(): bool
+    {
+        return $this->hiddenByDestinataire;
+    }
+
+    public function setHiddenByDestinataire(bool $hiddenByDestinataire): static
+    {
+        $this->hiddenByDestinataire = $hiddenByDestinataire;
+        return $this;
+    }
+
+    /**
+     * Vérifie si la discussion est masquée pour un utilisateur donné
+     */
+    public function isHiddenForUser(User $user): bool
+    {
+        if ($this->initiateur === $user) {
+            return $this->hiddenByInitiateur;
+        }
+        if ($this->destinataire === $user) {
+            return $this->hiddenByDestinataire;
+        }
+        return false;
+    }
+
+    /**
+     * Masque la discussion pour un utilisateur donné
+     */
+    public function hideForUser(User $user): static
+    {
+        if ($this->initiateur === $user) {
+            $this->hiddenByInitiateur = true;
+        } elseif ($this->destinataire === $user) {
+            $this->hiddenByDestinataire = true;
+        }
+        return $this;
+    }
+
+    /**
+     * Restaure la discussion pour un utilisateur donné
+     */
+    public function unhideForUser(User $user): static
+    {
+        if ($this->initiateur === $user) {
+            $this->hiddenByInitiateur = false;
+        } elseif ($this->destinataire === $user) {
+            $this->hiddenByDestinataire = false;
+        }
+        return $this;
     }
 
     public function __toString(): string

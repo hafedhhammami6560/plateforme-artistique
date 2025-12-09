@@ -51,6 +51,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $userType = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $signatureElectronique = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $signatureCreatedAt = null;
+
     #[ORM\OneToMany(targetEntity: Contrat::class, mappedBy: 'producteur')]
     private Collection $contratsAsProducteur;
 
@@ -312,5 +318,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->userType = $userType;
         return $this;
+    }
+
+    public function getSignatureElectronique(): ?string
+    {
+        return $this->signatureElectronique;
+    }
+
+    public function setSignatureElectronique(?string $signatureElectronique): static
+    {
+        $this->signatureElectronique = $signatureElectronique;
+        
+        // Mettre à jour la date de création si c'est une nouvelle signature
+        if ($signatureElectronique !== null && $this->signatureElectronique !== $signatureElectronique) {
+            $this->signatureCreatedAt = new \DateTimeImmutable();
+        }
+        
+        return $this;
+    }
+
+    public function getSignatureCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->signatureCreatedAt;
+    }
+
+    public function setSignatureCreatedAt(?\DateTimeImmutable $signatureCreatedAt): static
+    {
+        $this->signatureCreatedAt = $signatureCreatedAt;
+        return $this;
+    }
+
+    public function hasSignature(): bool
+    {
+        return $this->signatureElectronique !== null;
     }
 }

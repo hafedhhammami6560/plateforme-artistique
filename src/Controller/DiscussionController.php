@@ -46,9 +46,9 @@ class DiscussionController extends AbstractController
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
 
-        // Build query
+        // Build query - Exclure les discussions masquées
         $qb = $repo->createQueryBuilder('d')
-            ->where('d.initiateur = :user OR d.destinataire = :user')
+            ->where('(d.initiateur = :user AND d.hiddenByInitiateur = false) OR (d.destinataire = :user AND d.hiddenByDestinataire = false)')
             ->setParameter('user', $user);
 
         // Search filter
@@ -334,7 +334,47 @@ class DiscussionController extends AbstractController
         return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
     }
 
-    #[Route('/{id}', name: 'app_discussion_delete', methods: ['POST'])]
+    #[Route('/{id}/hide', name: 'app_discussion_hide', methods: ['POST'])]
+    public function hide(Request $request, Discussion $discussion, UserRepository $userRepo): Response
+    {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Vérifier que l'utilisateur participe à la discussion
+        if ($discussion->getInitiateur() !== $user && $discussion->getDestinataire() !== $user) {
+            $this->addFlash('error', 'Vous ne pouvez pas masquer cette discussion.');
+            return $this->redirectToRoute('app_discussion_index');
+        }
+
+        // Vérifier le token CSRF
+        if (!$this->isCsrfTokenValid('hide_discussion_' . $discussion->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
+            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        }
+
+        try {
+            // Masquer la discussion pour cet utilisateur (soft delete)
+            $discussion->hideForUser($user);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Discussion masquée avec succès !');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors du masquage : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_discussion_index');
+    }
+
+    #[Route('/{id}/delete', name: 'app_discussion_delete', methods: ['POST'])]
     public function delete(Request $request, Discussion $discussion, UserRepository $userRepo): Response
     {
         // Check if user is connected via cookie
@@ -349,9 +389,15 @@ class DiscussionController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user can delete this discussion
-        if (!$this->permissionService->canDeleteDiscussion($user, $discussion)) {
-            $this->addFlash('error', 'Vous n\'avez pas la permission de supprimer cette discussion.');
+        // SEUL L'ADMIN peut supprimer définitivement
+        if ($user->getUserType() !== 'admin') {
+            $this->addFlash('error', 'Seul un administrateur peut supprimer définitivement une discussion.');
+            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        }
+
+        // Vérifier le token CSRF
+        if (!$this->isCsrfTokenValid('delete_discussion_' . $discussion->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
             return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
         }
 
@@ -359,7 +405,7 @@ class DiscussionController extends AbstractController
             $this->em->remove($discussion);
             $this->em->flush();
 
-            $this->addFlash('success', 'Discussion supprimée avec succès !');
+            $this->addFlash('success', 'Discussion supprimée définitivement avec succès !');
         } catch (\Exception $e) {
             $this->addFlash('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }

@@ -77,9 +77,23 @@
 
                                     {% if entry.metadata %}
                                         <hr>
+                                        
+                                        {# Afficher la signature enregistrée si disponible #}
+                                        {% if entry.metadata.user_signature is defined %}
+                                            <div class="mb-3">
+                                                <strong><i class="bi bi-pencil-square"></i> Signature électronique :</strong><br>
+                                                <div class="border rounded p-3 bg-white mt-2" style="max-width: 400px;">
+                                                    <img src="{{ entry.metadata.user_signature }}" alt="Signature" style="max-width: 100%; height: auto;">
+                                                </div>
+                                                {% if entry.metadata.signature_created_at is defined %}
+                                                    <small class="text-muted">Signature créée le {{ entry.metadata.signature_created_at }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
                                         <details>
                                             <summary class="text-muted small" style="cursor: pointer;">
-                                                <i class="bi bi-info-circle"></i> Métadonnées de signature
+                                                <i class="bi bi-info-circle"></i> Métadonnées complètes de signature
                                             </summary>
                                             <pre class="mt-2 p-2 bg-light border rounded small">{{ entry.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
                                         </details>

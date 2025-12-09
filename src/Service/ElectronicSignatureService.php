@@ -126,14 +126,22 @@ class ElectronicSignatureService
         $signatureHash = $this->hashSignatureData($signatureData);
         $signature->setSignatureHash($signatureHash);
         
-        // Métadonnées
-        $signature->setMetadata([
+        // Métadonnées (inclure la signature de l'utilisateur si elle existe)
+        $metadata = [
             'contract_version' => $contract->getUpdatedAt()?->format('Y-m-d H:i:s'),
             'contract_hash' => hash('sha256', $contract->getConditionsTexte()),
             'user_email' => $user->getEmail(),
             'signing_method' => 'electronic',
             'platform' => 'Plateforme Artistique',
-        ]);
+        ];
+        
+        // Ajouter la signature électronique enregistrée si disponible
+        if ($user->hasSignature()) {
+            $metadata['user_signature'] = $user->getSignatureElectronique();
+            $metadata['signature_created_at'] = $user->getSignatureCreatedAt()?->format('Y-m-d H:i:s');
+        }
+        
+        $signature->setMetadata($metadata);
         
         // Persister
         $this->em->persist($signature);
@@ -430,10 +438,16 @@ class ElectronicSignatureService
             $contract->setDateSignatureClient(new \DateTimeImmutable());
         }
         
-        // Si les deux ont signé
+        // Si les deux ont signé, archiver automatiquement
         if ($contract->getSignatureArtist() && $contract->getSignatureClient()) {
             $contract->setStatut(Contrat::STATUT_SIGNE);
             $contract->setDateSignature(new \DateTimeImmutable());
+            $contract->autoArchiveIfFullySigned();
+            
+            $this->logger->info('Contrat complètement signé et archivé', [
+                'contract_id' => $contract->getId(),
+                'archived_at' => $contract->getArchivedAt()?->format('Y-m-d H:i:s')
+            ]);
         } else {
             $contract->setStatut(Contrat::STATUT_EN_ATTENTE_SIGNATURE);
         }

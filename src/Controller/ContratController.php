@@ -284,15 +284,24 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user can edit this contract (only artist can edit)
-        if ($contrat->getArtiste()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Seul l\'artiste peut modifier le contrat.');
+        // Check if user is admin
+        $isAdmin = $user->getUserType() === 'admin';
+
+        // Vérifier si le contrat est archivé
+        if ($contrat->isArchived() && !$isAdmin) {
+            $this->addFlash('error', 'Ce contrat est archivé et ne peut plus être modifié. Seul un administrateur peut le modifier.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
-        // Check if contract can be modified (not signed yet)
-        if (!$contrat->canBeModified()) {
-            $this->addFlash('error', 'Ce contrat ne peut plus être modifié car il a été signé.');
+        // Check if user can edit this contract
+        if (!$isAdmin && $contrat->getArtiste()->getId() !== $user->getId() && $contrat->getProducteur()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous n\'avez pas la permission de modifier ce contrat.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        // Les utilisateurs normaux ne peuvent modifier que les brouillons
+        if (!$isAdmin && !$contrat->canBeEditedByUser()) {
+            $this->addFlash('error', 'Seuls les contrats brouillons peuvent être modifiés. Ce contrat est déjà finalisé ou signé.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
@@ -325,7 +334,7 @@ class ContratController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_contrat_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_contrat_delete', methods: ['POST'])]
     public function delete(Request $request, Contrat $contrat, UserRepository $userRepo): Response
     {
         // Check if user is connected via cookie
@@ -340,14 +349,15 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Only artist can delete, and only if not signed
-        if ($contrat->getArtiste()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Seul l\'artiste peut supprimer le contrat.');
+        // SEUL L'ADMIN peut supprimer définitivement un contrat
+        if ($user->getUserType() !== 'admin') {
+            $this->addFlash('error', 'Seul un administrateur peut supprimer définitivement un contrat.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
-        if (!$contrat->canBeModified()) {
-            $this->addFlash('error', 'Ce contrat ne peut pas être supprimé car il a été signé.');
+        // Vérifier le token CSRF
+        if (!$this->isCsrfTokenValid('delete_contrat_' . $contrat->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 

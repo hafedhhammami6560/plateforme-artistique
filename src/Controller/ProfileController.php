@@ -72,6 +72,24 @@ class ProfileController extends AbstractController
                 $user->setEmail($email);
             }
 
+            // Update signature électronique if provided
+            $signatureData = $request->request->get('signature_electronique');
+            if ($signatureData !== null) {
+                if (!empty($signatureData)) {
+                    // Valider que c'est bien une image base64
+                    if (preg_match('/^data:image\/(png|jpeg|jpg);base64,/', $signatureData)) {
+                        $user->setSignatureElectronique($signatureData);
+                        $this->addFlash('success', 'Votre signature électronique a été enregistrée.');
+                    } else {
+                        $this->addFlash('error', 'Format de signature invalide.');
+                    }
+                } elseif ($request->request->has('clear_signature')) {
+                    $user->setSignatureElectronique(null);
+                    $user->setSignatureCreatedAt(null);
+                    $this->addFlash('success', 'Votre signature électronique a été supprimée.');
+                }
+            }
+
             // Update password if provided
             if ($newPassword) {
                 if (!$currentPassword) {

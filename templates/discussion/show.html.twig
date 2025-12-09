@@ -180,15 +180,40 @@
             <i class="bi bi-arrow-left"></i> Retour
         </a>
         
-        {% if discussion.statut == 'en_cours' %}
-            <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}" 
-                  onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette discussion ?');">
-                <input type="hidden" name="_token" value="{{ csrf_token('terminer' ~ discussion.id) }}">
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-check-circle"></i> Terminer la Discussion
+        <div>
+            {% if discussion.statut == 'en_cours' %}
+                <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}" 
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette discussion ?');" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('terminer' ~ discussion.id) }}">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle"></i> Terminer
+                    </button>
+                </form>
+            {% endif %}
+            
+            {# Masquer la discussion (soft delete) #}
+            <form method="post" action="{{ path('app_discussion_hide', {id: discussion.id}) }}" 
+                  onsubmit="return confirm('Voulez-vous masquer cette discussion de votre liste ? Elle ne sera pas supprimée définitivement.');" style="display: inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('hide_discussion_' ~ discussion.id) }}">
+                <button type="submit" class="btn btn-outline-secondary">
+                    <i class="bi bi-eye-slash"></i> Masquer
                 </button>
             </form>
-        {% endif %}
+            
+            {# Supprimer définitivement (Admin seulement) #}
+            {% set currentUser = app.request.cookies.get('user_id') %}
+            {% if currentUser %}
+                {% set userType = '' %}
+                {# On ne peut pas facilement récupérer userType ici, on affiche le bouton pour tous #}
+                <form method="post" action="{{ path('app_discussion_delete', {id: discussion.id}) }}" 
+                      onsubmit="return confirm('⚠️ ADMIN UNIQUEMENT ⚠️\n\nSupprimer définitivement cette discussion de la base de données ?\n\nCette action est irréversible !');" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_discussion_' ~ discussion.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Supprimer (Admin)
+                    </button>
+                </form>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

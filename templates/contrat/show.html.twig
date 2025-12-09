@@ -25,11 +25,24 @@
         </div>
     {% endfor %}
 
+    {# Alerte si contrat archivé #}
+    {% if contrat.isArchived %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-archive"></i>
+            <strong>Contrat Archivé</strong> - Ce contrat a été signé par les deux parties le {{ contrat.archivedAt|date('d/m/Y à H:i') }}.
+            Il ne peut plus être modifié sauf par un administrateur.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="mb-0">
                     <i class="bi bi-file-earmark-text"></i> {{ contrat.numeroContrat }}
+                    {% if contrat.isArchived %}
+                        <i class="bi bi-archive-fill text-primary" title="Archivé"></i>
+                    {% endif %}
                 </h1>
                 <div>
                     {% if contrat.statut == 'signe' %}
@@ -44,6 +57,10 @@
                         <span class="badge bg-primary fs-5 ms-2">Publication Rights</span>
                     {% else %}
                         <span class="badge bg-success fs-5 ms-2">Custom Order</span>
+                    {% endif %}
+                    
+                    {% if contrat.isArchived %}
+                        <span class="badge bg-info fs-5 ms-2"><i class="bi bi-archive"></i> Archivé</span>
                     {% endif %}
                 </div>
             </div>
@@ -138,13 +155,44 @@
                                 {% set isArtist = contrat.artiste.id|number_format(0, '', '') == currentUserId %}
                                 
                                 {% if isArtist and contrat.statut in ['final', 'en_attente_signature'] %}
-                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" 
-                                          onsubmit="return confirm('⚠️ ATTENTION ⚠️\n\nVous vous apprêtez à signer électroniquement ce contrat.\n\nCette action est irréversible et aura la même valeur juridique qu\'une signature manuscrite.\n\nConfirmez-vous vouloir signer ce contrat ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
-                                        <button type="submit" class="btn btn-success btn-lg w-100">
-                                            <i class="bi bi-pen-fill"></i> Signer Électroniquement
-                                        </button>
-                                    </form>
+                                    {% if contrat.artiste.hasSignature() %}
+                                        <div class="alert alert-info mb-3">
+                                            <small><i class="bi bi-info-circle"></i> Vérifiez votre signature avant de valider</small>
+                                        </div>
+                                        
+                                        {# Aperçu de la signature #}
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-light">
+                                                <strong>Votre signature électronique</strong>
+                                            </div>
+                                            <div class="card-body text-center" style="background: #f8f9fa;">
+                                                <div style="border: 2px solid #dee2e6; border-radius: 8px; padding: 20px; background: white; display: inline-block; min-width: 300px;">
+                                                    <img src="{{ contrat.artiste.signatureElectronique }}" 
+                                                         alt="Votre signature" 
+                                                         style="max-width: 100%; height: auto; max-height: 120px;" />
+                                                </div>
+                                                <p class="text-muted small mt-2 mb-0">
+                                                    <i class="bi bi-calendar"></i> Enregistrée le {{ contrat.artiste.signatureCreatedAt|date('d/m/Y à H:i') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        {# Bouton de validation #}
+                                        <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" 
+                                              onsubmit="return confirm('⚠️ ATTENTION ⚠️\n\nVous vous apprêtez à signer électroniquement ce contrat avec la signature affichée ci-dessus.\n\nCette action est irréversible et aura la même valeur juridique qu\'une signature manuscrite.\n\nConfirmez-vous vouloir signer ce contrat ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
+                                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                                <i class="bi bi-check-circle"></i> Valider ma Signature
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <div class="alert alert-warning mb-2">
+                                            <small><i class="bi bi-exclamation-triangle"></i> Vous devez d'abord enregistrer votre signature électronique</small>
+                                        </div>
+                                        <a href="{{ path('app_profile_edit') }}" class="btn btn-warning btn-lg w-100">
+                                            <i class="bi bi-pencil-square"></i> Enregistrer ma signature
+                                        </a>
+                                    {% endif %}
                                     <form method="post" action="{{ path('app_signature_request', {id: contrat.id}) }}" class="mt-2">
                                         <button type="submit" class="btn btn-outline-primary btn-sm w-100">
                                             <i class="bi bi-envelope"></i> Relancer le client
@@ -178,13 +226,44 @@
                                 {% set isClient = contrat.producteur.id|number_format(0, '', '') == currentUserId %}
                                 
                                 {% if isClient and contrat.statut in ['final', 'en_attente_signature'] %}
-                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" 
-                                          onsubmit="return confirm('⚠️ ATTENTION ⚠️\n\nVous vous apprêtez à signer électroniquement ce contrat.\n\nCette action est irréversible et aura la même valeur juridique qu\'une signature manuscrite.\n\nConfirmez-vous vouloir signer ce contrat ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
-                                        <button type="submit" class="btn btn-success btn-lg w-100">
-                                            <i class="bi bi-pen-fill"></i> Signer Électroniquement
-                                        </button>
-                                    </form>
+                                    {% if contrat.producteur.hasSignature() %}
+                                        <div class="alert alert-info mb-3">
+                                            <small><i class="bi bi-info-circle"></i> Vérifiez votre signature avant de valider</small>
+                                        </div>
+                                        
+                                        {# Aperçu de la signature #}
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-light">
+                                                <strong>Votre signature électronique</strong>
+                                            </div>
+                                            <div class="card-body text-center" style="background: #f8f9fa;">
+                                                <div style="border: 2px solid #dee2e6; border-radius: 8px; padding: 20px; background: white; display: inline-block; min-width: 300px;">
+                                                    <img src="{{ contrat.producteur.signatureElectronique }}" 
+                                                         alt="Votre signature" 
+                                                         style="max-width: 100%; height: auto; max-height: 120px;" />
+                                                </div>
+                                                <p class="text-muted small mt-2 mb-0">
+                                                    <i class="bi bi-calendar"></i> Enregistrée le {{ contrat.producteur.signatureCreatedAt|date('d/m/Y à H:i') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        {# Bouton de validation #}
+                                        <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" 
+                                              onsubmit="return confirm('⚠️ ATTENTION ⚠️\n\nVous vous apprêtez à signer électroniquement ce contrat avec la signature affichée ci-dessus.\n\nCette action est irréversible et aura la même valeur juridique qu\'une signature manuscrite.\n\nConfirmez-vous vouloir signer ce contrat ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
+                                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                                <i class="bi bi-check-circle"></i> Valider ma Signature
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <div class="alert alert-warning mb-2">
+                                            <small><i class="bi bi-exclamation-triangle"></i> Vous devez d'abord enregistrer votre signature électronique</small>
+                                        </div>
+                                        <a href="{{ path('app_profile_edit') }}" class="btn btn-warning btn-lg w-100">
+                                            <i class="bi bi-pencil-square"></i> Enregistrer ma signature
+                                        </a>
+                                    {% endif %}
                                     <form method="post" action="{{ path('app_signature_request', {id: contrat.id}) }}" class="mt-2">
                                         <button type="submit" class="btn btn-outline-primary btn-sm w-100">
                                             <i class="bi bi-envelope"></i> Relancer l'artiste
@@ -222,14 +301,23 @@
                     <i class="bi bi-arrow-left"></i> Retour
                 </a>
                 <div>
-                    {% if is_granted('EDIT', contrat) and contrat.canBeModified %}
+                    {# Modification : seulement si brouillon ET non archivé (ou admin) #}
+                    {% set currentUserId = app.request.cookies.get('user_id')|number_format(0, '', '') %}
+                    {% set isOwner = (contrat.artiste.id|number_format(0, '', '') == currentUserId) or (contrat.producteur.id|number_format(0, '', '') == currentUserId) %}
+                    
+                    {% if isOwner and contrat.statut == 'brouillon' and not contrat.isArchived %}
                         <a href="{{ path('app_contrat_edit', {id: contrat.id}) }}" class="btn btn-warning">
                             <i class="bi bi-pencil"></i> Modifier
                         </a>
+                    {% elseif contrat.isArchived %}
+                        <button class="btn btn-outline-secondary" disabled title="Contrat archivé - Seul un admin peut modifier">
+                            <i class="bi bi-lock"></i> Archivé
+                        </button>
                     {% endif %}
+                    
                     {% if contrat.isFullySigned %}
-                        <a href="{{ path('app_contrat_export_pdf', {id: contrat.id}) }}" class="btn btn-primary">
-                            <i class="bi bi-file-pdf"></i> Télécharger PDF
+                        <a href="{{ path('app_signature_history', {id: contrat.id}) }}" class="btn btn-info">
+                            <i class="bi bi-clock-history"></i> Historique
                         </a>
                     {% endif %}
                 </div>

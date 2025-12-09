@@ -82,6 +82,12 @@ class Contrat
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isArchived = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $archivedAt = null;
+
     // Relations
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'contratsAsProducteur')]
     #[ORM\JoinColumn(nullable: false)]
@@ -409,6 +415,53 @@ class Contrat
         $this->discussionOrigine = $discussionOrigine;
 
         return $this;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->isArchived;
+    }
+
+    public function setIsArchived(bool $isArchived): static
+    {
+        $this->isArchived = $isArchived;
+        
+        if ($isArchived && $this->archivedAt === null) {
+            $this->archivedAt = new \DateTimeImmutable();
+        }
+        
+        return $this;
+    }
+
+    public function getArchivedAt(): ?\DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
+    public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
+    {
+        $this->archivedAt = $archivedAt;
+        return $this;
+    }
+
+    /**
+     * Vérifie si le contrat peut être modifié
+     * Seuls les brouillons et les contrats non signés peuvent être modifiés par les utilisateurs
+     */
+    public function canBeEditedByUser(): bool
+    {
+        return $this->statut === self::STATUT_BROUILLON && !$this->isArchived;
+    }
+
+    /**
+     * Archive automatiquement le contrat s'il est complètement signé
+     */
+    public function autoArchiveIfFullySigned(): void
+    {
+        if ($this->isFullySigned() && !$this->isArchived) {
+            $this->setIsArchived(true);
+            $this->setStatut(self::STATUT_SIGNE);
+        }
     }
 
     public function __toString(): string

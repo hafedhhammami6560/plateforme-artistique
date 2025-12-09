@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique des Signatures - {{ contrat.numeroContrat }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_contrat_index') }}">Contrats</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_contrat_show', {id: contrat.id}) }}">{{ contrat.numeroContrat }}</a></li>
+            <li class="breadcrumb-item active">Historique des Signatures</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">
+                <i class="bi bi-clock-history"></i> Historique des Signatures
+            </h2>
+            <p class="mb-0 small">Contrat : <strong>{{ contrat.numeroContrat }}</strong></p>
+        </div>
+        <div class="card-body">
+            {% if history is empty %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Aucune signature enregistrée pour ce contrat.
+                </div>
+            {% else %}
+                <div class="timeline">
+                    {% for entry in history %}
+                        <div class="timeline-item mb-4 {% if entry.status == 'revoked' %}opacity-50{% endif %}">
+                            <div class="card {% if entry.is_valid %}border-success{% elseif entry.status == 'revoked' %}border-danger{% else %}border-warning{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0">
+                                            <i class="bi bi-person-check"></i> {{ entry.signatory.name }}
+                                        </h5>
+                                        <small class="text-muted">{{ entry.signatory.email }}</small>
+                                    </div>
+                                    <div>
+                                        {% if entry.status == 'valid' and entry.is_valid %}
+                                            <span class="badge bg-success">✓ VALIDE</span>
+                                        {% elseif entry.status == 'revoked' %}
+                                            <span class="badge bg-danger">✗ RÉVOQUÉE</span>
+                                        {% elseif entry.status == 'expired' %}
+                                            <span class="badge bg-warning">⏰ EXPIRÉE</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">⚠ INVALIDE</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong><i class="bi bi-calendar-check"></i> Date de signature :</strong><br>
+                                                {{ entry.signed_at }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong><i class="bi bi-geo-alt"></i> Adresse IP :</strong><br>
+                                                <code>{{ entry.ip_address }}</code>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong><i class="bi bi-hourglass-split"></i> Expire le :</strong><br>
+                                                {{ entry.expires_at }}
+                                            </p>
+                                            {% if entry.revoked_at %}
+                                                <p class="mb-2 text-danger">
+                                                    <strong><i class="bi bi-x-circle"></i> Révoquée le :</strong><br>
+                                                    {{ entry.revoked_at }}<br>
+                                                    <small>Raison : {{ entry.revocation_reason }}</small>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% if entry.metadata %}
+                                        <hr>
+                                        <details>
+                                            <summary class="text-muted small" style="cursor: pointer;">
+                                                <i class="bi bi-info-circle"></i> Métadonnées de signature
+                                            </summary>
+                                            <pre class="mt-2 p-2 bg-light border rounded small">{{ entry.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                        </details>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="alert alert-secondary mt-4">
+                    <h6><i class="bi bi-shield-check"></i> Informations de sécurité</h6>
+                    <ul class="mb-0 small">
+                        <li>Chaque signature est horodatée et liée à une adresse IP</li>
+                        <li>Les signatures sont valables pour une durée de 10 ans</li>
+                        <li>L'intégrité des signatures peut être vérifiée à tout moment</li>
+                        <li>Les signatures révoquées sont conservées dans l'historique</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour au Contrat
+        </a>
+    </div>
+</div>
+
+<style>
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: -20px;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-item::after {
+        content: '●';
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        color: #0d6efd;
+        font-size: 20px;
+    }
+    .timeline-item:last-child::before {
+        display: none;
+    }
+</style>
+{% endblock %}

@@ -29,6 +29,9 @@ class Project
     #[ORM\ManyToOne(inversedBy: 'projects')]
     private ?Category $category = null;
 
+    #[ORM\OneToOne(mappedBy: 'produit', cascade: ['persist', 'remove'])]
+    private ?Contrat $contrat = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -95,6 +98,28 @@ class Project
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getContrat(): ?Contrat
+    {
+        return $this->contrat;
+    }
+
+    public function setContrat(?Contrat $contrat): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($contrat === null && $this->contrat !== null) {
+            $this->contrat->setProduit(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($contrat !== null && $contrat->getProduit() !== $this) {
+            $contrat->setProduit($this);
+        }
+
+        $this->contrat = $contrat;
 
         return $this;
     }

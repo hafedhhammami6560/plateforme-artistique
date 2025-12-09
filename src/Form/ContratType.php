@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Contrat;
-use App\Entity\Produit;
+use App\Entity\Project;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -73,12 +73,11 @@ class ContratType extends AbstractType
                 },
                 'constraints' => [new NotBlank()],
             ])
-            ->add('produits', EntityType::class, [
-                'label' => 'Produits',
-                'class' => Produit::class,
-                'multiple' => true,
-                'expanded' => true,
-                'choice_label' => 'nom',
+            ->add('produit', EntityType::class, [
+                'label' => 'Projet',
+                'class' => Project::class,
+                'choice_label' => 'title',
+                'placeholder' => 'Sélectionner un projet',
                 'required' => false,
             ])
             ->add('termes', TextareaType::class, [

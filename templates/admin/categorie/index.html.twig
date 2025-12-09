@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+{% block title %}Catégories - Admin{% endblock %}
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Catégories</h1>
+    <a href="{{ path('admin_categorie_new') }}" class="btn btn-primary">Nouvelle catégorie</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      {% if categories %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>ID</th><th>Nom</th><th>Description</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+          {% for c in categories %}
+            <tr>
+              <td>{{ c.id }}</td>
+              <td>{{ c.nom }}</td>
+              <td>{{ c.description ?: '-' }}</td>
+              <td class="text-end">
+                <a href="{{ path('admin_categorie_show', {id:c.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                <a href="{{ path('admin_categorie_edit', {id:c.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                <form method="post" action="{{ path('admin_categorie_delete', {id:c.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ c.id) }}">
+                  <button class="btn btn-sm btn-danger">Supprimer</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">Aucune catégorie.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

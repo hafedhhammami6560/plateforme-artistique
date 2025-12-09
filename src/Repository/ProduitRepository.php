@@ -19,11 +19,11 @@ class ProduitRepository extends ServiceEntityRepository
     /**
      * Find products by category
      */
-    public function findByCategorie(string $categorie): array
+    public function findByCategorie(string $categorieLabel): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.categorie = :categorie')
-            ->setParameter('categorie', $categorie)
+            ->where('p.categorieLabel = :categorie')
+            ->setParameter('categorie', $categorieLabel)
             ->orderBy('p.nom', 'ASC')
             ->getQuery()
             ->getResult();
@@ -49,13 +49,13 @@ class ProduitRepository extends ServiceEntityRepository
     public function findAllCategories(): array
     {
         $result = $this->createQueryBuilder('p')
-            ->select('DISTINCT p.categorie')
-            ->where('p.categorie IS NOT NULL')
-            ->orderBy('p.categorie', 'ASC')
+            ->select('DISTINCT p.categorieLabel AS label')
+            ->where('p.categorieLabel IS NOT NULL')
+            ->orderBy('label', 'ASC')
             ->getQuery()
             ->getResult();
 
-        return array_column($result, 'categorie');
+        return array_column($result, 'label');
     }
 
     /**

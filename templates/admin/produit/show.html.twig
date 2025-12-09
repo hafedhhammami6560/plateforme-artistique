@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ produit.nom }} - Admin{% endblock %}
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">{{ produit.nom }}</h1>
+    <div>
+      <a class="btn btn-warning" href="{{ path('admin_produit_edit', {id:produit.id}) }}">Modifier</a>
+      <a class="btn btn-secondary" href="{{ path('admin_produit_index') }}">Retour</a>
+    </div>
+  </div>
+  <div class="card"><div class="card-body">
+    {% if produit.image %}
+      <div class="mb-3 text-center"><img src="{{ asset('uploads/produits/' ~ produit.image) }}" class="img-fluid" alt="{{ produit.nom }}" style="max-height: 320px; object-fit: cover"></div>
+    {% endif %}
+    <table class="table">
+      <tbody>
+        <tr><th>ID</th><td>{{ produit.id }}</td></tr>
+        <tr><th>Nom</th><td>{{ produit.nom }}</td></tr>
+        <tr><th>Description</th><td>{{ produit.description ?: '-' }}</td></tr>
+        <tr><th>Catégorie</th><td>{{ produit.categorie ? produit.categorie.nom : (produit.categorieLabel ?: '-') }}</td></tr>
+        <tr><th>Prix</th><td>{{ produit.prix }} €</td></tr>
+        <tr><th>Créé le</th><td>{{ produit.dateCreation ? produit.dateCreation|date('d/m/Y') : '-' }}</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}

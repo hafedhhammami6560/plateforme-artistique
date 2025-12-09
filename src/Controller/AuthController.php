@@ -34,11 +34,23 @@ class AuthController extends AbstractController
             $username = $request->request->get('username', '');
             $password = $request->request->get('password', '');
 
+            // Debug
+            error_log("Login attempt - Username: " . $username);
+            
             // Chercher l'utilisateur dans la base de données
             $user = $userRepository->findOneBy(['email' => $username]);
             
             if (!$user) {
                 $user = $userRepository->findOneBy(['name' => $username]);
+            }
+
+            // Debug
+            if ($user) {
+                error_log("User found: " . $user->getEmail());
+                $isValid = $passwordHasher->isPasswordValid($user, $password);
+                error_log("Password valid: " . ($isValid ? 'YES' : 'NO'));
+            } else {
+                error_log("User not found");
             }
 
             if ($user && $passwordHasher->isPasswordValid($user, $password)) {

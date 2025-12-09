@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% block title %}Produits - Admin{% endblock %}
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Produits</h1>
+    <a href="{{ path('admin_produit_new') }}" class="btn btn-primary">Nouveau produit</a>
+  </div>
+  <div class="card"><div class="card-body">
+    {% if produits %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>ID</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th class="text-end">Actions</th></tr></thead>
+        <tbody>
+        {% for p in produits %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nom }}</td>
+            <td>{{ p.categorie ? p.categorie.nom : (p.categorieLabel ?: '-') }}</td>
+            <td>{{ p.prix }} €</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-info" href="{{ path('admin_produit_show', {id:p.id}) }}">Voir</a>
+              <a class="btn btn-sm btn-warning" href="{{ path('admin_produit_edit', {id:p.id}) }}">Modifier</a>
+              <form method="post" action="{{ path('admin_produit_delete', {id:p.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer ce produit ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                <button class="btn btn-sm btn-danger">Supprimer</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="text-muted mb-0">Aucun produit.</p>
+    {% endif %}
+  </div></div>
+</div>
+{% endblock %}

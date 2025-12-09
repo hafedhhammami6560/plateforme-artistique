@@ -23,17 +23,21 @@ class DiscussionType extends AbstractType
         $user = $options['user'] ?? null;
         $permissionService = $options['permission_service'] ?? null;
         
-        // Récupérer les types de discussion disponibles pour l'utilisateur
+        // Afficher tous les types mais déterminer lesquels sont disponibles
+        $allTypes = [
+            'publication_rights' => 'Type A: droits sur produit existant (Publisher/Sponsor)',
+            'custom_order' => 'Type B: commande œuvre sur mesure (Artiste/Musicien/Scénariste)'
+        ];
+        
         $availableTypes = [];
         if ($user && $permissionService) {
             $availableTypes = $permissionService->getAvailableDiscussionTypes($user);
         } else {
-            // Par défaut, tous les types
-            $availableTypes = [
-                Discussion::TYPE_PUBLICATION_RIGHTS => 'Type A: droits sur produit existant',
-                Discussion::TYPE_CUSTOM_ORDER => 'Type B: commande œuvre sur mesure'
-            ];
+            $availableTypes = $allTypes;
         }
+        
+        // Déterminer le type par défaut
+        $defaultType = !empty($availableTypes) ? array_key_first($availableTypes) : null;
         
         $builder
             ->add('titre', TextType::class, [
@@ -43,14 +47,6 @@ class DiscussionType extends AbstractType
                     'class' => 'form-control'
                 ],
                 'required' => true
-            ])
-            ->add('type', ChoiceType::class, [
-                'label' => 'Type de discussion',
-                'choices' => array_flip($availableTypes),
-                'expanded' => true,
-                'attr' => ['class' => 'form-check-input'],
-                'required' => true,
-                'help' => 'Choisissez le type de discussion selon vos besoins'
             ])
             ->add('destinataire', EntityType::class, [
                 'class' => User::class,

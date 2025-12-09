@@ -17,6 +17,7 @@ class Contrat
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_EN_ATTENTE_SIGNATURE = 'en_attente_signature';
     const STATUT_SIGNE = 'signe';
+    const STATUT_FINAL = 'final'; // Contrat final prêt à signer
     
     // Anciens statuts pour rétrocompatibilité
     const STATUT_EN_ATTENTE = 'EN_ATTENTE';
@@ -96,6 +97,11 @@ class Contrat
 
     #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'contrat', cascade: ['remove'])]
     private Collection $discussions;
+    
+    // Discussion d'origine pour les brouillons de contrats
+    #[ORM\ManyToOne(targetEntity: Discussion::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Discussion $discussionOrigine = null;
 
     public function __construct()
     {
@@ -389,6 +395,18 @@ class Contrat
                 $discussion->setContrat(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDiscussionOrigine(): ?Discussion
+    {
+        return $this->discussionOrigine;
+    }
+
+    public function setDiscussionOrigine(?Discussion $discussionOrigine): static
+    {
+        $this->discussionOrigine = $discussionOrigine;
 
         return $this;
     }

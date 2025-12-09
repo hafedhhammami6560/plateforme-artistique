@@ -7,81 +7,139 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ path('app_contrat_index') }}">Contrats</a></li>
-            <li class="breadcrumb-item active">Nouveau</li>
+            <li class="breadcrumb-item active">Nouveau Contrat</li>
         </ol>
     </nav>
 
-    <h1><i class="bi bi-file-earmark-plus"></i> Créer un Nouveau Contrat</h1>
-
-    {% if discussion is defined and discussion %}
-        <div class="alert alert-info">
-            <i class="bi bi-chat-dots"></i> <strong>Contrat lié à une discussion</strong>
-            <ul class="mb-0 mt-2">
-                <li>Discussion: <strong>{{ discussion.titre }}</strong></li>
-                <li>Artiste: <strong>{{ discussion.initiateur.name }}</strong></li>
-                <li>Client: <strong>{{ discussion.destinataire.name }}</strong></li>
-                {% if discussion.produit %}
-                    <li>Produit: <strong>{{ discussion.produit.nom }}</strong> ({{ discussion.produit.prix }}€)</li>
+    <div class="card">
+        <div class="card-header {% if from_discussion %}bg-secondary{% else %}bg-success{% endif %} text-white">
+            <h2 class="mb-0">
+                <i class="bi bi-file-earmark-text"></i> 
+                {% if from_discussion %}
+                    Créer un Brouillon de Contrat
+                    <span class="badge bg-warning text-dark">BROUILLON</span>
+                {% else %}
+                    Créer un Contrat
                 {% endif %}
-            </ul>
+            </h2>
         </div>
-    {% endif %}
-
-    <div class="card mt-4">
         <div class="card-body">
+            {% if from_discussion %}
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-lightbulb"></i> <strong>Conseil :</strong>
+                    Vous créez un brouillon de contrat depuis une discussion. 
+                    Ce brouillon peut être modifié jusqu'à ce qu'il soit marqué comme "contrat final" et signé.
+                </div>
+            {% endif %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> 
+                <strong>Important:</strong> Les contrats doivent toujours être créés à partir d'une discussion existante. 
+                Le type de contrat est automatiquement défini par le type de la discussion.
+            </div>
+
+            {% if from_discussion %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Ce contrat est créé depuis une discussion existante.
+                </div>
+            {% endif %}
+
             {{ form_start(form) }}
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        {{ form_row(form.artiste) }}
+                {# Type de contrat (lecture seule) #}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Type de contrat (défini par la discussion)</label>
+                    <div class="alert alert-secondary small mb-3">
+                        <i class="bi bi-lock"></i> Le type de contrat est en lecture seule car il est automatiquement défini par la discussion associée.
                     </div>
+                    
+                    {% for child in form.type %}
+                        <div class="form-check mb-2">
+                            {{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
+                            {{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                        </div>
+                    {% endfor %}
+                    
+                    {{ form_errors(form.type) }}
+                    <div class="form-text">{{ form.type.vars.help }}</div>
+                </div>
+
+                {# Parties du contrat #}
+                <div class="row mb-4">
                     <div class="col-md-6">
-                        {{ form_row(form.producteur) }}
+                        {{ form_label(form.artiste, 'Artiste', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.artiste, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.artiste) }}
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form_label(form.producteur, 'Client (Publisher/Sponsor)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.producteur, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.producteur) }}
                     </div>
                 </div>
 
-                {# Champs cachés quand pré-remplis depuis une discussion #}
-                <div style="display: none;">
-                    {{ form_row(form.type) }}
-                    {% if form.produit is defined and discussion is defined and discussion %}
-                        {{ form_row(form.produit) }}
-                    {% endif %}
-                </div>
-
-                {# Afficher le champ produit uniquement si pas de discussion #}
-                {% if form.produit is defined and (discussion is not defined or not discussion) %}
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            {{ form_row(form.produit, {'help': ''}) }}
+                {# Produit concerné (si Type A) #}
+                {% if form.produit is defined %}
+                    <div class="mb-4">
+                        {{ form_label(form.produit, 'Produit concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.produit) }}
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle"></i> {{ form.produit.vars.help }}
                         </div>
                     </div>
                 {% endif %}
 
-                <div class="row mb-3">
+                {# Prix et dates #}
+                <div class="row mb-4">
                     <div class="col-md-4">
-                        {{ form_row(form.prix) }}
+                        {{ form_label(form.prix, 'Prix du contrat (€)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+                        {{ form_errors(form.prix) }}
                     </div>
+
                     <div class="col-md-4">
-                        {{ form_row(form.dateDebut) }}
+                        {{ form_label(form.dateDebut, 'Date de début', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.dateDebut, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateDebut) }}
                     </div>
+
                     <div class="col-md-4">
-                        {{ form_row(form.dateFin) }}
+                        {{ form_label(form.dateFin, 'Date de fin', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.dateFin, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateFin) }}
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    {{ form_row(form.conditionsTexte) }}
+                {# Conditions du contrat #}
+                <div class="mb-4">
+                    {{ form_label(form.conditionsTexte, 'Conditions du contrat', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.conditionsTexte, {'attr': {'class': 'form-control', 'rows': 10, 'placeholder': 'Décrivez les conditions détaillées du contrat...'}}) }}
+                    {{ form_errors(form.conditionsTexte) }}
+                    <div class="form-text">{{ form.conditionsTexte.vars.help }}</div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>Important:</strong> Une fois créé, le contrat devra être signé par les deux parties. 
+                    Après la première signature, le contrat ne pourra plus être modifié.
                 </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="{{ path('app_contrat_index') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Annuler
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-circle"></i> Créer le Contrat
                     </button>
                 </div>
-
             {{ form_end(form) }}
         </div>
     </div>

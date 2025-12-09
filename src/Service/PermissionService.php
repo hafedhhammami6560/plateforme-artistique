@@ -34,6 +34,50 @@ class PermissionService
     }
 
     /**
+     * Détermine automatiquement le type de discussion selon l'initiateur et le destinataire
+     * 
+     * Règles:
+     * - Sponsor lance → Type B (custom_order)
+     * - Publisher lance → Type A (publication_rights)
+     * - Visiteur/Utilisateur lance → Type B (custom_order)
+     * - Artiste/Musicien/Scénariste avec Publisher → Type A (publication_rights)
+     * - Artiste/Musicien/Scénariste avec Sponsor/Visiteur → Type B (custom_order)
+     */
+    public function determineDiscussionType(User $initiateur, User $destinataire): string
+    {
+        $initiateurType = strtolower($initiateur->getUserType() ?? '');
+        $destinataireType = strtolower($destinataire->getUserType() ?? '');
+        
+        // Sponsor lance → Type B
+        if ($initiateurType === 'sponsor') {
+            return 'custom_order';
+        }
+        
+        // Publisher lance → Type A
+        if ($initiateurType === 'publisher') {
+            return 'publication_rights';
+        }
+        
+        // Visiteur/Utilisateur lance → Type B
+        if (in_array($initiateurType, ['utilisateur', 'visiteur'])) {
+            return 'custom_order';
+        }
+        
+        // Artiste/Musicien/Scénariste
+        if (in_array($initiateurType, ['artiste', 'musicien', 'scénariste'])) {
+            // Avec Publisher → Type A
+            if ($destinataireType === 'publisher') {
+                return 'publication_rights';
+            }
+            // Avec Sponsor/Visiteur → Type B
+            return 'custom_order';
+        }
+        
+        // Par défaut → Type B
+        return 'custom_order';
+    }
+    
+    /**
      * Vérifie si un utilisateur peut créer une discussion de type spécifique
      */
     public function canCreateDiscussionType(User $user, string $discussionType): bool

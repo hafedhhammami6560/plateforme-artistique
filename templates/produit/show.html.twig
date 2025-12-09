@@ -1,10 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails du Produit{% endblock %}
+{% block title %}{{ produit.nom }}{% endblock %}
 
 {% block body %}
 <div class="container">
-    <h1>{{ produit.nom }}</h1>
+        <h1>{{ produit.nom }}</h1>
+        {% if produit.image %}
+            <div class="mb-3"><img src="{{ asset('uploads/produits/' ~ produit.image) }}" alt="{{ produit.nom }}" class="img-fluid" style="max-height: 360px; object-fit: cover"></div>
+        {% endif %}
 
     <table class="table">
         <tbody>
@@ -26,7 +29,7 @@
             </tr>
             <tr>
                 <th>Catégorie</th>
-                <td>{{ produit.categorie }}</td>
+                <td>{{ produit.categorie ? produit.categorie.nom : (produit.categorieLabel ?: '-') }}</td>
             </tr>
             <tr>
                 <th>Date de création</th>

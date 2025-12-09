@@ -6,18 +6,15 @@ use App\Entity\Discussion;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Form\DiscussionType;
-use App\Form\MessageType;
 use App\Repository\DiscussionRepository;
 use App\Repository\UserRepository;
 use App\Service\DiscussionService;
 use App\Service\PermissionService;
-use App\Security\Voter\DiscussionVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/discussion')]
 class DiscussionController extends AbstractController
@@ -25,61 +22,54 @@ class DiscussionController extends AbstractController
     public function __construct(
         private DiscussionService $discussionService,
         private PermissionService $permissionService,
-        private EntityManagerInterface $entityManager,
-        private UserRepository $userRepository
+        private EntityManagerInterface $em
     ) {}
 
     #[Route('/', name: 'app_discussion_index', methods: ['GET'])]
-    public function index(DiscussionRepository $repository, Request $request): Response
+    public function index(Request $request, DiscussionRepository $repo, UserRepository $userRepo): Response
     {
-        // Get user ID from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté pour accéder aux discussions.');
             return $this->redirectToRoute('auth_login');
         }
-        
-        // Récupérer les paramètres de recherche, filtrage et tri
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Get filter parameters
         $search = $request->query->get('search', '');
         $typeFilter = $request->query->get('type', '');
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
-        
-        // Construire la requête
-        $qb = $repository->createQueryBuilder('d')
-            ->leftJoin('d.initiateur', 'initiateur')
-            ->leftJoin('d.destinataire', 'destinataire')
-            ->leftJoin('d.produit', 'produit')
-            ->where('d.initiateur = :userId')
-            ->orWhere('d.destinataire = :userId')
-            ->setParameter('userId', $userId);
-        
-        // Recherche par titre ou nom d'utilisateur
-        if (!empty($search)) {
-            $qb->andWhere(
-                $qb->expr()->orX(
-                    $qb->expr()->like('d.titre', ':search'),
-                    $qb->expr()->like('initiateur.name', ':search'),
-                    $qb->expr()->like('destinataire.name', ':search'),
-                    $qb->expr()->like('produit.nom', ':search')
-                )
-            )
-            ->setParameter('search', '%' . $search . '%');
+
+        // Build query
+        $qb = $repo->createQueryBuilder('d')
+            ->where('d.initiateur = :user OR d.destinataire = :user')
+            ->setParameter('user', $user);
+
+        // Search filter
+        if ($search) {
+            $qb->andWhere('d.titre LIKE :search OR d.contenu LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
         }
-        
-        // Filtre par type
-        if (!empty($typeFilter)) {
+
+        // Type filter
+        if ($typeFilter) {
             $qb->andWhere('d.type = :type')
                ->setParameter('type', $typeFilter);
         }
-        
-        // Filtre par statut
-        if (!empty($statutFilter)) {
+
+        // Status filter
+        if ($statutFilter) {
             $qb->andWhere('d.statut = :statut')
                ->setParameter('statut', $statutFilter);
         }
-        
-        // Tri
+
+        // Sorting
         switch ($sortBy) {
             case 'date_asc':
                 $qb->orderBy('d.createdAt', 'ASC');
@@ -90,19 +80,14 @@ class DiscussionController extends AbstractController
             case 'titre_desc':
                 $qb->orderBy('d.titre', 'DESC');
                 break;
-            case 'date_desc':
-            default:
+            default: // date_desc
                 $qb->orderBy('d.createdAt', 'DESC');
-                break;
         }
-        
+
         $discussions = $qb->getQuery()->getResult();
-        
-        $currentUser = $this->userRepository->find($userId);
 
         return $this->render('discussion/index.html.twig', [
             'discussions' => $discussions,
-            'currentUser' => $currentUser,
             'search' => $search,
             'typeFilter' => $typeFilter,
             'statutFilter' => $statutFilter,
@@ -111,73 +96,75 @@ class DiscussionController extends AbstractController
     }
 
     #[Route('/new', name: 'app_discussion_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    public function new(Request $request, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté pour créer une discussion.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser) {
-            $this->addFlash('error', 'Utilisateur introuvable.');
+        $user = $userRepo->find($userId);
+        if (!$user) {
             return $this->redirectToRoute('auth_login');
         }
 
-        // Vérifier les permissions
-        if (!$this->permissionService->canCreateDiscussion($currentUser)) {
-            $this->addFlash('error', $this->permissionService->getPermissionDeniedMessage($currentUser, 'create_discussion'));
+        // Check if user can create discussions
+        if (!$this->permissionService->canCreateDiscussion($user)) {
+            $this->addFlash('error', 'Vous n\'avez pas la permission de créer des discussions.');
             return $this->redirectToRoute('app_discussion_index');
         }
 
         $discussion = new Discussion();
+        
         $form = $this->createForm(DiscussionType::class, $discussion, [
-            'user' => $currentUser,
+            'user' => $user,
             'permission_service' => $this->permissionService
         ]);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Vérifier les permissions pour le type de discussion
-                if (!$this->permissionService->canCreateDiscussionType($currentUser, $discussion->getType())) {
+                $messageInitial = $form->get('messageInitial')->getData();
+                $destinataire = $discussion->getDestinataire();
+                
+                // Déterminer automatiquement le type selon l'initiateur et le destinataire
+                $type = $this->permissionService->determineDiscussionType($user, $destinataire);
+                $discussion->setType($type);
+
+                // Verify user can create this type
+                if (!$this->permissionService->canCreateDiscussionType($user, $type)) {
                     $this->addFlash('error', 'Vous n\'avez pas la permission de créer ce type de discussion.');
                     return $this->render('discussion/new.html.twig', [
-                        'form' => $form,
+                        'discussion' => $discussion,
+                        'form' => $form->createView(),
                     ]);
                 }
 
-                $messageInitial = $form->get('messageInitial')->getData();
-                $type = $discussion->getType();
-                $initiateur = $currentUser;
-                $destinataire = $discussion->getDestinataire();
-                $titre = $discussion->getTitre();
-
-                // Créer selon le type
+                // Create discussion based on type
                 if ($type === Discussion::TYPE_PUBLICATION_RIGHTS) {
                     $produit = $discussion->getProduit();
                     if (!$produit) {
-                        $this->addFlash('error', 'Un produit est obligatoire pour une discussion de type Publication Rights.');
+                        $this->addFlash('error', 'Un produit est requis pour les discussions de type Publication Rights.');
                         return $this->render('discussion/new.html.twig', [
-                            'form' => $form,
+                            'discussion' => $discussion,
+                            'form' => $form->createView(),
                         ]);
                     }
-                    
                     $discussion = $this->discussionService->creerDiscussionTypeA(
-                        $initiateur,
+                        $user,
                         $destinataire,
                         $produit,
-                        $titre,
+                        $discussion->getTitre(),
                         $messageInitial
                     );
                 } else {
-                    // Type B - Custom Order
                     $discussion = $this->discussionService->creerDiscussionTypeB(
-                        $initiateur,
+                        $user,
                         $destinataire,
-                        $titre,
+                        $discussion->getTitre(),
                         $messageInitial
                     );
                 }
@@ -185,136 +172,198 @@ class DiscussionController extends AbstractController
                 $this->addFlash('success', 'Discussion créée avec succès !');
                 return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
 
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('error', $e->getMessage());
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur: ' . $e->getMessage());
+                $this->addFlash('error', 'Erreur lors de la création de la discussion : ' . $e->getMessage());
             }
         }
 
         return $this->render('discussion/new.html.twig', [
-            'form' => $form,
+            'discussion' => $discussion,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/{id}', name: 'app_discussion_show', methods: ['GET', 'POST'])]
-    public function show(Discussion $discussion, Request $request): Response
+    public function show(Request $request, Discussion $discussion, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser) {
-            $this->addFlash('error', 'Utilisateur introuvable.');
+        $user = $userRepo->find($userId);
+        if (!$user) {
             return $this->redirectToRoute('auth_login');
         }
 
-        // Vérifier les permissions
-        if (!$this->permissionService->canViewDiscussion($currentUser, $discussion)) {
+        // Check if user can view this discussion
+        if (!$this->permissionService->canViewDiscussion($user, $discussion)) {
             $this->addFlash('error', 'Vous n\'avez pas accès à cette discussion.');
             return $this->redirectToRoute('app_discussion_index');
         }
 
-        // Marquer les messages comme lus
-        $this->discussionService->marquerMessagesLus($discussion, $currentUser);
-
-        // Formulaire pour ajouter un message
-        $message = new Message();
-        $form = $this->createForm(MessageType::class, $message);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                // Vérifier les permissions
-                if (!$this->permissionService->canSendMessage($currentUser, $discussion)) {
-                    $this->addFlash('error', 'Vous ne pouvez pas envoyer de message dans cette discussion.');
-                    return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        // Handle message submission
+        if ($request->isMethod('POST')) {
+            $messageContent = $request->request->get('message');
+            
+            if ($messageContent) {
+                try {
+                    if (!$this->permissionService->canSendMessage($user, $discussion)) {
+                        $this->addFlash('error', 'Vous ne pouvez pas envoyer de message dans cette discussion.');
+                    } else {
+                        $this->discussionService->ajouterMessage($discussion, $user, $messageContent);
+                        $this->addFlash('success', 'Message envoyé avec succès !');
+                        return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+                    }
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Erreur lors de l\'envoi du message : ' . $e->getMessage());
                 }
-                
-                $this->discussionService->ajouterMessage(
-                    $discussion,
-                    $currentUser,
-                    $message->getContenu()
-                );
-
-                $this->addFlash('success', 'Message envoyé !');
-                return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
-
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur: ' . $e->getMessage());
             }
         }
 
+        // Mark messages as read
+        try {
+            $this->discussionService->marquerMessagesLus($discussion, $user);
+        } catch (\Exception $e) {
+            // Silent fail for read marking
+        }
+
+        // Récupérer tous les brouillons de contrats liés à cette discussion
+        $contratRepo = $this->em->getRepository(\App\Entity\Contrat::class);
+        $brouillons = $contratRepo->findBy(
+            ['discussionOrigine' => $discussion],
+            ['createdAt' => 'DESC']
+        );
+
         return $this->render('discussion/show.html.twig', [
             'discussion' => $discussion,
-            'form' => $form,
-            'currentUser' => $currentUser,
+            'user' => $user,
+            'brouillons' => $brouillons,
         ]);
     }
 
-    #[Route('/{id}/terminer', name: 'app_discussion_terminer', methods: ['POST'])]
-    public function terminer(Discussion $discussion, Request $request): Response
-    {
-        // Get user from cookie
-        $userId = $request->cookies->get('user_id');
-        if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
-            return $this->redirectToRoute('auth_login');
-        }
-
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canEditDiscussion($currentUser, $discussion)) {
-            $this->addFlash('error', 'Vous n\'avez pas la permission de terminer cette discussion.');
-            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
-        }
-
-        try {
-            $this->discussionService->terminer($discussion);
-            $this->addFlash('success', 'Discussion terminée.');
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur: ' . $e->getMessage());
-        }
-
-        return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
-    }
-
     #[Route('/{id}/edit', name: 'app_discussion_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Discussion $discussion): Response
+    public function edit(Request $request, Discussion $discussion, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canEditDiscussion($currentUser, $discussion)) {
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Check if user can edit this discussion
+        if (!$this->permissionService->canEditDiscussion($user, $discussion)) {
             $this->addFlash('error', 'Vous n\'avez pas la permission de modifier cette discussion.');
             return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
         }
 
-        $form = $this->createForm(DiscussionType::class, $discussion);
+        $form = $this->createForm(DiscussionType::class, $discussion, [
+            'user' => $user,
+            'permission_service' => $this->permissionService
+        ]);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $discussion->setUpdatedAt(new \DateTimeImmutable());
-                $this->entityManager->flush();
+                $this->em->flush();
 
-                $this->addFlash('success', 'Discussion mise à jour.');
+                $this->addFlash('success', 'Discussion modifiée avec succès !');
                 return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
 
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur: ' . $e->getMessage());
+                $this->addFlash('error', 'Erreur lors de la modification : ' . $e->getMessage());
             }
         }
 
         return $this->render('discussion/edit.html.twig', [
             'discussion' => $discussion,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/{id}/terminer', name: 'app_discussion_terminer', methods: ['POST'])]
+    public function terminer(Request $request, Discussion $discussion, UserRepository $userRepo): Response
+    {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Check if user can terminate this discussion (must be participant)
+        if ($discussion->getInitiateur()->getId() !== $user->getId() && 
+            $discussion->getDestinataire()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous n\'avez pas la permission de terminer cette discussion.');
+            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        }
+
+        // Verify CSRF token
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('terminer' . $discussion->getId(), $token)) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        }
+
+        try {
+            $discussion->setStatut(Discussion::STATUT_TERMINEE);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Discussion terminée avec succès !');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la fermeture de la discussion : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+    }
+
+    #[Route('/{id}', name: 'app_discussion_delete', methods: ['POST'])]
+    public function delete(Request $request, Discussion $discussion, UserRepository $userRepo): Response
+    {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Check if user can delete this discussion
+        if (!$this->permissionService->canDeleteDiscussion($user, $discussion)) {
+            $this->addFlash('error', 'Vous n\'avez pas la permission de supprimer cette discussion.');
+            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+        }
+
+        try {
+            $this->em->remove($discussion);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Discussion supprimée avec succès !');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_discussion_index');
     }
 }

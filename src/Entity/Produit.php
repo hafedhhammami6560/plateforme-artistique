@@ -31,8 +31,13 @@ class Produit
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $categorie = null;
+    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'produits')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Categorie $categorie = null;
+
+    // Libellé de catégorie (compatibilité scripts de seed)
+    #[ORM\Column(name: 'categorie', length: 255, nullable: true)]
+    private ?string $categorieLabel = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -120,15 +125,26 @@ class Produit
         return $this;
     }
 
-    public function getCategorie(): ?string
+    public function getCategorie(): ?Categorie
     {
         return $this->categorie;
     }
 
-    public function setCategorie(?string $categorie): static
+    public function setCategorie(?Categorie $categorie): static
     {
         $this->categorie = $categorie;
 
+        return $this;
+    }
+
+    public function getCategorieLabel(): ?string
+    {
+        return $this->categorieLabel;
+    }
+
+    public function setCategorieLabel(?string $categorieLabel): static
+    {
+        $this->categorieLabel = $categorieLabel;
         return $this;
     }
 

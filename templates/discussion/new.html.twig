@@ -3,90 +3,102 @@
 {% block title %}Nouvelle Discussion{% endblock %}
 
 {% block body %}
-<div class="container-fluid px-4 py-4">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4"><i class="bi bi-plus-circle"></i> Nouvelle Discussion</h1>
-        </div>
-    </div>
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_discussion_index') }}">Discussions</a></li>
+            <li class="breadcrumb-item active">Nouvelle Discussion</li>
+        </ol>
+    </nav>
 
-    <div class="row">
-        <div class="col-lg-8 col-md-10 col-12">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-chat-dots"></i> Créer une Discussion</h2>
+        </div>
+        <div class="card-body">
             {% for message in app.flashes('error') %}
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ message }}
+                    <i class="bi bi-exclamation-circle"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
-                        {# Champ type caché mais toujours présent dans le formulaire #}
-                        <div style="display: none;">
-                            {{ form_row(form.type) }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ form_label(form.titre) }}</label>
-                            {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Acquisition droits album ou Commande sculpture'}}) }}
-                            {{ form_errors(form.titre) }}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ form_label(form.destinataire) }}</label>
-                            {{ form_widget(form.destinataire, {'attr': {'class': 'form-select'}}) }}
-                            {{ form_errors(form.destinataire) }}
-                        </div>
-
-                        <div class="mb-3" id="produit-field" style="display: none;">
-                            {% if form.produit is defined %}
-                                <label class="form-label fw-bold">Produit concerné</label>
-                                {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.produit) }}
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ form_label(form.messageInitial) }}</label>
-                            {{ form_widget(form.messageInitial, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Décrivez votre demande...'}}) }}
-                            {{ form_errors(form.messageInitial) }}
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Annuler
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> Créer la Discussion
-                            </button>
-                        </div>
-                    {{ form_end(form) }}
+            {{ form_start(form) }}
+                {# Message explicatif #}
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle"></i> <strong>Type de discussion automatique :</strong>
+                    Le type de discussion (Type A ou Type B) sera automatiquement déterminé selon votre rôle et celui de votre destinataire.
                 </div>
-            </div>
+
+                {# Titre de la discussion #}
+                <div class="mb-4">
+                    {{ form_label(form.titre, 'Titre de la discussion', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Acquisition droits album ou Commande sculpture'}}) }}
+                    {{ form_errors(form.titre) }}
+                </div>
+
+                {# Destinataire #}
+                <div class="mb-4">
+                    {{ form_label(form.destinataire, 'Destinataire', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.destinataire, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.destinataire) }}
+                </div>
+
+                {# Produit concerné (si Type A) #}
+                {% if form.produit is defined %}
+                    <div class="mb-4" id="produit-field">
+                        {{ form_label(form.produit, 'Produit concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.produit) }}
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle"></i> {{ form.produit.vars.help }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Message initial #}
+                <div class="mb-4">
+                    {{ form_label(form.messageInitial, 'Message initial', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.messageInitial, {'attr': {'class': 'form-control', 'rows': 6, 'placeholder': 'Décrivez votre demande en détail...'}}) }}
+                    {{ form_errors(form.messageInitial) }}
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Créer la Discussion
+                    </button>
+                </div>
+            {{ form_end(form) }}
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const typeInputs = document.querySelectorAll('input[name="discussion[type]"]');
-    const produitField = document.getElementById('produit-field');
-    
-    function updateProduitVisibility() {
-        const selectedType = document.querySelector('input[name="discussion[type]"]:checked');
-        if (selectedType && selectedType.value === 'publication_rights') {
-            produitField.style.display = 'block';
-        } else {
-            produitField.style.display = 'none';
+    // Dynamically show/hide product field based on discussion type
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeInputs = document.querySelectorAll('input[name="discussion_type[type]"]');
+        const produitField = document.getElementById('produit-field');
+        
+        if (typeInputs.length > 0 && produitField) {
+            typeInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.value === 'publication_rights') {
+                        produitField.style.display = 'block';
+                    } else {
+                        produitField.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Initial state
+            const checkedType = document.querySelector('input[name="discussion_type[type]"]:checked');
+            if (checkedType && checkedType.value === 'custom_order') {
+                produitField.style.display = 'none';
+            }
         }
-    }
-    
-    typeInputs.forEach(input => {
-        input.addEventListener('change', updateProduitVisibility);
     });
-    
-    updateProduitVisibility();
-});
 </script>
 {% endblock %}

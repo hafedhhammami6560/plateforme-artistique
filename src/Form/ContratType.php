@@ -18,17 +18,19 @@ class ContratType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Le type est toujours défini par la discussion, afficher en lecture seule
         $builder
             ->add('type', ChoiceType::class, [
-                'label' => 'Type de contrat',
+                'label' => 'Type de contrat (défini par la discussion)',
                 'choices' => [
-                    'Publication Rights (Droits sur produit existant)' => Contrat::TYPE_PUBLICATION_RIGHTS,
-                    'Custom Order (Commande personnalisée)' => Contrat::TYPE_CUSTOM_ORDER,
+                    'Type A: Publication Rights (Droits sur produit existant)' => Contrat::TYPE_PUBLICATION_RIGHTS,
+                    'Type B: Custom Order (Commande personnalisée)' => Contrat::TYPE_CUSTOM_ORDER,
                 ],
                 'expanded' => true,
                 'attr' => ['class' => 'form-check-input'],
                 'required' => true,
-                'disabled' => $options['is_edit'], // Ne peut pas changer le type en édition
+                'disabled' => true, // Toujours désactivé, défini par la discussion
+                'help' => 'Le type de contrat est automatiquement défini selon la discussion associée.'
             ])
             ->add('artiste', EntityType::class, [
                 'class' => User::class,

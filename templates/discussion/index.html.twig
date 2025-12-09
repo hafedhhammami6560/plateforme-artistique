@@ -98,7 +98,8 @@
                     </div>
                     <p class="mb-1">
                         <strong>Avec:</strong>
-                        {% if currentUser.id == discussion.initiateur.id %}
+                        {% set userId = app.request.cookies.get('user_id')|default(0) %}
+                        {% if userId|number_format(0, '', '') == discussion.initiateur.id|number_format(0, '', '') %}
                             {{ discussion.destinataire.name }}
                         {% else %}
                             {{ discussion.initiateur.name }}

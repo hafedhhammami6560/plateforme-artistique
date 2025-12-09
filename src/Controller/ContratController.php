@@ -3,84 +3,70 @@
 namespace App\Controller;
 
 use App\Entity\Contrat;
-use App\Entity\Discussion;
 use App\Entity\User;
 use App\Form\ContratType;
 use App\Repository\ContratRepository;
 use App\Repository\UserRepository;
 use App\Service\ContratService;
-use App\Service\DiscussionService;
-use App\Service\PermissionService;
-use App\Security\Voter\ContratVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/contrat')]
 class ContratController extends AbstractController
 {
     public function __construct(
         private ContratService $contratService,
-        private DiscussionService $discussionService,
-        private PermissionService $permissionService,
-        private EntityManagerInterface $entityManager,
-        private UserRepository $userRepository
+        private EntityManagerInterface $em
     ) {}
 
     #[Route('/', name: 'app_contrat_index', methods: ['GET'])]
-    public function index(ContratRepository $repository, Request $request): Response
+    public function index(Request $request, ContratRepository $repo, UserRepository $userRepo): Response
     {
-        // Get user ID from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté pour accéder aux contrats.');
             return $this->redirectToRoute('auth_login');
         }
-        
-        // Récupérer les paramètres de recherche, filtrage et tri
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Get filter parameters
         $search = $request->query->get('search', '');
         $typeFilter = $request->query->get('type', '');
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
-        
-        // Construire la requête
-        $qb = $repository->createQueryBuilder('c')
-            ->leftJoin('c.artiste', 'artiste')
-            ->leftJoin('c.producteur', 'producteur')
-            ->leftJoin('c.produit', 'produit')
-            ->where('c.artiste = :userId')
-            ->orWhere('c.producteur = :userId')
-            ->setParameter('userId', $userId);
-        
-        // Recherche par numéro de contrat, nom d'utilisateur ou produit
-        if (!empty($search)) {
-            $qb->andWhere(
-                $qb->expr()->orX(
-                    $qb->expr()->like('c.numeroContrat', ':search'),
-                    $qb->expr()->like('artiste.name', ':search'),
-                    $qb->expr()->like('producteur.name', ':search'),
-                    $qb->expr()->like('produit.nom', ':search')
-                )
-            )
-            ->setParameter('search', '%' . $search . '%');
+
+        // Build query - user can see contracts where they are artist or producer
+        $qb = $repo->createQueryBuilder('c')
+            ->where('c.artiste = :user OR c.producteur = :user')
+            ->setParameter('user', $user);
+
+        // Search filter
+        if ($search) {
+            $qb->andWhere('c.numeroContrat LIKE :search OR c.conditionsTexte LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
         }
-        
-        // Filtre par type
-        if (!empty($typeFilter)) {
+
+        // Type filter
+        if ($typeFilter) {
             $qb->andWhere('c.type = :type')
                ->setParameter('type', $typeFilter);
         }
-        
-        // Filtre par statut
-        if (!empty($statutFilter)) {
+
+        // Status filter
+        if ($statutFilter) {
             $qb->andWhere('c.statut = :statut')
                ->setParameter('statut', $statutFilter);
         }
-        
-        // Tri
+
+        // Sorting
         switch ($sortBy) {
             case 'date_asc':
                 $qb->orderBy('c.createdAt', 'ASC');
@@ -97,12 +83,10 @@ class ContratController extends AbstractController
             case 'numero_desc':
                 $qb->orderBy('c.numeroContrat', 'DESC');
                 break;
-            case 'date_desc':
-            default:
+            default: // date_desc
                 $qb->orderBy('c.createdAt', 'DESC');
-                break;
         }
-        
+
         $contrats = $qb->getQuery()->getResult();
 
         return $this->render('contrat/index.html.twig', [
@@ -115,252 +99,267 @@ class ContratController extends AbstractController
     }
 
     #[Route('/new', name: 'app_contrat_new', methods: ['GET', 'POST'])]
-    #[Route('/discussion/{discussion}/new', name: 'app_contrat_new_from_discussion', methods: ['GET', 'POST'])]
-    public function new(Request $request, ?Discussion $discussion = null): Response
+    public function new(Request $request, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté pour créer un contrat.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser) {
-            $this->addFlash('error', 'Utilisateur introuvable.');
+        $user = $userRepo->find($userId);
+        if (!$user) {
             return $this->redirectToRoute('auth_login');
-        }
-
-        // Vérifier les permissions
-        if (!$this->permissionService->canCreateContrat($currentUser)) {
-            $this->addFlash('error', $this->permissionService->getPermissionDeniedMessage($currentUser, 'create_contrat'));
-            return $this->redirectToRoute('app_contrat_index');
         }
 
         $contrat = new Contrat();
-        $showProduit = true;
-
-        // Si créé depuis une discussion
-        if ($discussion) {
-            // Vérifier permission de voir la discussion
-            if (!$this->permissionService->canViewDiscussion($currentUser, $discussion)) {
-                $this->addFlash('error', 'Vous n\'avez pas accès à cette discussion.');
-                return $this->redirectToRoute('app_contrat_index');
-            }
-            
-            $contrat->setType($discussion->getType());
-            
-            // Déterminer qui est l'artiste et qui est le producteur
-            // L'initiateur de la discussion est toujours l'artiste
-            // Le destinataire est toujours le publisher/sponsor
-            $contrat->setArtiste($discussion->getInitiateur());
-            $contrat->setProducteur($discussion->getDestinataire());
-            
-            // Type A : pré-remplir avec le produit
-            if ($discussion->isTypePublicationRights()) {
-                $contrat->setProduit($discussion->getProduit());
-            } else {
-                $showProduit = false;
+        
+        // Pre-fill with discussion data if coming from discussion
+        $discussionId = $request->query->get('discussion_id') ?? $request->query->get('discussion');
+        $fromDiscussion = false;
+        $discussion = null;
+        
+        if ($discussionId) {
+            $discussion = $this->em->getRepository(\App\Entity\Discussion::class)->find($discussionId);
+            if ($discussion) {
+                // Verify user is participant in discussion
+                if ($discussion->getInitiateur()->getId() !== $user->getId() && 
+                    $discussion->getDestinataire()->getId() !== $user->getId()) {
+                    $this->addFlash('error', 'Vous n\'êtes pas participant à cette discussion.');
+                    return $this->redirectToRoute('app_contrat_index');
+                }
+                
+                $fromDiscussion = true;
+                $contrat->setType($discussion->getType());
+                $contrat->setStatut(Contrat::STATUT_BROUILLON); // Brouillon par défaut
+                
+                // Set parties based on discussion
+                if ($discussion->getInitiateur()->getId() === $user->getId()) {
+                    $contrat->setArtiste($user);
+                    $contrat->setProducteur($discussion->getDestinataire());
+                } else {
+                    $contrat->setArtiste($discussion->getDestinataire());
+                    $contrat->setProducteur($user);
+                }
+                
+                // Set product if Type A
+                if ($discussion->isTypePublicationRights() && $discussion->getProduit()) {
+                    $contrat->setProduit($discussion->getProduit());
+                }
             }
         } else {
-            // Création directe sans discussion : l'utilisateur connecté est l'artiste
-            $contrat->setArtiste($currentUser);
+            // Auto-fill based on user type when NOT from discussion
+            $userType = strtolower($user->getUserType() ?? '');
+            
+            // Si artiste/musicien/scénariste → pré-remplir comme artiste
+            if (in_array($userType, ['artiste', 'musicien', 'scénariste'])) {
+                $contrat->setArtiste($user);
+            }
+            // Si publisher/sponsor → pré-remplir comme client (producteur)
+            elseif (in_array($userType, ['publisher', 'sponsor'])) {
+                $contrat->setProducteur($user);
+            }
         }
 
+        $showProduit = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
+
         $form = $this->createForm(ContratType::class, $contrat, [
+            'from_discussion' => $fromDiscussion,
             'show_produit' => $showProduit,
-            'current_user' => $contrat->getArtiste(), // Utiliser l'artiste du contrat pour filtrer les produits
-            'from_discussion' => $discussion !== null
+            'is_edit' => false,
         ]);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $contratCree = $this->contratService->creerContrat(
-                    artist: $currentUser,
-                    client: $contrat->getProducteur(),
-                    type: $contrat->getType(),
-                    prix: $contrat->getPrix(),
-                    conditionsTexte: $contrat->getConditionsTexte(),
-                    dateDebut: $contrat->getDateDebut(),
-                    dateFin: $contrat->getDateFin(),
-                    produit: $contrat->getProduit()
+                // Create contract using service
+                $createdContrat = $this->contratService->creerContrat(
+                    $contrat->getArtiste(),
+                    $contrat->getProducteur(),
+                    $contrat->getType(),
+                    $contrat->getPrix(),
+                    $contrat->getConditionsTexte(),
+                    $contrat->getDateDebut(),
+                    $contrat->getDateFin(),
+                    $contrat->getProduit()
                 );
-
-                $this->entityManager->flush();
-
-                // Si créé depuis une discussion, lier le contrat
+                
+                // Link to discussion if creating from discussion
                 if ($discussion) {
-                    $this->discussionService->lierContrat($discussion, $contratCree);
+                    $createdContrat->setDiscussionOrigine($discussion);
                 }
 
-                $this->addFlash('success', 'Contrat créé avec succès ! Numéro: ' . $contratCree->getNumeroContrat());
-                return $this->redirectToRoute('app_contrat_show', ['id' => $contratCree->getId()]);
+                $this->em->flush();
 
+                $successMessage = $createdContrat->getStatut() === Contrat::STATUT_BROUILLON 
+                    ? 'Brouillon de contrat créé avec succès ! Numéro: ' . $createdContrat->getNumeroContrat()
+                    : 'Contrat créé avec succès ! Numéro: ' . $createdContrat->getNumeroContrat();
+                
+                $this->addFlash('success', $successMessage);
+                
+                // Redirect to discussion if coming from there
+                if ($discussion) {
+                    return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
+                }
+                
+                return $this->redirectToRoute('app_contrat_show', ['id' => $createdContrat->getId()]);
+
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('error', $e->getMessage());
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur: ' . $e->getMessage());
+                $this->addFlash('error', 'Erreur lors de la création du contrat : ' . $e->getMessage());
             }
         }
 
         return $this->render('contrat/new.html.twig', [
-            'form' => $form,
-            'discussion' => $discussion,
+            'contrat' => $contrat,
+            'form' => $form->createView(),
+            'from_discussion' => $fromDiscussion,
         ]);
     }
 
-    #[Route('/{id}', name: 'app_contrat_show', methods: ['GET'])]
-    public function show(Contrat $contrat, Request $request): Response
+    #[Route('/{id}', name: 'app_contrat_show', methods: ['GET', 'POST'])]
+    public function show(Request $request, Contrat $contrat, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canViewContrat($currentUser, $contrat)) {
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Check if user can view this contract
+        $canView = $contrat->getArtiste()->getId() === $user->getId() 
+                || $contrat->getProducteur()->getId() === $user->getId();
+        
+        if (!$canView) {
             $this->addFlash('error', 'Vous n\'avez pas accès à ce contrat.');
             return $this->redirectToRoute('app_contrat_index');
         }
 
+        // Handle signature
+        if ($request->isMethod('POST')) {
+            $action = $request->request->get('action');
+            
+            try {
+                if ($action === 'sign_artist' && $contrat->getArtiste()->getId() === $user->getId()) {
+                    $this->contratService->signerParArtist($contrat, $user);
+                    $this->addFlash('success', 'Vous avez signé le contrat en tant qu\'artiste.');
+                    return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+                } elseif ($action === 'sign_client' && $contrat->getProducteur()->getId() === $user->getId()) {
+                    $this->contratService->signerParClient($contrat, $user);
+                    $this->addFlash('success', 'Vous avez signé le contrat en tant que client.');
+                    return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+                }
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur lors de la signature : ' . $e->getMessage());
+            }
+        }
+
         return $this->render('contrat/show.html.twig', [
             'contrat' => $contrat,
+            'user' => $user,
         ]);
     }
 
     #[Route('/{id}/edit', name: 'app_contrat_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Contrat $contrat): Response
+    public function edit(Request $request, Contrat $contrat, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
+        
         if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canEditContrat($currentUser, $contrat)) {
-            $this->addFlash('error', 'Vous n\'avez pas la permission de modifier ce contrat.');
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Check if user can edit this contract (only artist can edit)
+        if ($contrat->getArtiste()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Seul l\'artiste peut modifier le contrat.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
+        // Check if contract can be modified (not signed yet)
         if (!$contrat->canBeModified()) {
-            $this->addFlash('error', 'Ce contrat ne peut plus être modifié (signature déjà apposée).');
+            $this->addFlash('error', 'Ce contrat ne peut plus être modifié car il a été signé.');
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
+
+        $showProduit = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
 
         $form = $this->createForm(ContratType::class, $contrat, [
+            'from_discussion' => false,
+            'show_produit' => $showProduit,
             'is_edit' => true,
-            'show_produit' => $contrat->isTypePublicationRights(),
-            'current_user' => $currentUser
         ]);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $contrat->setUpdatedAt(new \DateTimeImmutable());
-                
-                // Mettre à jour aussi les champs de compatibilité
-                $contrat->setMontant((float) $contrat->getPrix());
-                $contrat->setTermes($contrat->getConditionsTexte());
-                
-                $this->entityManager->flush();
+                $this->em->flush();
 
-                $this->addFlash('success', 'Contrat mis à jour.');
+                $this->addFlash('success', 'Contrat modifié avec succès !');
                 return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
 
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur: ' . $e->getMessage());
+                $this->addFlash('error', 'Erreur lors de la modification : ' . $e->getMessage());
             }
         }
 
         return $this->render('contrat/edit.html.twig', [
             'contrat' => $contrat,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}/signer-artist', name: 'app_contrat_signer_artist', methods: ['POST'])]
-    public function signerArtist(Contrat $contrat, Request $request): Response
+    #[Route('/{id}', name: 'app_contrat_delete', methods: ['POST'])]
+    public function delete(Request $request, Contrat $contrat, UserRepository $userRepo): Response
     {
-        // Get user from cookie
+        // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
-            return $this->redirectToRoute('auth_login');
-        }
-
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canSignContrat($currentUser, $contrat)) {
-            $this->addFlash('error', 'Vous ne pouvez pas signer ce contrat.');
-            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-        }
-
-        try {
-            $this->contratService->signerParArtist($contrat, $currentUser);
-            
-            if ($contrat->isFullySigned()) {
-                $this->addFlash('success', 'Contrat signé avec succès ! Le contrat est maintenant actif (toutes les parties ont signé).');
-            } else {
-                $this->addFlash('success', 'Votre signature a été apposée. En attente de la signature du client.');
-            }
-
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur: ' . $e->getMessage());
-        }
-
-        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-    }
-
-    #[Route('/{id}/signer-client', name: 'app_contrat_signer_client', methods: ['POST'])]
-    public function signerClient(Contrat $contrat, Request $request): Response
-    {
-        // Get user from cookie
-        $userId = $request->cookies->get('user_id');
-        if (!$userId) {
-            $this->addFlash('error', 'Vous devez être connecté.');
-            return $this->redirectToRoute('auth_login');
-        }
-
-        $currentUser = $this->userRepository->find($userId);
-        if (!$currentUser || !$this->permissionService->canSignContrat($currentUser, $contrat)) {
-            $this->addFlash('error', 'Vous ne pouvez pas signer ce contrat.');
-            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-        }
-
-        try {
-            $this->contratService->signerParClient($contrat, $currentUser);
-            
-            if ($contrat->isFullySigned()) {
-                $this->addFlash('success', 'Contrat signé avec succès ! Le contrat est maintenant actif (toutes les parties ont signé).');
-                
-                // Message spécifique selon le type
-                if ($contrat->isTypePublicationRights()) {
-                    $this->addFlash('info', 'Le produit a été automatiquement marqué comme "sous contrat".');
-                } else {
-                    $this->addFlash('info', 'L\'artiste peut maintenant créer et associer le produit commandé.');
-                }
-            } else {
-                $this->addFlash('success', 'Votre signature a été apposée. En attente de la signature de l\'artiste.');
-            }
-
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur: ' . $e->getMessage());
-        }
-
-        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-    }
-
-    #[Route('/{id}/export-pdf', name: 'app_contrat_export_pdf', methods: ['GET'])]
-    public function exportPdf(Contrat $contrat): Response
-    {
-        $this->denyAccessUnlessGranted(ContratVoter::VIEW, $contrat);
-
-        // TODO: Implémenter l'export PDF
-        // Utiliser DomPDF ou similaire
         
-        $this->addFlash('info', 'Export PDF à implémenter prochainement.');
-        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Only artist can delete, and only if not signed
+        if ($contrat->getArtiste()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Seul l\'artiste peut supprimer le contrat.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        if (!$contrat->canBeModified()) {
+            $this->addFlash('error', 'Ce contrat ne peut pas être supprimé car il a été signé.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        try {
+            $this->em->remove($contrat);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Contrat supprimé avec succès !');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_contrat_index');
     }
 }

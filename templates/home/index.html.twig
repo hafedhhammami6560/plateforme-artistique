@@ -693,6 +693,7 @@
 
       <nav aria-label="Hero call to actions">
         <button class="btn-primary" style="cursor: default;" disabled>Explore Art</button>
+        <a href="{{ path('app_project_index') }}" class="btn-primary" style="text-decoration: none; margin-left: 15px;">Galerie des projets</a>
         <button class="btn-link" style="cursor: default;" aria-label="Discover artists" disabled>
           Discover artists
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -703,31 +704,65 @@
     </section>
 
     <section class="hero-images" aria-label="Featured Artworks">
-      <article class="hero-img-small-top" aria-label="New painting">
-        <div class="label-tag">new</div>
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Abstract colorful painting with dynamic brush strokes" />
-        <div class="small-img-overlay">
-          <button class="small-img-btn" style="cursor: default;" disabled>View Details</button>
-        </div>
-      </article>
+      {% if recent_projects|length >= 1 %}
+        <article class="hero-img-small-top" aria-label="{{ recent_projects[0].title }}">
+          <div class="label-tag">new</div>
+          {% if recent_projects[0].image %}
+            <img src="{{ asset('uploads/projects/' ~ recent_projects[0].image) }}" alt="{{ recent_projects[0].title }}" />
+          {% else %}
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fas fa-image fa-4x"></i>
+            </div>
+          {% endif %}
+          <div class="small-img-overlay">
+            <a href="{{ path('app_project_show', {'id': recent_projects[0].id}) }}" class="small-img-btn" style="text-decoration: none;">View Details</a>
+          </div>
+        </article>
+      {% endif %}
 
-      <article class="hero-img-small-bottom" aria-label="Popular sculpture">
-        <div class="label-tag">popular</div>
-        <img src="https://images.unsplash.com/photo-1549887534-48265ca52ad8?auto=format&fit=crop&w=600&q=80" alt="Modern sculpture with curved metallic structure" />
-        <div class="small-img-overlay">
-          <button class="small-img-btn" style="cursor: default;" disabled>View Details</button>
-        </div>
-      </article>
+      {% if recent_projects|length >= 2 %}
+        <article class="hero-img-small-bottom" aria-label="{{ recent_projects[1].title }}">
+          <div class="label-tag">popular</div>
+          {% if recent_projects[1].image %}
+            <img src="{{ asset('uploads/projects/' ~ recent_projects[1].image) }}" alt="{{ recent_projects[1].title }}" />
+          {% else %}
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fas fa-image fa-4x"></i>
+            </div>
+          {% endif %}
+          <div class="small-img-overlay">
+            <a href="{{ path('app_project_show', {'id': recent_projects[1].id}) }}" class="small-img-btn" style="text-decoration: none;">View Details</a>
+          </div>
+        </article>
+      {% endif %}
 
-      <article class="hero-img-large" aria-label="Featured digital artwork">
-        <div class="label-tag">featured</div>
-        <img src="https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=80" alt="Digital art with vibrant colors and geometric shapes" />
-        <div class="hero-img-large-content">
-          <h3>Vivid Geometrics</h3>
-          <p>An evocative digital piece blending vibrant color palettes with geometric forms to inspire perspectives and imagination.</p>
-          <button class="read-more-btn" style="cursor: default;" aria-label="Read more about Vivid Geometrics" disabled>Read more</button>
-        </div>
-      </article>
+      {% if recent_projects|length >= 3 %}
+        <article class="hero-img-large" aria-label="{{ recent_projects[2].title }}">
+          <div class="label-tag">featured</div>
+          {% if recent_projects[2].image %}
+            <img src="{{ asset('uploads/projects/' ~ recent_projects[2].image) }}" alt="{{ recent_projects[2].title }}" />
+          {% else %}
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
+              <i class="fas fa-image fa-4x"></i>
+            </div>
+          {% endif %}
+          <div class="hero-img-large-content">
+            <h3>{{ recent_projects[2].title }}</h3>
+            <p>{{ recent_projects[2].description|slice(0, 100) }}{{ recent_projects[2].description|length > 100 ? '...' : '' }}</p>
+            <a href="{{ path('app_project_show', {'id': recent_projects[2].id}) }}" class="read-more-btn" style="text-decoration: none;">Read more</a>
+          </div>
+        </article>
+      {% else %}
+        <article class="hero-img-large" aria-label="Featured digital artwork">
+          <div class="label-tag">featured</div>
+          <img src="https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=80" alt="Digital art with vibrant colors and geometric shapes" />
+          <div class="hero-img-large-content">
+            <h3>Vivid Geometrics</h3>
+            <p>An evocative digital piece blending vibrant color palettes with geometric forms to inspire perspectives and imagination.</p>
+            <button class="read-more-btn" style="cursor: default;" aria-label="Read more about Vivid Geometrics" disabled>Read more</button>
+          </div>
+        </article>
+      {% endif %}
 
       <div class="dot-pattern" aria-hidden="true" style="grid-column: 1 / 2; grid-row: 2 / 3;">
         <span></span><span></span><span></span><span></span><span></span>

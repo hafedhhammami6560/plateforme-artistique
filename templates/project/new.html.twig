@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau projet - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4"><i class="fas fa-plus-circle"></i> Créer un nouveau projet</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            {% include 'project/form.html.twig' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

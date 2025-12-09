@@ -372,4 +372,65 @@ class ContratController extends AbstractController
 
         return $this->redirectToRoute('app_contrat_index');
     }
+
+    #[Route('/{id}/finaliser', name: 'app_contrat_finaliser', methods: ['POST'])]
+    public function finaliser(Request $request, Contrat $contrat, UserRepository $userRepo): Response
+    {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+        
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Vérifier que le contrat est en statut brouillon
+        if ($contrat->getStatut() !== Contrat::STATUT_BROUILLON) {
+            $this->addFlash('error', 'Seul un contrat brouillon peut être finalisé.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        // Vérifier que l'utilisateur participe au contrat
+        if ($contrat->getArtiste()->getId() !== $user->getId() && $contrat->getProducteur()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez pas finaliser ce contrat.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        // Vérifier le token CSRF
+        if (!$this->isCsrfTokenValid('finaliser_contrat_' . $contrat->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        try {
+            // Marquer l'acceptation de l'utilisateur
+            $isArtist = $contrat->getArtiste()->getId() === $user->getId();
+            
+            if ($isArtist) {
+                $contrat->setAcceptationArtiste(true);
+            } else {
+                $contrat->setAcceptationClient(true);
+            }
+
+            // Si les deux ont accepté, passer en statut final
+            if ($contrat->isAcceptationArtiste() && $contrat->isAcceptationClient()) {
+                $contrat->setStatut(Contrat::STATUT_FINAL);
+                $contrat->setUpdatedAt(new \DateTimeImmutable());
+                $this->addFlash('success', 'Le contrat a été finalisé ! Il est maintenant prêt à être signé par les deux parties.');
+            } else {
+                $this->addFlash('success', 'Vous avez accepté les conditions du contrat. En attente de l\'acceptation de l\'autre partie.');
+            }
+
+            $this->em->flush();
+
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la finalisation : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+    }
 }

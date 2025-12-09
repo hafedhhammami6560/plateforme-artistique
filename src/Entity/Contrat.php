@@ -88,6 +88,12 @@ class Contrat
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $acceptationArtiste = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $acceptationClient = false;
+
     // Relations
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'contratsAsProducteur')]
     #[ORM\JoinColumn(nullable: false)]
@@ -339,9 +345,21 @@ class Contrat
         return $this->dateSignatureArtist;
     }
 
+    public function setDateSignatureArtist(?\DateTimeImmutable $dateSignatureArtist): static
+    {
+        $this->dateSignatureArtist = $dateSignatureArtist;
+        return $this;
+    }
+
     public function getDateSignatureClient(): ?\DateTimeImmutable
     {
         return $this->dateSignatureClient;
+    }
+
+    public function setDateSignatureClient(?\DateTimeImmutable $dateSignatureClient): static
+    {
+        $this->dateSignatureClient = $dateSignatureClient;
+        return $this;
     }
 
     public function getProduit(): ?Produit
@@ -441,6 +459,28 @@ class Contrat
     public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
     {
         $this->archivedAt = $archivedAt;
+        return $this;
+    }
+
+    public function isAcceptationArtiste(): bool
+    {
+        return $this->acceptationArtiste;
+    }
+
+    public function setAcceptationArtiste(bool $acceptationArtiste): static
+    {
+        $this->acceptationArtiste = $acceptationArtiste;
+        return $this;
+    }
+
+    public function isAcceptationClient(): bool
+    {
+        return $this->acceptationClient;
+    }
+
+    public function setAcceptationClient(bool $acceptationClient): static
+    {
+        $this->acceptationClient = $acceptationClient;
         return $this;
     }
 

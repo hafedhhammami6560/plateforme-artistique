@@ -49,6 +49,8 @@
                         <span class="badge bg-success fs-5">Signé</span>
                     {% elseif contrat.statut == 'en_attente_signature' %}
                         <span class="badge bg-warning fs-5">En attente signature</span>
+                    {% elseif contrat.statut == 'final' %}
+                        <span class="badge bg-primary fs-5">Final - Prêt à signer</span>
                     {% else %}
                         <span class="badge bg-secondary fs-5">Brouillon</span>
                     {% endif %}
@@ -124,12 +126,102 @@
 
             <hr>
 
+            {# Section d'acceptation pour les brouillons #}
+            {% if contrat.statut == 'brouillon' %}
+                <h5><i class="bi bi-clipboard-check"></i> Acceptation des Conditions</h5>
+                
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-info-circle"></i> <strong>Étape préliminaire :</strong>
+                    Les deux parties doivent accepter les conditions du contrat avant de pouvoir le signer électroniquement.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card {% if contrat.isAcceptationArtiste %}border-success{% else %}border-secondary{% endif %}">
+                            <div class="card-body">
+                                <h6>
+                                    <i class="bi bi-person-check"></i> Artiste: {{ contrat.artiste.name }}
+                                </h6>
+                                {% if contrat.isAcceptationArtiste %}
+                                    <div class="alert alert-success mb-0">
+                                        <i class="bi bi-check-circle-fill"></i> <strong>Conditions acceptées</strong>
+                                    </div>
+                                {% else %}
+                                    {% set currentUserId = app.request.cookies.get('user_id')|number_format(0, '', '') %}
+                                    {% set isArtist = contrat.artiste.id|number_format(0, '', '') == currentUserId %}
+                                    
+                                    {% if isArtist %}
+                                        <p class="text-muted mb-3">
+                                            <i class="bi bi-hourglass-split"></i> Veuillez accepter les conditions
+                                        </p>
+                                        <form method="post" action="{{ path('app_contrat_finaliser', {id: contrat.id}) }}" 
+                                              onsubmit="return confirm('Confirmez-vous avoir lu et accepté toutes les conditions de ce contrat ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('finaliser_contrat_' ~ contrat.id) }}">
+                                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                                <i class="bi bi-check-circle"></i> J'accepte les conditions
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <p class="text-warning">
+                                            <i class="bi bi-hourglass-split"></i> En attente d'acceptation
+                                        </p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card {% if contrat.isAcceptationClient %}border-success{% else %}border-secondary{% endif %}">
+                            <div class="card-body">
+                                <h6>
+                                    <i class="bi bi-person-check"></i> Client: {{ contrat.producteur.name }}
+                                </h6>
+                                {% if contrat.isAcceptationClient %}
+                                    <div class="alert alert-success mb-0">
+                                        <i class="bi bi-check-circle-fill"></i> <strong>Conditions acceptées</strong>
+                                    </div>
+                                {% else %}
+                                    {% set currentUserId = app.request.cookies.get('user_id')|number_format(0, '', '') %}
+                                    {% set isClient = contrat.producteur.id|number_format(0, '', '') == currentUserId %}
+                                    
+                                    {% if isClient %}
+                                        <p class="text-muted mb-3">
+                                            <i class="bi bi-hourglass-split"></i> Veuillez accepter les conditions
+                                        </p>
+                                        <form method="post" action="{{ path('app_contrat_finaliser', {id: contrat.id}) }}" 
+                                              onsubmit="return confirm('Confirmez-vous avoir lu et accepté toutes les conditions de ce contrat ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('finaliser_contrat_' ~ contrat.id) }}">
+                                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                                <i class="bi bi-check-circle"></i> J'accepte les conditions
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <p class="text-warning">
+                                            <i class="bi bi-hourglass-split"></i> En attente d'acceptation
+                                        </p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+            {% endif %}
+
             <h5><i class="bi bi-pen-fill"></i> Signatures Électroniques Sécurisées</h5>
             
-            <div class="alert alert-info mb-3">
-                <i class="bi bi-shield-check"></i> <strong>Signature électronique sécurisée :</strong>
-                Chaque signature est horodatée, liée à votre adresse IP et protégée par un hash cryptographique pour garantir l'intégrité du contrat.
-            </div>
+            {% if contrat.statut == 'brouillon' %}
+                <div class="alert alert-secondary mb-3">
+                    <i class="bi bi-lock"></i> <strong>Signatures verrouillées :</strong>
+                    Les signatures seront disponibles une fois que les deux parties auront accepté les conditions du contrat.
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-shield-check"></i> <strong>Signature électronique sécurisée :</strong>
+                    Chaque signature est horodatée, liée à votre adresse IP et protégée par un hash cryptographique pour garantir l'intégrité du contrat.
+                </div>
+            {% endif %}
 
             <div class="row">
                 <div class="col-md-6">

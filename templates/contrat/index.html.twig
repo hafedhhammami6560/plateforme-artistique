@@ -108,8 +108,6 @@
                             </h5>
                             
                             <p class="card-text">
-                                <strong>Artiste:</strong> {{ contrat.artiste.name }}<br>
-                                <strong>Client:</strong> {{ contrat.producteur.name }}<br>
                                 <strong>Montant:</strong> {{ contrat.prix }}€<br>
                                 <strong>Période:</strong> {{ contrat.dateDebut|date('d/m/Y') }} - {{ contrat.dateFin|date('d/m/Y') }}
                             </p>
@@ -118,50 +116,74 @@
                                 <p><strong>Produit:</strong> {{ contrat.produit.nom }}</p>
                             {% endif %}
 
-                            <div class="mb-2">
-                                <small>
-                                    <i class="bi bi-check-circle{% if not contrat.signatureArtist %}-fill text-muted{% else %} text-success{% endif %}"></i>
-                                    Artiste
-                                    
-                                    <i class="bi bi-check-circle{% if not contrat.signatureClient %}-fill text-muted{% else %} text-success{% endif %} ms-3"></i>
-                                    Client
-                                </small>
+                            {# Statut des signatures avec boutons #}
+                            {% set currentUserId = app.request.cookies.get('user_id')|number_format(0, '', '') %}
+                            <div class="mb-3">
+                                {# Signature Artiste #}
+                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                    <div>
+                                        <strong>Artiste:</strong> {{ contrat.artiste.name }}
+                                    </div>
+                                    <div>
+                                        {% if contrat.signatureArtist %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Signé</span>
+                                        {% else %}
+                                            {% if contrat.artiste.id|number_format(0, '', '') == currentUserId and contrat.statut in ['en_attente_signature', 'final'] %}
+                                                {% if contrat.artiste.hasSignature() %}
+                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;" 
+                                                          onsubmit="return confirm('Signer ce contrat ?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <i class="bi bi-pen"></i> Signer
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <a href="{{ path('app_profile_edit') }}" class="btn btn-sm btn-warning btn-sm">
+                                                        <i class="bi bi-exclamation-triangle"></i> Ajouter signature
+                                                    </a>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">En attente</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {# Signature Client #}
+                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                    <div>
+                                        <strong>Client:</strong> {{ contrat.producteur.name }}
+                                    </div>
+                                    <div>
+                                        {% if contrat.signatureClient %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Signé</span>
+                                        {% else %}
+                                            {% if contrat.producteur.id|number_format(0, '', '') == currentUserId and contrat.statut in ['en_attente_signature', 'final'] %}
+                                                {% if contrat.producteur.hasSignature() %}
+                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;" 
+                                                          onsubmit="return confirm('Signer ce contrat ?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <i class="bi bi-pen"></i> Signer
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <a href="{{ path('app_profile_edit') }}" class="btn btn-sm btn-warning">
+                                                        <i class="bi bi-exclamation-triangle"></i> Ajouter signature
+                                                    </a>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">En attente</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
                             <a href="{{ path('app_contrat_show', {id: contrat.id}) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> Voir
+                                <i class="bi bi-eye"></i> Voir détails
                             </a>
-                            
-                            {% set currentUser = app.request.cookies.get('user_id') %}
-                            {% if contrat.statut == 'en_attente_signature' %}
-                                {# Vérifier si l'utilisateur peut signer #}
-                                {% if (contrat.artiste.id == currentUser|number_format(0, '', '') and not contrat.signatureArtist) 
-                                   or (contrat.producteur.id == currentUser|number_format(0, '', '') and not contrat.signatureClient) %}
-                                    
-                                    {# Vérifier si l'utilisateur a une signature enregistrée #}
-                                    {% set hasSignature = false %}
-                                    {% if contrat.artiste.id == currentUser|number_format(0, '', '') and contrat.artiste.hasSignature() %}
-                                        {% set hasSignature = true %}
-                                    {% elseif contrat.producteur.id == currentUser|number_format(0, '', '') and contrat.producteur.hasSignature() %}
-                                        {% set hasSignature = true %}
-                                    {% endif %}
-                                    
-                                    {% if hasSignature %}
-                                        <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;" 
-                                              onsubmit="return confirm('Confirmer la signature de ce contrat avec votre signature électronique ?');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('sign_contrat_' ~ contrat.id) }}">
-                                            <button type="submit" class="btn btn-sm btn-success">
-                                                <i class="bi bi-pencil-square"></i> Signer
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <a href="{{ path('app_profile_edit') }}" class="btn btn-sm btn-warning" title="Enregistrez d'abord votre signature">
-                                            <i class="bi bi-exclamation-triangle"></i> Ajouter signature
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
                         </div>
                     </div>
                 </div>

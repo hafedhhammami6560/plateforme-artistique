@@ -439,7 +439,7 @@ class ElectronicSignatureService
         }
         
         // Si les deux ont signé, archiver automatiquement
-        if ($contract->getSignatureArtist() && $contract->getSignatureClient()) {
+        if ($contract->isSignatureArtist() && $contract->isSignatureClient()) {
             $contract->setStatut(Contrat::STATUT_SIGNE);
             $contract->setDateSignature(new \DateTimeImmutable());
             $contract->autoArchiveIfFullySigned();

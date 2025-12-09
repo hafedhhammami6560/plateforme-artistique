@@ -10,7 +10,9 @@
  * - email     : Email de contact (optionnel, avec validation)
  * - communite : Relation ManyToOne avec Communite (menu déroulant)
  */
+
 namespace App\Form;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 
 use App\Entity\User;
 
@@ -32,6 +34,14 @@ class OrganisationType extends AbstractType
      * @param array $options Options du formulaire
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        // Date de l'événement
+        $builder->add('dateEvenement', DateType::class, [
+            'label' => "Date de l'événement",
+            'widget' => 'single_text',
+            'required' => false,
+                'html5' => true,
+            ]);
     {
         $builder
             // Type d'organisation
@@ -96,6 +106,7 @@ class OrganisationType extends AbstractType
             ])
         ;
     }
+}
 
     /**
      * Configuration des options du formulaire

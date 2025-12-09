@@ -35,8 +35,14 @@ class Organisation
     #[ORM\Column(type: 'float', nullable: true)]
     private ?float $longitude = null;
 
+
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dateEvenement = null;
+    public function getDateEvenement(): ?\DateTimeInterface { return $this->dateEvenement; }
+    public function setDateEvenement(?\DateTimeInterface $dateEvenement): static { $this->dateEvenement = $dateEvenement; return $this; }
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]

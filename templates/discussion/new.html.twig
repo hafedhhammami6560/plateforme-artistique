@@ -3,44 +3,64 @@
 {% block title %}Nouvelle Discussion{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="fas fa-comment-dots"></i> Créer une Nouvelle Discussion
-                    </h3>
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle"></i> Créer une nouvelle discussion
+                    </h4>
                 </div>
                 <div class="card-body">
                     {{ form_start(form) }}
-                        <div class="mb-3">
-                            {{ form_row(form.titre, {'attr': {'class': 'form-control'}}) }}
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                {{ form_row(form.titre, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.type, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.statut, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                {{ form_row(form.sujet, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.initiateur, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.destinataire, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.contrat, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.produit, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                {{ form_row(form.contenu, {'attr': {'class': 'form-control'}}) }}
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> Ce message sera le premier de la discussion
+                                </small>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            {{ form_row(form.sujet, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.statut, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.destinataire, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(form.contenu, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        {% if form.contrat is defined %}
-                        <div class="mb-3">
-                            {{ form_row(form.contrat, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-                        {% endif %}
-                        
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ path('discussion_index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Annuler
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour à la liste
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> Créer la Discussion
+                                <i class="fas fa-save"></i> Créer la discussion
                             </button>
                         </div>
                     {{ form_end(form) }}
@@ -49,4 +69,14 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .card {
+        border: none;
+    }
+</style>
 {% endblock %}

@@ -39,6 +39,13 @@ class ProjectController extends AbstractController
     #[Route('/new', name: 'app_project_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
+        // Vérifier que l'utilisateur est connecté
+        $userId = $request->cookies->get('user_id');
+        if (!$userId) {
+            $this->addFlash('error', 'Vous devez être connecté pour créer un projet.');
+            return $this->redirectToRoute('auth_login');
+        }
+
         $project = new Project();
         $form = $this->createForm(ProjectType::class, $project);
         $form->handleRequest($request);
@@ -87,6 +94,13 @@ class ProjectController extends AbstractController
     #[Route('/{id}/edit', name: 'app_project_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Project $project, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
+        // Vérifier que l'utilisateur est connecté
+        $userId = $request->cookies->get('user_id');
+        if (!$userId) {
+            $this->addFlash('error', 'Vous devez être connecté pour éditer un projet.');
+            return $this->redirectToRoute('auth_login');
+        }
+
         $form = $this->createForm(ProjectType::class, $project);
         $form->handleRequest($request);
 
@@ -125,6 +139,13 @@ class ProjectController extends AbstractController
     #[Route('/{id}', name: 'app_project_delete', methods: ['POST'])]
     public function delete(Request $request, Project $project, EntityManagerInterface $entityManager): Response
     {
+        // Vérifier que l'utilisateur est connecté
+        $userId = $request->cookies->get('user_id');
+        if (!$userId) {
+            $this->addFlash('error', 'Vous devez être connecté pour supprimer un projet.');
+            return $this->redirectToRoute('auth_login');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$project->getId(), $request->request->get('_token'))) {
             $entityManager->remove($project);
             $entityManager->flush();

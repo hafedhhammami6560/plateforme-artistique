@@ -58,15 +58,17 @@
                                 <a href="{{ path('app_project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
-                                <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-sm btn-warning">
-                                    <i class="fas fa-edit"></i> Éditer
-                                </a>
-                                <form method="post" action="{{ path('app_project_delete', {'id': project.id}) }}" style="display:inline;">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ project.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?')">
-                                        <i class="fas fa-trash"></i> Supprimer
-                                    </button>
-                                </form>
+                                {% if app.request.cookies.get('user_id') %}
+                                    <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Éditer
+                                    </a>
+                                    <form method="post" action="{{ path('app_project_delete', {'id': project.id}) }}" style="display:inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ project.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?')">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

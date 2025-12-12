@@ -47,11 +47,11 @@
                     <p><strong>Destinataire:</strong> {{ discussion.destinataire.name }}</p>
                 </div>
                 <div class="col-md-6">
-                    {% if discussion.produit %}
-                        <p><strong>Produit:</strong> {{ discussion.produit.nom }}</p>
-                        <p><strong>Prix produit:</strong> {{ discussion.produit.prix }}€</p>
+                    {% if discussion.projet %}
+                        <p><strong>projet:</strong> {{ discussion.projet.nom }}</p>
+                        <p><strong>Prix projet:</strong> {{ discussion.projet.prix }}€</p>
                     {% else %}
-                        <p><em>Aucun produit (commande personnalisée)</em></p>
+                        <p><em>Aucun projet (commande personnalisée)</em></p>
                     {% endif %}
                 </div>
             </div>

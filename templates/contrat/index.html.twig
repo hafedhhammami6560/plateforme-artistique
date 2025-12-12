@@ -25,7 +25,7 @@
                 <div class="col-md-3">
                     <label for="search" class="form-label">Rechercher</label>
                     <input type="text" class="form-control" id="search" name="search" 
-                           value="{{ search }}" placeholder="Numéro, utilisateur, produit...">
+                           value="{{ search }}" placeholder="Numéro, utilisateur, projet...">
                 </div>
                 
                 <div class="col-md-2">
@@ -112,8 +112,8 @@
                                 <strong>Période:</strong> {{ contrat.dateDebut|date('d/m/Y') }} - {{ contrat.dateFin|date('d/m/Y') }}
                             </p>
 
-                            {% if contrat.produit %}
-                                <p><strong>Produit:</strong> {{ contrat.produit.nom }}</p>
+                            {% if contrat.projet %}
+                                <p><strong>projet:</strong> {{ contrat.projet.nom }}</p>
                             {% endif %}
 
                             {# Statut des signatures avec boutons #}

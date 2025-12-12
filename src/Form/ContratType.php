@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Contrat;
-use App\Entity\Produit;
+use App\Entity\projet;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -23,7 +23,7 @@ class ContratType extends AbstractType
             ->add('type', ChoiceType::class, [
                 'label' => 'Type de contrat (défini par la discussion)',
                 'choices' => [
-                    'Type A: Publication Rights (Droits sur produit existant)' => Contrat::TYPE_PUBLICATION_RIGHTS,
+                    'Type A: Publication Rights (Droits sur projet existant)' => Contrat::TYPE_PUBLICATION_RIGHTS,
                     'Type B: Custom Order (Commande personnalisée)' => Contrat::TYPE_CUSTOM_ORDER,
                 ],
                 'expanded' => true,
@@ -86,24 +86,24 @@ class ContratType extends AbstractType
                 'required' => true,
             ]);
 
-        // Ajouter le champ produit uniquement pour Type Publication Rights
-        if ($options['show_produit']) {
-            $produitOptions = [
-                'class' => Produit::class,
-                'choice_label' => function(Produit $produit) {
-                    return $produit->getNom() . ' - ' . $produit->getPrix() . '€';
+        // Ajouter le champ projet uniquement pour Type Publication Rights
+        if ($options['show_projet']) {
+            $projetOptions = [
+                'class' => projet::class,
+                'choice_label' => function(projet $projet) {
+                    return $projet->getNom() . ' - ' . $projet->getPrix() . '€';
                 },
-                'label' => 'Produit concerné',
-                'placeholder' => 'Sélectionnez le produit',
+                'label' => 'projet concerné',
+                'placeholder' => 'Sélectionnez le projet',
                 'attr' => ['class' => 'form-select'],
                 'required' => false,
                 'disabled' => $options['is_edit'],
                 'help' => 'Obligatoire pour les contrats de type Publication Rights'
             ];
             
-            // Filtrer les produits par artiste si current_user est fourni
+            // Filtrer les projets par artiste si current_user est fourni
             if ($options['current_user']) {
-                $produitOptions['query_builder'] = function($repository) use ($options) {
+                $projetOptions['query_builder'] = function($repository) use ($options) {
                     return $repository->createQueryBuilder('p')
                         ->where('p.artist = :artist')
                         ->setParameter('artist', $options['current_user'])
@@ -111,7 +111,7 @@ class ContratType extends AbstractType
                 };
             }
             
-            $builder->add('produit', EntityType::class, $produitOptions);
+            $builder->add('projet', EntityType::class, $projetOptions);
         }
     }
 
@@ -120,9 +120,10 @@ class ContratType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Contrat::class,
             'is_edit' => false,
-            'show_produit' => true,
+            'show_projet' => true,
             'current_user' => null,
             'from_discussion' => false,
         ]);
     }
 }
+

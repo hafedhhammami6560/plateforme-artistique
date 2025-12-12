@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS `contrat` (
   PRIMARY KEY(`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB;
 
--- Create produit table
-CREATE TABLE IF NOT EXISTS `produit` (
+-- Create projet table
+CREATE TABLE IF NOT EXISTS `projet` (
   `id` INT AUTO_INCREMENT NOT NULL,
   `nom` VARCHAR(255) NOT NULL,
   `description` LONGTEXT DEFAULT NULL,
@@ -40,13 +40,13 @@ CREATE TABLE IF NOT EXISTS `produit` (
   PRIMARY KEY(`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB;
 
--- Create contrat_produit junction table
-CREATE TABLE IF NOT EXISTS `contrat_produit` (
+-- Create contrat_projet junction table
+CREATE TABLE IF NOT EXISTS `contrat_projet` (
   `contrat_id` INT NOT NULL,
-  `produit_id` INT NOT NULL,
-  INDEX IDX_CONTRAT_PRODUIT_CONTRAT (`contrat_id`),
-  INDEX IDX_CONTRAT_PRODUIT_PRODUIT (`produit_id`),
-  PRIMARY KEY(`contrat_id`, `produit_id`)
+  `projet_id` INT NOT NULL,
+  INDEX IDX_CONTRAT_projet_CONTRAT (`contrat_id`),
+  INDEX IDX_CONTRAT_projet_projet (`projet_id`),
+  PRIMARY KEY(`contrat_id`, `projet_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB;
 
 -- Create discussion table
@@ -72,10 +72,10 @@ ALTER TABLE `contrat`
   ADD CONSTRAINT FK_CONTRAT_PRODUCTEUR FOREIGN KEY (`producteur_id`) REFERENCES `user` (`id`),
   ADD CONSTRAINT FK_CONTRAT_ARTISTE FOREIGN KEY (`artiste_id`) REFERENCES `user` (`id`);
 
--- Add foreign keys for contrat_produit
-ALTER TABLE `contrat_produit`
-  ADD CONSTRAINT FK_CONTRAT_PRODUIT_CONTRAT FOREIGN KEY (`contrat_id`) REFERENCES `contrat` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT FK_CONTRAT_PRODUIT_PRODUIT FOREIGN KEY (`produit_id`) REFERENCES `produit` (`id`) ON DELETE CASCADE;
+-- Add foreign keys for contrat_projet
+ALTER TABLE `contrat_projet`
+  ADD CONSTRAINT FK_CONTRAT_projet_CONTRAT FOREIGN KEY (`contrat_id`) REFERENCES `contrat` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT FK_CONTRAT_projet_projet FOREIGN KEY (`projet_id`) REFERENCES `projet` (`id`) ON DELETE CASCADE;
 
 -- Add foreign keys for discussion
 ALTER TABLE `discussion`

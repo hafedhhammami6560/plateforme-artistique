@@ -144,8 +144,8 @@ class ContratController extends AbstractController
                 }
                 
                 // Set product if Type A
-                if ($discussion->isTypePublicationRights() && $discussion->getProduit()) {
-                    $contrat->setProduit($discussion->getProduit());
+                if ($discussion->isTypePublicationRights() && $discussion->getprojet()) {
+                    $contrat->setprojet($discussion->getprojet());
                 }
             }
         } else {
@@ -162,11 +162,11 @@ class ContratController extends AbstractController
             }
         }
 
-        $showProduit = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
+        $showprojet = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
 
         $form = $this->createForm(ContratType::class, $contrat, [
             'from_discussion' => $fromDiscussion,
-            'show_produit' => $showProduit,
+            'show_projet' => $showprojet,
             'is_edit' => false,
         ]);
         
@@ -183,7 +183,7 @@ class ContratController extends AbstractController
                     $contrat->getConditionsTexte(),
                     $contrat->getDateDebut(),
                     $contrat->getDateFin(),
-                    $contrat->getProduit()
+                    $contrat->getprojet()
                 );
                 
                 // Link to discussion if creating from discussion
@@ -305,11 +305,11 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
-        $showProduit = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
+        $showprojet = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
 
         $form = $this->createForm(ContratType::class, $contrat, [
             'from_discussion' => false,
-            'show_produit' => $showProduit,
+            'show_projet' => $showprojet,
             'is_edit' => true,
         ]);
         

@@ -25,7 +25,7 @@ Le système de permissions contrôle l'accès aux fonctionnalités des modules *
 - **Discussions**:
   - ✅ Peuvent créer des discussions de type **Publication Rights** (Type A) uniquement
   - ❌ Ne peuvent pas créer de discussions de type **Custom Order** (Type B)
-  - ✅ Doivent spécifier un produit existant lors de la création
+  - ✅ Doivent spécifier un projet existant lors de la création
   
 - **Contrats**:
   - ✅ Peuvent créer des contrats en tant que **producteur**
@@ -39,7 +39,7 @@ Le système de permissions contrôle l'accès aux fonctionnalités des modules *
 ### 3. **Sponsor** (Investisseur/Mécène)
 - **Discussions**:
   - ✅ Peuvent créer **les deux types** de discussions
-  - ✅ Type A: Pour acquérir des droits sur des produits existants
+  - ✅ Type A: Pour acquérir des droits sur des projets existants
   - ✅ Type B: Pour commander des œuvres personnalisées
   
 - **Contrats**:
@@ -84,8 +84,8 @@ Le système de permissions contrôle l'accès aux fonctionnalités des modules *
 ### Workflow Type A - Publication Rights (Publisher/Sponsor → Artiste)
 
 1. **Publisher ou Sponsor** crée une discussion de type A
-2. Sélectionne un **produit existant** dans la liste
-3. Spécifie l'**artiste** propriétaire du produit
+2. Sélectionne un **projet existant** dans la liste
+3. Spécifie l'**artiste** propriétaire du projet
 4. Négocie les **termes** via messages
 5. Crée un **contrat** depuis la discussion
 6. Les deux parties **signent** le contrat
@@ -107,7 +107,7 @@ Le système de permissions contrôle l'accès aux fonctionnalités des modules *
 
 ### Au niveau du formulaire
 - Le formulaire de discussion affiche **uniquement les types autorisés** selon l'utilisateur
-- Les champs obligatoires changent selon le type (produit pour Type A)
+- Les champs obligatoires changent selon le type (projet pour Type A)
 
 ### Au niveau du contrôleur
 - Vérification avant affichage du formulaire

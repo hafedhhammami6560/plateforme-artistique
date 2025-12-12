@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Contrat;
-use App\Entity\Produit;
+use App\Entity\projet;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -53,21 +53,21 @@ class ContratService
         string $conditionsTexte,
         \DateTimeImmutable $dateDebut,
         \DateTimeImmutable $dateFin,
-        ?Produit $produit = null
+        ?projet $projet = null
     ): Contrat {
-        // Validation Type A: doit avoir un produit
-        if ($type === Contrat::TYPE_PUBLICATION_RIGHTS && !$produit) {
-            throw new \InvalidArgumentException('Un contrat de type Publication Rights doit avoir un produit associé.');
+        // Validation Type A: doit avoir un projet
+        if ($type === Contrat::TYPE_PUBLICATION_RIGHTS && !$projet) {
+            throw new \InvalidArgumentException('Un contrat de type Publication Rights doit avoir un projet associé.');
         }
 
-        // Validation Type B: ne doit PAS avoir de produit
-        if ($type === Contrat::TYPE_CUSTOM_ORDER && $produit) {
-            throw new \InvalidArgumentException('Un contrat de type Custom Order ne peut pas avoir de produit lors de sa création.');
+        // Validation Type B: ne doit PAS avoir de projet
+        if ($type === Contrat::TYPE_CUSTOM_ORDER && $projet) {
+            throw new \InvalidArgumentException('Un contrat de type Custom Order ne peut pas avoir de projet lors de sa création.');
         }
 
-        // Vérifier que le produit n'a pas déjà un contrat actif
-        if ($produit && $produit->isSousContrat()) {
-            throw new \InvalidArgumentException('Ce produit est déjà sous contrat.');
+        // Vérifier que le projet n'a pas déjà un contrat actif
+        if ($projet && $projet->isSousContrat()) {
+            throw new \InvalidArgumentException('Ce projet est déjà sous contrat.');
         }
 
         $contrat = new Contrat();
@@ -83,8 +83,8 @@ class ContratService
         $contrat->setDateFin($dateFin);
         $contrat->setStatut(Contrat::STATUT_BROUILLON);
 
-        if ($produit) {
-            $contrat->setProduit($produit);
+        if ($projet) {
+            $contrat->setprojet($projet);
         }
 
         $this->entityManager->persist($contrat);
@@ -150,13 +150,13 @@ class ContratService
         $contrat->setStatut(Contrat::STATUT_SIGNE);
         $contrat->setDateSignature(new \DateTimeImmutable());
 
-        // Workflow Type A: Marquer le produit comme "sous contrat"
-        if ($contrat->isTypePublicationRights() && $contrat->getProduit()) {
-            $produit = $contrat->getProduit();
-            $produit->marquerSousContrat($contrat);
+        // Workflow Type A: Marquer le projet comme "sous contrat"
+        if ($contrat->isTypePublicationRights() && $contrat->getprojet()) {
+            $projet = $contrat->getprojet();
+            $projet->marquerSousContrat($contrat);
         }
 
-        // Workflow Type B: Le produit sera créé après par l'artiste
+        // Workflow Type B: Le projet sera créé après par l'artiste
         // Pas d'action automatique ici
     }
 
@@ -169,26 +169,27 @@ class ContratService
     }
 
     /**
-     * Associe un produit à un contrat Type B après signature
+     * Associe un projet à un contrat Type B après signature
      */
-    public function associerProduitTypeB(Contrat $contrat, Produit $produit): void
+    public function associerprojetTypeB(Contrat $contrat, projet $projet): void
     {
         if (!$contrat->isTypeCustomOrder()) {
-            throw new \InvalidArgumentException('Seul un contrat de type Custom Order peut recevoir un produit après signature.');
+            throw new \InvalidArgumentException('Seul un contrat de type Custom Order peut recevoir un projet après signature.');
         }
 
         if (!$contrat->isFullySigned()) {
-            throw new \InvalidArgumentException('Le contrat doit être entièrement signé avant d\'associer un produit.');
+            throw new \InvalidArgumentException('Le contrat doit être entièrement signé avant d\'associer un projet.');
         }
 
-        if ($contrat->getProduit()) {
-            throw new \InvalidArgumentException('Ce contrat a déjà un produit associé.');
+        if ($contrat->getprojet()) {
+            throw new \InvalidArgumentException('Ce contrat a déjà un projet associé.');
         }
 
-        $contrat->setProduit($produit);
-        $produit->marquerSousContrat($contrat);
-        $produit->setStatut('en_production');
+        $contrat->setprojet($projet);
+        $projet->marquerSousContrat($contrat);
+        $projet->setStatut('en_production');
 
         $this->entityManager->flush();
     }
 }
+

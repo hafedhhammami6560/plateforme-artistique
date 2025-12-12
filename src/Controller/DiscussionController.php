@@ -145,9 +145,9 @@ class DiscussionController extends AbstractController
 
                 // Create discussion based on type
                 if ($type === Discussion::TYPE_PUBLICATION_RIGHTS) {
-                    $produit = $discussion->getProduit();
-                    if (!$produit) {
-                        $this->addFlash('error', 'Un produit est requis pour les discussions de type Publication Rights.');
+                    $projet = $discussion->getprojet();
+                    if (!$projet) {
+                        $this->addFlash('error', 'Un projet est requis pour les discussions de type Publication Rights.');
                         return $this->render('discussion/new.html.twig', [
                             'discussion' => $discussion,
                             'form' => $form->createView(),
@@ -156,7 +156,7 @@ class DiscussionController extends AbstractController
                     $discussion = $this->discussionService->creerDiscussionTypeA(
                         $user,
                         $destinataire,
-                        $produit,
+                        $projet,
                         $discussion->getTitre(),
                         $messageInitial
                     );

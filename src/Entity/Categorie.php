@@ -22,14 +22,14 @@ class Categorie
     private ?string $description = null;
 
     /**
-     * @var Collection<int, Produit>
+     * @var Collection<int, Projet>
      */
-    #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'categorie')]
-    private Collection $produits;
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'categorie')]
+    private Collection $projets;
 
     public function __construct()
     {
-        $this->produits = new ArrayCollection();
+        $this->projets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,28 +62,28 @@ class Categorie
     }
 
     /**
-     * @return Collection<int, Produit>
+     * @return Collection<int, Projet>
      */
-    public function getProduits(): Collection
+    public function getProjets(): Collection
     {
-        return $this->produits;
+        return $this->projets;
     }
 
-    public function addProduit(Produit $produit): static
+    public function addProjet(Projet $projet): static
     {
-        if (!$this->produits->contains($produit)) {
-            $this->produits->add($produit);
-            $produit->setCategorie($this);
+        if (!$this->projets->contains($projet)) {
+            $this->projets->add($projet);
+            $projet->setCategorie($this);
         }
 
         return $this;
     }
 
-    public function removeProduit(Produit $produit): static
+    public function removeProjet(Projet $projet): static
     {
-        if ($this->produits->removeElement($produit)) {
-            if ($produit->getCategorie() === $this) {
-                $produit->setCategorie(null);
+        if ($this->projets->removeElement($projet)) {
+            if ($projet->getCategorie() === $this) {
+                $projet->setCategorie(null);
             }
         }
 

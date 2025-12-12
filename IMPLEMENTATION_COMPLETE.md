@@ -6,9 +6,9 @@
 
 #### Entités (4 modifiées/créées)
 - ✅ **Message** - Nouvelle entité pour messagerie discussions
-- ✅ **Discussion** - Refonte avec types A/B, produit nullable, messages
-- ✅ **Contrat** - Système signatures, numéro unique, relation OneToOne produit
-- ✅ **Produit** - Statuts, artist, contrat OneToOne, sousContrat
+- ✅ **Discussion** - Refonte avec types A/B, projet nullable, messages
+- ✅ **Contrat** - Système signatures, numéro unique, relation OneToOne projet
+- ✅ **projet** - Statuts, artist, contrat OneToOne, sousContrat
 
 #### Services Métier (2 services)
 - ✅ **ContratService** - Génération numéros, signatures, validations Type A/B
@@ -23,7 +23,7 @@
 
 #### Base de Données
 - ✅ Schéma créé avec toutes relations
-- ✅ Tables : contrat, discussion, message, produit
+- ✅ Tables : contrat, discussion, message, projet
 - ✅ Relations: OneToOne, ManyToOne configurées
 
 ### ✅ Documentation (2 documents)
@@ -37,26 +37,26 @@
 
 ### Workflow Type A (Publication Rights) ✅
 ```
-Publisher → Discussion avec produit → Négociation → Contrat → Signatures 
-→ Produit automatiquement "sous_contrat"
+Publisher → Discussion avec projet → Négociation → Contrat → Signatures 
+→ projet automatiquement "sous_contrat"
 ```
 
 **Validations:**
-- ✅ Produit obligatoire à création discussion
-- ✅ Produit doit être disponible (pas sous contrat)
+- ✅ projet obligatoire à création discussion
+- ✅ projet doit être disponible (pas sous contrat)
 - ✅ Marquage automatique après double signature
-- ✅ Unicité contrat par produit
+- ✅ Unicité contrat par projet
 
 ### Workflow Type B (Custom Order) ✅
 ```
-Sponsor → Discussion SANS produit → Négociation → Contrat → Signatures 
-→ Création produit → Association → Statut "en_production"
+Sponsor → Discussion SANS projet → Négociation → Contrat → Signatures 
+→ Création projet → Association → Statut "en_production"
 ```
 
 **Validations:**
-- ✅ Pas de produit initial (null)
+- ✅ Pas de projet initial (null)
 - ✅ Association possible uniquement après signature complète
-- ✅ Produit créé manuellement par artist
+- ✅ projet créé manuellement par artist
 - ✅ Statut géré (en_production → livre)
 
 ### Système de Signatures ✅
@@ -84,7 +84,7 @@ Sponsor → Discussion SANS produit → Négociation → Contrat → Signatures
 ## 📊 Statistiques du Code
 
 ### Fichiers Créés/Modifiés
-- **4 entités** : Message (new), Discussion, Contrat, Produit
+- **4 entités** : Message (new), Discussion, Contrat, projet
 - **2 services** : ContratService, DiscussionService
 - **2 voters** : DiscussionVoter, ContratVoter
 - **1 repository** : MessageRepository
@@ -104,19 +104,19 @@ Sponsor → Discussion SANS produit → Négociation → Contrat → Signatures
 - `creerDiscussionTypeA()` / `creerDiscussionTypeB()` - Workflows
 - `ajouterMessage()` - Messagerie
 - `lierContrat()` - Liaison discussion↔contrat
-- `associerProduitTypeB()` - Association post-signature
-- `marquerSousContrat()` - Marquage produit
+- `associerprojetTypeB()` - Association post-signature
+- `marquerSousContrat()` - Marquage projet
 - Méthodes helpers : `isFullySigned()`, `canBeModified()`, etc.
 
 ---
 
 ## 🔒 Règles Métier Garanties
 
-✅ **Un produit = Un seul contrat actif**
+✅ **Un projet = Un seul contrat actif**
 ✅ **Contrats signés = Immutables**
 ✅ **Double signature = Obligatoire**
-✅ **Type A = Produit existant requis**
-✅ **Type B = Produit créé après signature**
+✅ **Type A = projet existant requis**
+✅ **Type B = projet créé après signature**
 ✅ **Numéros contrats = Uniques**
 ✅ **Historique signatures = Tracé**
 ✅ **Accès = Contrôlé par Voters**
@@ -198,7 +198,7 @@ php bin/console cache:clear
 ### Créer Discussion Type A
 ```php
 $discussion = $discussionService->creerDiscussionTypeA(
-    $publisher, $artist, $produit, "Titre", "Message"
+    $publisher, $artist, $projet, "Titre", "Message"
 );
 ```
 
@@ -206,11 +206,11 @@ $discussion = $discussionService->creerDiscussionTypeA(
 ```php
 $contrat = $contratService->creerContrat(
     $artist, $client, Contrat::TYPE_PUBLICATION_RIGHTS,
-    "5000", "Conditions...", $dateDebut, $dateFin, $produit
+    "5000", "Conditions...", $dateDebut, $dateFin, $projet
 );
 $contratService->signerParArtist($contrat, $artist);
 $contratService->signerParClient($contrat, $client);
-// → Produit automatiquement sous_contrat si Type A
+// → projet automatiquement sous_contrat si Type A
 ```
 
 ### Vérifier Permissions
@@ -255,7 +255,7 @@ $this->denyAccessUnlessGranted(DiscussionVoter::ADD_MESSAGE, $discussion);
 > Automatiser et sécuriser les collaborations artistiques avec deux parcours utilisateur distincts mais cohérents, garantissant intégrité des contrats et traçabilité complète des échanges.
 
 **Complexité Gérée** ✅
-> Différence fondamentale entre Type A (produit existant) et Type B (commande sur mesure) maintenue dans une interface unifiée et une base de code cohérente.
+> Différence fondamentale entre Type A (projet existant) et Type B (commande sur mesure) maintenue dans une interface unifiée et une base de code cohérente.
 
 **Critères de Succès** ✅
 1. ✅ Workflow Type A fonctionnel
@@ -275,7 +275,7 @@ src/
 │   ├── Message.php ✅
 │   ├── Discussion.php ✅
 │   ├── Contrat.php ✅
-│   └── Produit.php ✅
+│   └── projet.php ✅
 ├── Service/
 │   ├── ContratService.php ✅
 │   └── DiscussionService.php ✅
@@ -294,7 +294,7 @@ Tables créées:
 - contrat ✅
 - discussion ✅
 - message ✅
-- produit ✅
+- projet ✅
 - + autres tables existantes (communite, organisation, etc.)
 ```
 

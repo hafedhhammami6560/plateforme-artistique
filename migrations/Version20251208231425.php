@@ -14,7 +14,7 @@ final class Version20251208231425 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Baseline migration after schema rebuild with Categorie and updated Produit entities.';
+        return 'Baseline migration after schema rebuild with Categorie and updated projet entities.';
     }
 
     public function up(Schema $schema): void

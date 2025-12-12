@@ -5,7 +5,7 @@
 Ce système permet de gérer deux types de collaborations artistiques :
 
 ### Type A - Publication Rights (Droits de Publication)
-Un **Publisher** souhaite acquérir les droits d'un **produit existant** créé par un **Artist**.
+Un **Publisher** souhaite acquérir les droits d'un **projet existant** créé par un **Artist**.
 
 ### Type B - Custom Order (Commande Personnalisée)
 Un **Sponsor** commande une **œuvre sur mesure** qui n'existe pas encore à un **Artist**.
@@ -44,7 +44,7 @@ symfony server:start
 
 ## 📖 Utilisation des Services
 
-### 1. Créer une Discussion Type A (avec produit)
+### 1. Créer une Discussion Type A (avec projet)
 
 ```php
 use App\Service\DiscussionService;
@@ -58,7 +58,7 @@ public function __construct(
 $discussion = $this->discussionService->creerDiscussionTypeA(
     initiateur: $publisher,        // User publisher
     destinataire: $artist,          // User artist
-    produit: $produit,              // Produit existant
+    projet: $projet,              // projet existant
     titre: "Droits d'utilisation album XYZ",
     messageInitial: "Bonjour, je souhaite acquérir les droits..."
 );
@@ -94,7 +94,7 @@ public function __construct(
     private ContratService $contratService
 ) {}
 
-// Type A - Avec produit
+// Type A - Avec projet
 $contrat = $this->contratService->creerContrat(
     artist: $artist,
     client: $publisher,
@@ -103,10 +103,10 @@ $contrat = $this->contratService->creerContrat(
     conditionsTexte: "L'artist cède les droits exclusifs...",
     dateDebut: new \DateTimeImmutable('2025-01-01'),
     dateFin: new \DateTimeImmutable('2026-01-01'),
-    produit: $produit  // Obligatoire pour Type A
+    projet: $projet  // Obligatoire pour Type A
 );
 
-// Type B - Sans produit
+// Type B - Sans projet
 $contrat = $this->contratService->creerContrat(
     artist: $artist,
     client: $sponsor,
@@ -115,7 +115,7 @@ $contrat = $this->contratService->creerContrat(
     conditionsTexte: "L'artist s'engage à créer...",
     dateDebut: new \DateTimeImmutable('2025-01-01'),
     dateFin: new \DateTimeImmutable('2025-06-01'),
-    produit: null  // NULL pour Type B
+    projet: null  // NULL pour Type B
 );
 ```
 
@@ -137,25 +137,25 @@ $this->contratService->signerParClient($contrat, $client);
 // Vérifier si totalement signé
 if ($contrat->isFullySigned()) {
     // Le contrat est maintenant actif
-    // Pour Type A: le produit est automatiquement marqué "sous_contrat"
+    // Pour Type A: le projet est automatiquement marqué "sous_contrat"
 }
 ```
 
-### 7. Associer un Produit à un Contrat Type B (après signature)
+### 7. Associer un projet à un Contrat Type B (après signature)
 
 ```php
-// L'artiste crée le produit
-$produit = new Produit();
-$produit->setNom("Peinture commandée");
-$produit->setArtist($artist);
+// L'artiste crée le projet
+$projet = new projet();
+$projet->setNom("Peinture commandée");
+$projet->setArtist($artist);
 // ... autres propriétés
 
-$em->persist($produit);
+$em->persist($projet);
 $em->flush();
 
 // Associer au contrat
-$this->contratService->associerProduitTypeB($contrat, $produit);
-// Le produit est maintenant en statut "en_production"
+$this->contratService->associerprojetTypeB($contrat, $projet);
+// Le projet est maintenant en statut "en_production"
 ```
 
 ---
@@ -199,14 +199,14 @@ $this->denyAccessUnlessGranted(ContratVoter::SIGN_CLIENT, $contrat);
 ### Workflow Type A - Publication Rights
 
 ```php
-// 1. Publisher trouve un produit qui l'intéresse
-$produit = $produitRepo->find($id);
+// 1. Publisher trouve un projet qui l'intéresse
+$projet = $projetRepo->find($id);
 
 // 2. Publisher initie une discussion
 $discussion = $discussionService->creerDiscussionTypeA(
     $publisher, 
-    $produit->getArtist(), 
-    $produit,
+    $projet->getArtist(), 
+    $projet,
     "Acquisition droits album",
     "Bonjour, votre album m'intéresse..."
 );
@@ -225,7 +225,7 @@ $contrat = $contratService->creerContrat(
     "Cession droits exclusifs pour 1 an...",
     new \DateTimeImmutable('now'),
     new \DateTimeImmutable('+1 year'),
-    $produit
+    $projet
 );
 
 // 5. Lier à la discussion
@@ -235,8 +235,8 @@ $discussionService->lierContrat($discussion, $contrat);
 $contratService->signerParArtist($contrat, $artist);
 $contratService->signerParClient($contrat, $publisher);
 
-// 7. ✅ Produit automatiquement marqué "sous_contrat"
-// $produit->isSousContrat() === true
+// 7. ✅ projet automatiquement marqué "sous_contrat"
+// $projet->isSousContrat() === true
 ```
 
 ### Workflow Type B - Custom Order
@@ -256,7 +256,7 @@ $discussionService->ajouterMessage($discussion, $sponsor, "Thème nature abstrai
 $discussionService->ajouterMessage($discussion, $artist, "Délai 6 mois, 10000€");
 $discussionService->ajouterMessage($discussion, $sponsor, "Parfait !");
 
-// 3. Artist crée le contrat (SANS produit)
+// 3. Artist crée le contrat (SANS projet)
 $contrat = $contratService->creerContrat(
     $artist,
     $sponsor,
@@ -265,7 +265,7 @@ $contrat = $contratService->creerContrat(
     "Création sculpture bronze 2m thème nature...",
     new \DateTimeImmutable('now'),
     new \DateTimeImmutable('+6 months'),
-    null  // Pas de produit
+    null  // Pas de projet
 );
 
 // 4. Lier et signer
@@ -273,21 +273,21 @@ $discussionService->lierContrat($discussion, $contrat);
 $contratService->signerParSponsor($contrat, $sponsor);
 $contratService->signerParArtist($contrat, $artist);
 
-// 5. Artist crée le produit APRÈS signature
-$produit = new Produit();
-$produit->setNom("Sculpture Nature Abstraite");
-$produit->setArtist($artist);
-$produit->setPrix(10000);
+// 5. Artist crée le projet APRÈS signature
+$projet = new projet();
+$projet->setNom("Sculpture Nature Abstraite");
+$projet->setArtist($artist);
+$projet->setPrix(10000);
 // ...
-$em->persist($produit);
+$em->persist($projet);
 $em->flush();
 
 // 6. Associer au contrat
-$contratService->associerProduitTypeB($contrat, $produit);
-// $produit->getStatut() === 'en_production'
+$contratService->associerprojetTypeB($contrat, $projet);
+// $projet->getStatut() === 'en_production'
 
 // 7. Après livraison
-$produit->setStatut('livre');
+$projet->setStatut('livre');
 $em->flush();
 ```
 
@@ -299,25 +299,25 @@ $em->flush();
 
 **Type A:**
 ```php
-// ❌ ERREUR : Produit manquant
+// ❌ ERREUR : projet manquant
 $contrat = $contratService->creerContrat(..., null);
 // InvalidArgumentException: "Un contrat de type Publication Rights 
-// doit avoir un produit associé."
+// doit avoir un projet associé."
 
-// ❌ ERREUR : Produit déjà sous contrat
-$discussion = $discussionService->creerDiscussionTypeA(..., $produitSousContrat);
-// InvalidArgumentException: "Ce produit est déjà sous contrat..."
+// ❌ ERREUR : projet déjà sous contrat
+$discussion = $discussionService->creerDiscussionTypeA(..., $projetSousContrat);
+// InvalidArgumentException: "Ce projet est déjà sous contrat..."
 ```
 
 **Type B:**
 ```php
-// ❌ ERREUR : Produit fourni à la création
-$contrat = $contratService->creerContrat(..., $produit);
+// ❌ ERREUR : projet fourni à la création
+$contrat = $contratService->creerContrat(..., $projet);
 // InvalidArgumentException: "Un contrat de type Custom Order ne peut 
-// pas avoir de produit lors de sa création."
+// pas avoir de projet lors de sa création."
 
 // ❌ ERREUR : Association avant signature
-$contratService->associerProduitTypeB($contratNonSigne, $produit);
+$contratService->associerprojetTypeB($contratNonSigne, $projet);
 // InvalidArgumentException: "Le contrat doit être entièrement signé..."
 ```
 
@@ -358,10 +358,10 @@ $contrats = $contratRepo->createQueryBuilder('c')
     ->getResult();
 ```
 
-### Produits disponibles pour Type A
+### projets disponibles pour Type A
 
 ```php
-$produits = $produitRepo->createQueryBuilder('p')
+$projets = $projetRepo->createQueryBuilder('p')
     ->where('p.sousContrat = false')
     ->andWhere('p.statut = :statut')
     ->setParameter('statut', 'disponible')
@@ -391,7 +391,7 @@ en_cours → terminee
 Création
 ```
 
-### Statuts Produit
+### Statuts projet
 ```
 Type A:
 disponible → sous_contrat
@@ -418,29 +418,29 @@ Type B:
 
 ## 🐛 Dépannage
 
-### Le produit n'est pas marqué sous contrat après signature
+### Le projet n'est pas marqué sous contrat après signature
 ```php
 // Vérifier que les deux signatures sont présentes
 if ($contrat->isFullySigned()) {
     // Vérifier le type
     if ($contrat->isTypePublicationRights()) {
-        // Le produit devrait être marqué automatiquement
-        $produit = $contrat->getProduit();
-        var_dump($produit->isSousContrat()); // devrait être true
+        // Le projet devrait être marqué automatiquement
+        $projet = $contrat->getprojet();
+        var_dump($projet->isSousContrat()); // devrait être true
     }
 }
 ```
 
-### Erreur lors de l'association produit Type B
+### Erreur lors de l'association projet Type B
 ```php
 // S'assurer que:
 // 1. Contrat de type CUSTOM_ORDER
 // 2. Contrat entièrement signé
-// 3. Pas de produit déjà associé
+// 3. Pas de projet déjà associé
 if ($contrat->isTypeCustomOrder() 
     && $contrat->isFullySigned() 
-    && !$contrat->getProduit()) {
-    $contratService->associerProduitTypeB($contrat, $newProduit);
+    && !$contrat->getprojet()) {
+    $contratService->associerprojetTypeB($contrat, $newprojet);
 }
 ```
 

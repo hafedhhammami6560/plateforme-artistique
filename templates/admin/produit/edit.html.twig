@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
-{% block title %}Modifier produit - Admin{% endblock %}
+{% block title %}Modifier projet - Admin{% endblock %}
 {% block body %}
 <div class="container mt-4">
-  <h1 class="h3">Modifier le produit</h1>
+  <h1 class="h3">Modifier le projet</h1>
   <div class="card"><div class="card-body">
-    {% if produit.image %}
+    {% if projet.image %}
       <div class="mb-3">
-        <img src="{{ asset('uploads/produits/' ~ produit.image) }}" alt="{{ produit.nom }}" class="img-thumbnail" style="max-width: 240px;">
+        <img src="{{ asset('uploads/projets/' ~ projet.image) }}" alt="{{ projet.nom }}" class="img-thumbnail" style="max-width: 240px;">
       </div>
     {% endif %}
     {{ form_start(form) }}
@@ -16,7 +16,7 @@
       {{ form_row(form.categorie) }}
       {{ form_row(form.imageFile, {help: "Laissez vide pour conserver l'image actuelle"}) }}
       <div class="d-flex justify-content-between mt-3">
-        <a href="{{ path('admin_produit_index') }}" class="btn btn-secondary">Retour</a>
+        <a href="{{ path('admin_projet_index') }}" class="btn btn-secondary">Retour</a>
         <button class="btn btn-primary">Enregistrer</button>
       </div>
     {{ form_end(form) }}

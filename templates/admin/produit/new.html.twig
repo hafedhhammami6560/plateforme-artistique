@@ -1,8 +1,8 @@
 {% extends 'base.html.twig' %}
-{% block title %}Nouveau produit - Admin{% endblock %}
+{% block title %}Nouveau projet - Admin{% endblock %}
 {% block body %}
 <div class="container mt-4">
-  <h1 class="h3">Nouveau produit</h1>
+  <h1 class="h3">Nouveau projet</h1>
   <div class="card"><div class="card-body">
     {{ form_start(form) }}
       {{ form_row(form.nom) }}
@@ -11,7 +11,7 @@
       {{ form_row(form.categorie) }}
       {{ form_row(form.imageFile) }}
       <div class="d-flex justify-content-between mt-3">
-        <a href="{{ path('admin_produit_index') }}" class="btn btn-secondary">Retour</a>
+        <a href="{{ path('admin_projet_index') }}" class="btn btn-secondary">Retour</a>
         <button class="btn btn-primary">Enregistrer</button>
       </div>
     {{ form_end(form) }}

@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Discussion;
 use App\Entity\Message;
 use App\Entity\User;
-use App\Entity\Produit;
+use App\Entity\projet;
 use App\Entity\Contrat;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -16,25 +16,25 @@ class DiscussionService
     ) {}
 
     /**
-     * Crée une discussion Type A (Publication Rights) avec un produit existant
+     * Crée une discussion Type A (Publication Rights) avec un projet existant
      */
     public function creerDiscussionTypeA(
         User $initiateur,
         User $destinataire,
-        Produit $produit,
+        projet $projet,
         string $titre,
         string $messageInitial
     ): Discussion {
-        // Validation: Le produit doit exister et être disponible
-        if ($produit->isSousContrat()) {
-            throw new \InvalidArgumentException('Ce produit est déjà sous contrat et n\'est pas disponible pour une nouvelle discussion.');
+        // Validation: Le projet doit exister et être disponible
+        if ($projet->isSousContrat()) {
+            throw new \InvalidArgumentException('Ce projet est déjà sous contrat et n\'est pas disponible pour une nouvelle discussion.');
         }
 
         $discussion = new Discussion();
         $discussion->setType(Discussion::TYPE_PUBLICATION_RIGHTS);
         $discussion->setInitiateur($initiateur);
         $discussion->setDestinataire($destinataire);
-        $discussion->setProduit($produit);
+        $discussion->setprojet($projet);
         $discussion->setTitre($titre);
         $discussion->setStatut(Discussion::STATUT_EN_COURS);
 
@@ -55,7 +55,7 @@ class DiscussionService
     }
 
     /**
-     * Crée une discussion Type B (Custom Order) sans produit
+     * Crée une discussion Type B (Custom Order) sans projet
      */
     public function creerDiscussionTypeB(
         User $initiateur,
@@ -67,7 +67,7 @@ class DiscussionService
         $discussion->setType(Discussion::TYPE_CUSTOM_ORDER);
         $discussion->setInitiateur($initiateur);
         $discussion->setDestinataire($destinataire);
-        $discussion->setProduit(null); // Pas de produit pour Type B
+        $discussion->setprojet(null); // Pas de projet pour Type B
         $discussion->setTitre($titre);
         $discussion->setStatut(Discussion::STATUT_EN_COURS);
 
@@ -125,20 +125,20 @@ class DiscussionService
             throw new \InvalidArgumentException('Cette discussion a déjà un contrat associé.');
         }
 
-        // Validation Type A: le produit du contrat doit correspondre
+        // Validation Type A: le projet du contrat doit correspondre
         if ($discussion->isTypePublicationRights()) {
-            if (!$discussion->getProduit()) {
-                throw new \InvalidArgumentException('Discussion Type A sans produit - état invalide.');
+            if (!$discussion->getprojet()) {
+                throw new \InvalidArgumentException('Discussion Type A sans projet - état invalide.');
             }
-            if ($contrat->getProduit()?->getId() !== $discussion->getProduit()->getId()) {
-                throw new \InvalidArgumentException('Le produit du contrat doit correspondre au produit de la discussion.');
+            if ($contrat->getprojet()?->getId() !== $discussion->getprojet()->getId()) {
+                throw new \InvalidArgumentException('Le projet du contrat doit correspondre au projet de la discussion.');
             }
         }
 
-        // Validation Type B: pas de produit dans le contrat à la création
+        // Validation Type B: pas de projet dans le contrat à la création
         if ($discussion->isTypeCustomOrder()) {
-            if ($contrat->getProduit()) {
-                throw new \InvalidArgumentException('Pour une commande personnalisée, le produit est créé après la signature du contrat.');
+            if ($contrat->getprojet()) {
+                throw new \InvalidArgumentException('Pour une commande personnalisée, le projet est créé après la signature du contrat.');
             }
         }
 
@@ -191,3 +191,4 @@ class DiscussionService
             || $discussion->getDestinataire()->getId() === $user->getId();
     }
 }
+

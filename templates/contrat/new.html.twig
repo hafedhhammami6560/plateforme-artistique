@@ -85,14 +85,14 @@
                     </div>
                 </div>
 
-                {# Produit concerné (si Type A) #}
-                {% if form.produit is defined %}
+                {# projet concerné (si Type A) #}
+                {% if form.projet is defined %}
                     <div class="mb-4">
-                        {{ form_label(form.produit, 'Produit concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
-                        {{ form_errors(form.produit) }}
+                        {{ form_label(form.projet, 'projet concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.projet, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.projet) }}
                         <div class="form-text text-warning">
-                            <i class="bi bi-exclamation-triangle"></i> {{ form.produit.vars.help }}
+                            <i class="bi bi-exclamation-triangle"></i> {{ form.projet.vars.help }}
                         </div>
                     </div>
                 {% endif %}

@@ -24,16 +24,16 @@
                 
                 {{ form_row(form.type) }}
                 
-                {% if form.produit is defined %}
-                    <div id="produit-field">
-                        {{ form_row(form.produit) }}
+                {% if form.projet is defined %}
+                    <div id="projet-field">
+                        {{ form_row(form.projet) }}
                     </div>
                 {% endif %}
 
                 <div class="alert alert-warning">
                     <h5><i class="bi bi-exclamation-triangle"></i> Rappel</h5>
                     <ul class="mb-0">
-                        <li><strong>Type A (Publication Rights):</strong> Nécessite un produit existant</li>
+                        <li><strong>Type A (Publication Rights):</strong> Nécessite un projet existant</li>
                         <li><strong>Type B (Custom Order):</strong> Pour une commande personnalisée</li>
                     </ul>
                 </div>
@@ -55,21 +55,21 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const typeRadios = document.querySelectorAll('input[name="discussion[type]"]');
-        const produitField = document.getElementById('produit-field');
+        const projetField = document.getElementById('projet-field');
         
-        if (typeRadios.length && produitField) {
-            function toggleProduitField() {
+        if (typeRadios.length && projetField) {
+            function toggleprojetField() {
                 const selectedType = document.querySelector('input[name="discussion[type]"]:checked');
                 if (selectedType) {
-                    produitField.style.display = selectedType.value === 'publication_rights' ? 'block' : 'none';
+                    projetField.style.display = selectedType.value === 'publication_rights' ? 'block' : 'none';
                 }
             }
             
             typeRadios.forEach(radio => {
-                radio.addEventListener('change', toggleProduitField);
+                radio.addEventListener('change', toggleprojetField);
             });
             
-            toggleProduitField();
+            toggleprojetField();
         }
     });
 </script>

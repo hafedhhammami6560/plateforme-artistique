@@ -25,7 +25,7 @@ Le **type de discussion est automatiquement déterminé** selon l'initiateur et 
 - **Titre** : Sujet de la discussion
 - **Destinataire** : L'utilisateur avec qui négocier
 - **Message initial** : Premier message de la conversation
-- **Produit** (optionnel pour Type A) : Produit existant concerné
+- **projet** (optionnel pour Type A) : projet existant concerné
 
 > ⚠️ **Important** : Le champ "Type de discussion" n'est plus visible dans le formulaire - il est déterminé automatiquement !
 
@@ -54,7 +54,7 @@ Une fois la discussion créée, les deux parties peuvent :
    - Prix
    - Date de début et de fin
    - Conditions détaillées
-   - Produit (si Type A)
+   - projet (si Type A)
 
 3. Le brouillon est enregistré avec le statut `brouillon`
 
@@ -130,7 +130,7 @@ La page de discussion affiche :
 │ Informations :                          │
 │ - Initiateur                            │
 │ - Destinataire                          │
-│ - Produit (si Type A)                   │
+│ - projet (si Type A)                   │
 ├─────────────────────────────────────────┤
 │ 💬 Messages                             │
 │ [Liste chronologique des messages]      │

@@ -44,14 +44,14 @@
                     {{ form_errors(form.destinataire) }}
                 </div>
 
-                {# Produit concerné (si Type A) #}
-                {% if form.produit is defined %}
-                    <div class="mb-4" id="produit-field">
-                        {{ form_label(form.produit, 'Produit concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
-                        {{ form_errors(form.produit) }}
+                {# projet concerné (si Type A) #}
+                {% if form.projet is defined %}
+                    <div class="mb-4" id="projet-field">
+                        {{ form_label(form.projet, 'projet concerné', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.projet, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.projet) }}
                         <div class="form-text text-warning">
-                            <i class="bi bi-exclamation-triangle"></i> {{ form.produit.vars.help }}
+                            <i class="bi bi-exclamation-triangle"></i> {{ form.projet.vars.help }}
                         </div>
                     </div>
                 {% endif %}
@@ -80,15 +80,15 @@
     // Dynamically show/hide product field based on discussion type
     document.addEventListener('DOMContentLoaded', function() {
         const typeInputs = document.querySelectorAll('input[name="discussion_type[type]"]');
-        const produitField = document.getElementById('produit-field');
+        const projetField = document.getElementById('projet-field');
         
-        if (typeInputs.length > 0 && produitField) {
+        if (typeInputs.length > 0 && projetField) {
             typeInputs.forEach(input => {
                 input.addEventListener('change', function() {
                     if (this.value === 'publication_rights') {
-                        produitField.style.display = 'block';
+                        projetField.style.display = 'block';
                     } else {
-                        produitField.style.display = 'none';
+                        projetField.style.display = 'none';
                     }
                 });
             });
@@ -96,7 +96,7 @@
             // Initial state
             const checkedType = document.querySelector('input[name="discussion_type[type]"]:checked');
             if (checkedType && checkedType.value === 'custom_order') {
-                produitField.style.display = 'none';
+                projetField.style.display = 'none';
             }
         }
     });

@@ -11,8 +11,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DiscussionRepository::class)]
 class Discussion
 {
-    const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
+    const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // Droits sur un seul projet
+    const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Droits sur tous les projets de l'artiste
     const TYPE_CUSTOM_ORDER = 'custom_order';
+    
+    // Ancien type pour rétrocompatibilité (sera traité comme single)
+    const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
     
     const STATUT_EN_COURS = 'en_cours';
     const STATUT_TERMINEE = 'terminee';
@@ -67,9 +71,9 @@ class Discussion
     #[ORM\JoinColumn(nullable: true)]
     private ?Contrat $contrat = null;
 
-    #[ORM\ManyToOne(targetEntity: Produit::class)]
+    #[ORM\ManyToOne(targetEntity: Projet::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Produit $produit = null;
+    private ?Projet $projet = null;
 
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'discussion', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
@@ -208,14 +212,14 @@ class Discussion
         return $this;
     }
 
-    public function getProduit(): ?Produit
+    public function getProjet(): ?Projet
     {
-        return $this->produit;
+        return $this->projet;
     }
 
-    public function setProduit(?Produit $produit): static
+    public function setProjet(?Projet $projet): static
     {
-        $this->produit = $produit;
+        $this->projet = $projet;
 
         return $this;
     }
@@ -251,7 +255,22 @@ class Discussion
 
     public function isTypePublicationRights(): bool
     {
-        return $this->type === self::TYPE_PUBLICATION_RIGHTS;
+        return in_array($this->type, [
+            self::TYPE_PUBLICATION_RIGHTS,
+            self::TYPE_PUBLICATION_RIGHTS_SINGLE,
+            self::TYPE_PUBLICATION_RIGHTS_CATALOG
+        ]);
+    }
+
+    public function isTypePublicationRightsSingle(): bool
+    {
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS_SINGLE || 
+               $this->type === self::TYPE_PUBLICATION_RIGHTS; // Rétrocompatibilité
+    }
+
+    public function isTypePublicationRightsCatalog(): bool
+    {
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS_CATALOG;
     }
 
     public function isTypeCustomOrder(): bool

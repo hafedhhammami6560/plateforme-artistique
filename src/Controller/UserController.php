@@ -19,7 +19,7 @@ final class UserController extends AbstractController
         UserRepository $userRepository,
         \App\Repository\ContratRepository $contratRepository,
         \App\Repository\DiscussionRepository $discussionRepository,
-        \App\Repository\ProduitRepository $produitRepository
+        \App\Repository\projetRepository $projetRepository
     ): Response
     {
         $users = $userRepository->findAll();
@@ -29,7 +29,7 @@ final class UserController extends AbstractController
         
         $totalContrats = count($contratRepository->findAll());
         $totalDiscussions = count($discussionRepository->findAll());
-        $totalProduits = count($produitRepository->findAll());
+        $totalprojets = count($projetRepository->findAll());
         
         return $this->render('statistics/dashboard.html.twig', [
             'totalUsers' => $totalUsers,
@@ -37,7 +37,7 @@ final class UserController extends AbstractController
             'totalVerified' => $totalVerified,
             'totalContrats' => $totalContrats,
             'totalDiscussions' => $totalDiscussions,
-            'totalProduits' => $totalProduits,
+            'totalprojets' => $totalprojets,
         ]);
     }
     #[Route(name: 'app_user_index', methods: ['GET'])]

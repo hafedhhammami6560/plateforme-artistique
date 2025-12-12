@@ -3,7 +3,7 @@
 ## 📋 Vue d'ensemble
 
 Système complet de gestion de contrats et discussions pour plateforme artistique permettant deux workflows distincts :
-- **Type A (Publication Rights)** : Acquisition de droits sur produits existants
+- **Type A (Publication Rights)** : Acquisition de droits sur projets existants
 - **Type B (Custom Order)** : Commande d'œuvres personnalisées
 
 ---
@@ -23,7 +23,7 @@ Système complet de gestion de contrats et discussions pour plateforme artistiqu
 #### 2. **Discussion** (Mise à jour majeure)
 **Nouveaux champs:**
 - `type`: 'publication_rights' | 'custom_order'
-- `produit`: Relation ManyToOne nullable vers Produit
+- `projet`: Relation ManyToOne nullable vers projet
 - `messages`: Collection de Message (OneToMany)
 - `contrat`: Relation ManyToOne nullable vers Contrat
 - `statut`: 'en_cours' | 'terminee'
@@ -44,10 +44,10 @@ Système complet de gestion de contrats et discussions pour plateforme artistiqu
 - `dateSignature`: DateTime nullable
 - `dateSignatureArtist`: DateTime nullable
 - `dateSignatureClient`: DateTime nullable
-- `produit`: Relation OneToOne nullable vers Produit
+- `projet`: Relation OneToOne nullable vers projet
 
 **Relations modifiées:**
-- Remplacé `produits` (ManyToMany) par `produit` (OneToOne)
+- Remplacé `projets` (ManyToMany) par `projet` (OneToOne)
 - Conservé `artiste` et `producteur` (client)
 
 **Méthodes métier:**
@@ -55,7 +55,7 @@ Système complet de gestion de contrats et discussions pour plateforme artistiqu
 - `canBeModified()`: Autorise modification uniquement si non signé
 - `isTypePublicationRights()`, `isTypeCustomOrder()`
 
-#### 4. **Produit** (Mise à jour)
+#### 4. **projet** (Mise à jour)
 **Nouveaux champs:**
 - `artist`: ManyToOne vers User
 - `sousContrat`: BOOLEAN
@@ -67,7 +67,7 @@ Système complet de gestion de contrats et discussions pour plateforme artistiqu
 
 **Méthodes:**
 - `isDisponible()`: Vérifie disponibilité
-- `marquerSousContrat(Contrat)`: Marque produit sous contrat
+- `marquerSousContrat(Contrat)`: Marque projet sous contrat
 
 ---
 
@@ -87,26 +87,26 @@ genererNumeroContrat(): string
 creerContrat(...): Contrat
 signerParArtist(Contrat, User): void
 signerParClient(Contrat, User): void
-associerProduitTypeB(Contrat, Produit): void
+associerprojetTypeB(Contrat, projet): void
 ```
 
 **Validations implémentées:**
-- Type A : Produit obligatoire à la création
-- Type B : Pas de produit initial
-- Vérification unicité produit/contrat
+- Type A : projet obligatoire à la création
+- Type B : Pas de projet initial
+- Vérification unicité projet/contrat
 - Blocage modifications après première signature
 
 ### DiscussionService
 
 **Responsabilités:**
-1. Création discussions Type A (avec produit)
-2. Création discussions Type B (sans produit)
+1. Création discussions Type A (avec projet)
+2. Création discussions Type B (sans projet)
 3. Gestion messages
 4. Liaison discussion↔contrat
 
 **Méthodes principales:**
 ```php
-creerDiscussionTypeA(User, User, Produit, string, string): Discussion
+creerDiscussionTypeA(User, User, projet, string, string): Discussion
 creerDiscussionTypeB(User, User, string, string): Discussion
 ajouterMessage(Discussion, User, string): Message
 lierContrat(Discussion, Contrat): void
@@ -115,10 +115,10 @@ marquerMessagesLus(Discussion, User): void
 ```
 
 **Validations:**
-- Type A : Produit non disponible rejeté
-- Type B : Pas de produit accepté
+- Type A : projet non disponible rejeté
+- Type B : Pas de projet accepté
 - Vérification participation utilisateur
-- Cohérence produit discussion↔contrat
+- Cohérence projet discussion↔contrat
 
 ---
 
@@ -151,16 +151,16 @@ marquerMessagesLus(Discussion, User): void
 ### Workflow Type A (Publication Rights)
 
 ```
-1. Publisher → creerDiscussionTypeA(artist, publisher, produit, titre, message)
-   ↓ Validation: produit existe et disponible
+1. Publisher → creerDiscussionTypeA(artist, publisher, projet, titre, message)
+   ↓ Validation: projet existe et disponible
 2. Échange de messages via ajouterMessage()
-3. Artist → ContratService::creerContrat(..., produit)
-   ↓ Validation: produit non sous contrat
+3. Artist → ContratService::creerContrat(..., projet)
+   ↓ Validation: projet non sous contrat
 4. Signatures:
    - Artist: signerParArtist()
    - Publisher: signerParClient()
 5. ✅ Double signature atteinte
-   → Produit automatiquement marqué "sous_contrat"
+   → projet automatiquement marqué "sous_contrat"
    → Statut contrat = 'signe'
 ```
 
@@ -168,29 +168,29 @@ marquerMessagesLus(Discussion, User): void
 
 ```
 1. Sponsor → creerDiscussionTypeB(artist, sponsor, titre, message)
-   ↓ Pas de produit
+   ↓ Pas de projet
 2. Négociation spécifications via messages
 3. Artist → ContratService::creerContrat(..., null)
-   ↓ Validation: pas de produit
+   ↓ Validation: pas de projet
 4. Signatures:
    - Sponsor: signerParClient()
    - Artist: signerParArtist()
 5. ✅ Double signature atteinte
    → Contrat signé
-6. Artist crée le produit manuellement
-7. Artist → associerProduitTypeB(contrat, nouveauProduit)
-   → Produit marqué "en_production"
+6. Artist crée le projet manuellement
+7. Artist → associerprojetTypeB(contrat, nouveauprojet)
+   → projet marqué "en_production"
 ```
 
 ---
 
 ## 🎯 Règles Métier Critiques Implémentées
 
-✅ **Unicité produit/contrat**: Un produit ne peut avoir qu'un seul contrat actif
+✅ **Unicité projet/contrat**: Un projet ne peut avoir qu'un seul contrat actif
 ✅ **Immutabilité post-signature**: Contrats signés non modifiables
 ✅ **Double signature obligatoire**: Les deux parties doivent signer
-✅ **Validation Type A**: Produit existant obligatoire
-✅ **Validation Type B**: Pas de produit initial, création post-signature
+✅ **Validation Type A**: projet existant obligatoire
+✅ **Validation Type B**: Pas de projet initial, création post-signature
 ✅ **Numérotation unique**: Format CTR-YYYYMMDD-XXXXX garanti unique
 ✅ **Historique signatures**: Dates tracées séparément
 ✅ **Contrôle d'accès**: Voters par rôle et propriété
@@ -203,7 +203,7 @@ marquerMessagesLus(Discussion, User): void
 - ✅ `src/Entity/Message.php`
 - ✅ `src/Entity/Discussion.php` (modifié)
 - ✅ `src/Entity/Contrat.php` (modifié)
-- ✅ `src/Entity/Produit.php` (modifié)
+- ✅ `src/Entity/projet.php` (modifié)
 
 ### Repositories
 - ✅ `src/Repository/MessageRepository.php`
@@ -246,8 +246,8 @@ marquerMessagesLus(Discussion, User): void
 
 ### Tests Unitaires
 - ✅ Génération numéro contrat unique
-- ✅ Validation Type A (produit requis)
-- ✅ Validation Type B (pas de produit)
+- ✅ Validation Type A (projet requis)
+- ✅ Validation Type B (pas de projet)
 - ✅ Logique double signature
 - ✅ Blocage modification après signature
 
@@ -256,7 +256,7 @@ marquerMessagesLus(Discussion, User): void
 - Workflow Type B complet
 - Tentative signature non autorisée
 - Modification contrat signé (doit échouer)
-- Association produit Type B
+- Association projet Type B
 
 ### Tests Sécurité
 - Voters: accès non autorisé
@@ -285,7 +285,7 @@ CTR-20251205-00001
 - `en_cours`: Active
 - `terminee`: Fermée
 
-### Statuts Produit
+### Statuts projet
 - `disponible`: Libre
 - `sous_contrat`: Lié à contrat signé
 - `en_production`: Commande Type B en cours
@@ -305,17 +305,17 @@ User
 Contrat
   ├─ artiste (ManyToOne → User)
   ├─ producteur (ManyToOne → User)
-  ├─ produit (OneToOne → Produit)
+  ├─ projet (OneToOne → projet)
   └─ discussions (OneToMany → Discussion)
 
 Discussion
   ├─ initiateur (ManyToOne → User)
   ├─ destinataire (ManyToOne → User)
   ├─ contrat (ManyToOne → Contrat)
-  ├─ produit (ManyToOne → Produit)
+  ├─ projet (ManyToOne → projet)
   └─ messages (OneToMany → Message)
 
-Produit
+projet
   ├─ artist (ManyToOne → User)
   └─ contrat (OneToOne → Contrat)
 

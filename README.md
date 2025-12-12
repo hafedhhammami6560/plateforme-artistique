@@ -1,6 +1,6 @@
 # Plateforme Artistique - Communauté et Organisation
 
-Plateforme web développée avec Symfony 6.4 pour la gestion de communautés artistiques, organisations, produits et contrats.
+Plateforme web développée avec Symfony 6.4 pour la gestion de communautés artistiques, organisations, projets et contrats.
 
 ## 🚀 Technologies
 
@@ -103,7 +103,7 @@ plateforme-artistique/
 
 - **Gestion de communautés** : Création, édition, suppression
 - **Gestion d'organisations** : CRUD complet
-- **Gestion de produits** : Catalogue de produits artistiques
+- **Gestion de projets** : Catalogue de projets artistiques
 - **Gestion de contrats** : Suivi des contrats
 - **Discussions** : Système de messagerie
 - **Feedback** : Commentaires et retours
@@ -115,7 +115,7 @@ plateforme-artistique/
 - `/` - Page d'accueil
 - `/communite/` - Liste des communautés
 - `/organisation/` - Liste des organisations
-- `/produit/` - Catalogue de produits
+- `/projet/` - Catalogue de projets
 - `/contrat/` - Gestion des contrats
 - `/discussion/` - Discussions
 - `/feedback/` - Système de feedback

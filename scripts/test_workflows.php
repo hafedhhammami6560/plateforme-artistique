@@ -33,11 +33,11 @@ try {
         exit(1);
     }
     
-    // Récupérer un projet de l'artiste
-    $projet = $pdo->query("SELECT * FROM projet WHERE artist_id = {$artiste['id']} LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    // Récupérer un project de l'artiste
+    $project = $pdo->query("SELECT * FROM project WHERE artist_id = {$artiste['id']} LIMIT 1")->fetch(PDO::FETCH_ASSOC);
     
-    if (!$projet) {
-        echo "✗ Aucun projet trouvé pour l'artiste. Exécutez d'abord create_test_products.php\n";
+    if (!$project) {
+        echo "✗ Aucun project trouvé pour l'artiste. Exécutez d'abord create_test_products.php\n";
         exit(1);
     }
     
@@ -45,11 +45,11 @@ try {
     echo str_repeat("-", 80) . "\n";
     echo "Artiste  : {$artiste['name']} ({$artiste['email']})\n";
     echo "Publisher: {$publisher['name']} ({$publisher['email']})\n";
-    echo "projet  : {$projet['nom']} - {$projet['prix']}€\n";
+    echo "project  : {$project['nom']} - {$project['prix']}€\n";
     echo "\n";
     
     // ========================================================================
-    // WORKFLOW A : PUBLICATION RIGHTS (Droits sur projet existant)
+    // WORKFLOW A : PUBLICATION RIGHTS (Droits sur project existant)
     // ========================================================================
     
     echo "🔵 WORKFLOW A : PUBLICATION RIGHTS\n";
@@ -60,18 +60,18 @@ try {
     
     // Créer une discussion de type A
     $discussionA = [
-        'titre' => 'Acquisition droits - ' . $projet['nom'],
+        'titre' => 'Acquisition droits - ' . $project['nom'],
         'type' => 'publication_rights',
         'statut' => 'en_cours',
         'created_at' => date('Y-m-d H:i:s'),
         'initiateur_id' => $publisher['id'],
         'destinataire_id' => $artiste['id'],
-        'projet_id' => $projet['id']
+        'project_id' => $project['id']
     ];
     
     $stmt = $pdo->prepare("
-        INSERT INTO discussion (titre, type, statut, created_at, initiateur_id, destinataire_id, projet_id)
-        VALUES (:titre, :type, :statut, :created_at, :initiateur_id, :destinataire_id, :projet_id)
+        INSERT INTO discussion (titre, type, statut, created_at, initiateur_id, destinataire_id, project_id)
+        VALUES (:titre, :type, :statut, :created_at, :initiateur_id, :destinataire_id, :project_id)
     ");
     $stmt->execute($discussionA);
     $discussionAId = $pdo->lastInsertId();
@@ -80,7 +80,7 @@ try {
     echo "  Type: Publication Rights\n";
     echo "  Initiateur: {$publisher['name']} (Publisher)\n";
     echo "  Destinataire: {$artiste['name']} (Artiste)\n";
-    echo "  projet: {$projet['nom']}\n\n";
+    echo "  project: {$project['nom']}\n\n";
     
     echo "Étape 2 : Échange de messages dans la discussion\n";
     echo str_repeat("-", 80) . "\n";
@@ -117,9 +117,9 @@ try {
         'type' => 'publication_rights',
         'artiste_id' => $artiste['id'],
         'producteur_id' => $publisher['id'],
-        'projet_id' => $projet['id'],
-        'prix' => $projet['prix'],
-        'montant' => $projet['prix'],
+        'project_id' => $project['id'],
+        'prix' => $project['prix'],
+        'montant' => $project['prix'],
         'conditions_texte' => 'Licence exclusive de publication pour 1 an. Droits de reproduction, distribution et communication au public.',
         'termes' => 'Licence exclusive de publication pour 1 an.',
         'date_debut' => date('Y-m-d'),
@@ -129,9 +129,9 @@ try {
     ];
     
     $stmt = $pdo->prepare("
-        INSERT INTO contrat (numero_contrat, type, artiste_id, producteur_id, projet_id, prix, montant, 
+        INSERT INTO contrat (numero_contrat, type, artiste_id, producteur_id, project_id, prix, montant, 
                            conditions_texte, termes, date_debut, date_fin, statut, created_at)
-        VALUES (:numero_contrat, :type, :artiste_id, :producteur_id, :projet_id, :prix, :montant,
+        VALUES (:numero_contrat, :type, :artiste_id, :producteur_id, :project_id, :prix, :montant,
                 :conditions_texte, :termes, :date_debut, :date_fin, :statut, :created_at)
     ");
     $stmt->execute($contratA);
@@ -145,8 +145,8 @@ try {
     echo "  Type: Publication Rights\n";
     echo "  Artiste: {$artiste['name']}\n";
     echo "  Client: {$publisher['name']}\n";
-    echo "  projet: {$projet['nom']}\n";
-    echo "  Prix: {$projet['prix']}€\n";
+    echo "  project: {$project['nom']}\n";
+    echo "  Prix: {$project['prix']}€\n";
     echo "  Période: " . date('d/m/Y') . " → " . date('d/m/Y', strtotime('+1 year')) . "\n";
     echo "  Statut: Brouillon\n\n";
     
@@ -170,12 +170,12 @@ try {
         'created_at' => date('Y-m-d H:i:s'),
         'initiateur_id' => $publisher['id'],
         'destinataire_id' => $artiste['id'],
-        'projet_id' => null // Pas de projet pour Custom Order
+        'project_id' => null // Pas de project pour Custom Order
     ];
     
     $stmt = $pdo->prepare("
-        INSERT INTO discussion (titre, type, statut, created_at, initiateur_id, destinataire_id, projet_id)
-        VALUES (:titre, :type, :statut, :created_at, :initiateur_id, :destinataire_id, :projet_id)
+        INSERT INTO discussion (titre, type, statut, created_at, initiateur_id, destinataire_id, project_id)
+        VALUES (:titre, :type, :statut, :created_at, :initiateur_id, :destinataire_id, :project_id)
     ");
     $stmt->execute($discussionB);
     $discussionBId = $pdo->lastInsertId();
@@ -184,7 +184,7 @@ try {
     echo "  Type: Custom Order\n";
     echo "  Initiateur: {$publisher['name']} (Publisher)\n";
     echo "  Destinataire: {$artiste['name']} (Artiste)\n";
-    echo "  projet: Aucun (sera créé après signature)\n\n";
+    echo "  project: Aucun (sera créé après signature)\n\n";
     
     echo "Étape 2 : Échange de messages dans la discussion\n";
     echo str_repeat("-", 80) . "\n";
@@ -222,7 +222,7 @@ try {
         'type' => 'custom_order',
         'artiste_id' => $artiste['id'],
         'producteur_id' => $publisher['id'],
-        'projet_id' => null, // Pas de projet pour Custom Order
+        'project_id' => null, // Pas de project pour Custom Order
         'prix' => 2500.00,
         'montant' => 2500.00,
         'conditions_texte' => 'Création d\'une sculpture en bronze de 60cm sur le thème de la nature. Livraison dans 3 mois. Paiement : 50% à la signature, 50% à la livraison.',
@@ -234,9 +234,9 @@ try {
     ];
     
     $stmt = $pdo->prepare("
-        INSERT INTO contrat (numero_contrat, type, artiste_id, producteur_id, projet_id, prix, montant, 
+        INSERT INTO contrat (numero_contrat, type, artiste_id, producteur_id, project_id, prix, montant, 
                            conditions_texte, termes, date_debut, date_fin, statut, created_at)
-        VALUES (:numero_contrat, :type, :artiste_id, :producteur_id, :projet_id, :prix, :montant,
+        VALUES (:numero_contrat, :type, :artiste_id, :producteur_id, :project_id, :prix, :montant,
                 :conditions_texte, :termes, :date_debut, :date_fin, :statut, :created_at)
     ");
     $stmt->execute($contratB);
@@ -250,7 +250,7 @@ try {
     echo "  Type: Custom Order\n";
     echo "  Artiste: {$artiste['name']}\n";
     echo "  Client: {$publisher['name']}\n";
-    echo "  projet: Aucun (sera créé après signature)\n";
+    echo "  project: Aucun (sera créé après signature)\n";
     echo "  Prix: 2500.00€\n";
     echo "  Période: " . date('d/m/Y') . " → " . date('d/m/Y', strtotime('+3 months')) . "\n";
     echo "  Statut: Brouillon\n\n";

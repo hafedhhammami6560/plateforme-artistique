@@ -235,7 +235,7 @@ class PermissionService
         $userType = strtolower($user->getUserType() ?? '');
         
         $allTypes = [
-            'publication_rights' => 'Type A: droits sur projet existant',
+            'publication_rights' => 'Type A: droits sur project existant',
             'custom_order' => 'Type B: commande œuvre sur mesure'
         ];
         

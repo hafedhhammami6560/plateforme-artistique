@@ -5,21 +5,21 @@
 Le système supporte maintenant **deux types de contrats Publication Rights** :
 
 ### 1. **Publication Rights - Single Product** (`publication_rights_single`)
-Acquisition des droits sur **un seul projet spécifique**.
+Acquisition des droits sur **un seul project spécifique**.
 
 **Cas d'usage :**
 - Un Publisher veut les droits sur une chanson particulière
 - Un Sponsor veut les droits exclusifs sur une œuvre d'art unique
-- Licence limitée à un projet identifié
+- Licence limitée à un project identifié
 
 **Workflow :**
-1. Publisher/Sponsor sélectionne un projet existant
-2. Négociation sur ce projet uniquement
-3. Contrat lié au projet spécifique
-4. Le projet devient "sous contrat"
+1. Publisher/Sponsor sélectionne un project existant
+2. Négociation sur ce project uniquement
+3. Contrat lié au project spécifique
+4. Le project devient "sous contrat"
 
 ### 2. **Publication Rights - Full Catalog** (`publication_rights_catalog`)
-Acquisition des droits sur **tous les projets de l'artiste** (actuels et futurs).
+Acquisition des droits sur **tous les projects de l'artiste** (actuels et futurs).
 
 **Cas d'usage :**
 - Label musical acquiert tout le catalogue d'un artiste
@@ -29,9 +29,9 @@ Acquisition des droits sur **tous les projets de l'artiste** (actuels et futurs)
 
 **Workflow :**
 1. Publisher/Sponsor négocie un accord global
-2. Pas de projet spécifique sélectionné
-3. Contrat couvre tous les projets existants + futurs
-4. Tous les projets de l'artiste sont liés au contrat
+2. Pas de project spécifique sélectionné
+3. Contrat couvre tous les projects existants + futurs
+4. Tous les projects de l'artiste sont liés au contrat
 
 ---
 
@@ -41,7 +41,7 @@ Acquisition des droits sur **tous les projets de l'artiste** (actuels et futurs)
 
 #### Contrat.php & Discussion.php
 ```php
-const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // projet unique
+const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // project unique
 const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Catalogue complet
 const TYPE_CUSTOM_ORDER = 'custom_order';
 
@@ -68,11 +68,11 @@ $contrat->isTypeCustomOrder()               // true pour custom order
 
 | Critère | Single Product | Full Catalog |
 |---------|---------------|--------------|
-| **projet requis** | ✅ Oui, obligatoire | ❌ Non, pas de projet |
-| **Sélection projet** | Dans le formulaire | N/A |
-| **Portée** | 1 seul projet | Tous les projets |
-| **projets futurs** | ❌ Non inclus | ✅ Inclus automatiquement |
-| **Prix** | Par projet | Pourcentage global / Forfait |
+| **project requis** | ✅ Oui, obligatoire | ❌ Non, pas de project |
+| **Sélection project** | Dans le formulaire | N/A |
+| **Portée** | 1 seul project | Tous les projects |
+| **projects futurs** | ❌ Non inclus | ✅ Inclus automatiquement |
+| **Prix** | Par project | Pourcentage global / Forfait |
 | **Durée typique** | Court/Moyen terme | Long terme / Permanent |
 
 ---
@@ -80,16 +80,16 @@ $contrat->isTypeCustomOrder()               // true pour custom order
 ## 🎯 Règles Métier
 
 ### Publication Rights - Single
-- **Obligatoire :** Un projet doit être sélectionné
-- Le projet doit appartenir à l'artiste ciblé
-- Le projet ne doit pas être déjà sous contrat actif
-- Une fois signé, le projet est marqué "sous contrat"
+- **Obligatoire :** Un project doit être sélectionné
+- Le project doit appartenir à l'artiste ciblé
+- Le project ne doit pas être déjà sous contrat actif
+- Une fois signé, le project est marqué "sous contrat"
 
 ### Publication Rights - Catalog
-- **Aucun projet** sélectionné dans le formulaire
-- Tous les projets existants de l'artiste sont couverts
-- Les projets créés **après signature** sont automatiquement inclus
-- Impact sur tous les projets de l'artiste
+- **Aucun project** sélectionné dans le formulaire
+- Tous les projects existants de l'artiste sont couverts
+- Les projects créés **après signature** sont automatiquement inclus
+- Impact sur tous les projects de l'artiste
 
 ---
 
@@ -118,28 +118,28 @@ public function isTypePublicationRightsSingle(): bool
 ### 1. Mettre à jour les Formulaires
 - [ ] Ajouter un choix de sous-type dans `DiscussionType`
 - [ ] Ajouter un choix de sous-type dans `ContratType`
-- [ ] Masquer le champ "projet" si type = Catalog
+- [ ] Masquer le champ "project" si type = Catalog
 
 ### 2. Mettre à jour les Contrôleurs
 - [ ] `DiscussionController` : gérer les deux sous-types
 - [ ] `ContratController` : validation selon le sous-type
-- [ ] Vérifier la logique de sélection de projet
+- [ ] Vérifier la logique de sélection de project
 
 ### 3. Mettre à jour les Templates
 - [ ] Afficher le sous-type correctement dans les vues
-- [ ] Adapter les labels : "projet Unique" vs "Catalogue Complet"
+- [ ] Adapter les labels : "project Unique" vs "Catalogue Complet"
 - [ ] Badges visuels différents pour Single vs Catalog
 
 ### 4. Mettre à jour les Services
 - [ ] `ContratService` : logique différente selon le sous-type
 - [ ] `PermissionService` : vérifier les droits par sous-type
-- [ ] Gestion des projets futurs pour Catalog
+- [ ] Gestion des projects futurs pour Catalog
 
 ### 5. Tests
 - [ ] Tester création Discussion avec chaque sous-type
 - [ ] Tester création Contrat avec chaque sous-type
-- [ ] Vérifier qu'un projet ne peut avoir qu'un contrat Single actif
-- [ ] Vérifier que Catalog bloque tous les projets
+- [ ] Vérifier qu'un project ne peut avoir qu'un contrat Single actif
+- [ ] Vérifier que Catalog bloque tous les projects
 
 ---
 
@@ -150,7 +150,7 @@ public function isTypePublicationRightsSingle(): bool
 Type: Publication Rights - Single Product
 Artiste: John Doe (Musicien)
 Client: MusicLabel Inc. (Publisher)
-projet: "Summer Vibes" (Single)
+project: "Summer Vibes" (Single)
 Prix: 5000€
 Durée: 2 ans
 ```
@@ -160,7 +160,7 @@ Durée: 2 ans
 Type: Publication Rights - Full Catalog
 Artiste: Jane Smith (Scénariste)
 Client: BookPublisher Co. (Publisher)
-projet: (Aucun - tous les écrits)
+project: (Aucun - tous les écrits)
 Prix: 15% des revenus
 Durée: 10 ans
 ```
@@ -170,7 +170,7 @@ Durée: 10 ans
 Type: Publication Rights - Full Catalog
 Artiste: Bob Artist (Artiste)
 Client: ArtGallery Ltd. (Sponsor)
-projet: (Aucun - toutes les œuvres)
+project: (Aucun - toutes les œuvres)
 Prix: 100 000€ forfait + 20% des ventes
 Durée: 5 ans renouvelable
 ```

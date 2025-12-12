@@ -1,10 +1,10 @@
 <?php
-// Script pour créer des projets de test pour les artistes
+// Script pour créer des projects de test pour les artistes
 // À exécuter avec: php scripts/create_test_products.php
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-echo "=== CRÉATION DES projetS DE TEST ===\n\n";
+echo "=== CRÉATION DES projectS DE TEST ===\n\n";
 
 // Connexion à la base de données
 try {
@@ -27,17 +27,17 @@ try {
     
     echo "✓ " . count($artists) . " artistes trouvés\n\n";
     
-    // Suppression des projets de test existants
-    $pdo->exec("DELETE FROM projet WHERE nom LIKE '%Test%' OR description LIKE '%Test product%'");
-    echo "✓ projets de test existants supprimés\n\n";
+    // Suppression des projects de test existants
+    $pdo->exec("DELETE FROM project WHERE nom LIKE '%Test%' OR description LIKE '%Test product%'");
+    echo "✓ projects de test existants supprimés\n\n";
     
     // Préparation de la requête d'insertion
     $stmt = $pdo->prepare("
-        INSERT INTO projet (nom, description, prix, categorie, date_creation, artist_id) 
+        INSERT INTO project (nom, description, prix, categorie, date_creation, artist_id) 
         VALUES (:nom, :description, :prix, :categorie, NOW(), :artist_id)
     ");
     
-    // Templates de projets par type d'artiste
+    // Templates de projects par type d'artiste
     $productTemplates = [
         'artiste' => [
             ['nom' => 'Peinture Abstraite "Aurore"', 'description' => 'Œuvre originale sur toile 60x80cm. Acrylique et techniques mixtes.', 'prix' => 850.00, 'categorie' => 'Peinture'],
@@ -47,7 +47,7 @@ try {
         'musicien' => [
             ['nom' => 'Album "Horizons Sonores"', 'description' => 'Album complet 12 titres. Droits de reproduction inclus.', 'prix' => 500.00, 'categorie' => 'Musique'],
             ['nom' => 'Composition "Symphonie du Vent"', 'description' => 'Partition orchestrale complète avec droits d\'exécution.', 'prix' => 2500.00, 'categorie' => 'Composition'],
-            ['nom' => 'Bande Originale sur Mesure', 'description' => 'Création musicale personnalisée pour projet audiovisuel.', 'prix' => 1500.00, 'categorie' => 'Production'],
+            ['nom' => 'Bande Originale sur Mesure', 'description' => 'Création musicale personnalisée pour project audiovisuel.', 'prix' => 1500.00, 'categorie' => 'Production'],
         ],
         'scénariste' => [
             ['nom' => 'Scénario "L\'Ombre du Passé"', 'description' => 'Scénario long-métrage 120 pages. Thriller psychologique.', 'prix' => 3000.00, 'categorie' => 'Cinéma'],
@@ -56,7 +56,7 @@ try {
         ],
     ];
     
-    echo "Création des projets:\n";
+    echo "Création des projects:\n";
     echo str_repeat("-", 100) . "\n";
     
     $totalProducts = 0;
@@ -93,7 +93,7 @@ try {
             COUNT(*) as count,
             MIN(p.prix) as prix_min,
             MAX(p.prix) as prix_max
-        FROM projet p
+        FROM project p
         INNER JOIN user u ON p.artist_id = u.id
         WHERE u.email LIKE '%@test.com'
         GROUP BY p.categorie
@@ -116,7 +116,7 @@ try {
     echo str_repeat("-", 65) . "\n";
     echo sprintf("%-22s | %6d\n\n", "TOTAL", $totalProducts);
     
-    echo "=== TYPES DE projetS CRÉÉS ===\n\n";
+    echo "=== TYPES DE projectS CRÉÉS ===\n\n";
     echo "ARTISTES:\n";
     echo "  - Peintures originales\n";
     echo "  - Sculptures en édition limitée\n";
@@ -134,12 +134,12 @@ try {
     
     echo "=== UTILISATION ===\n\n";
     echo "1. Connectez-vous avec un compte artiste/musicien/scénariste\n";
-    echo "2. Accédez à la section projets\n";
-    echo "3. Vous verrez vos projets disponibles\n";
-    echo "4. Créez des discussions/contrats en lien avec ces projets\n";
+    echo "2. Accédez à la section projects\n";
+    echo "3. Vous verrez vos projects disponibles\n";
+    echo "4. Créez des discussions/contrats en lien avec ces projects\n";
     echo "5. Testez les filtres de recherche par catégorie et prix\n\n";
     
-    echo "✓ Tous les projets ont été créés avec succès!\n";
+    echo "✓ Tous les projects ont été créés avec succès!\n";
     
 } catch (PDOException $e) {
     echo "✗ Erreur: " . $e->getMessage() . "\n";

@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Discussion;
 use App\Entity\Message;
 use App\Entity\User;
-use App\Entity\projet;
+use App\Entity\project;
 use App\Entity\Contrat;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -16,25 +16,25 @@ class DiscussionService
     ) {}
 
     /**
-     * Crée une discussion Type A (Publication Rights) avec un projet existant
+     * Crée une discussion Type A (Publication Rights) avec un project existant
      */
     public function creerDiscussionTypeA(
         User $initiateur,
         User $destinataire,
-        projet $projet,
+        project $project,
         string $titre,
         string $messageInitial
     ): Discussion {
-        // Validation: Le projet doit exister et être disponible
-        if ($projet->isSousContrat()) {
-            throw new \InvalidArgumentException('Ce projet est déjà sous contrat et n\'est pas disponible pour une nouvelle discussion.');
+        // Validation: Le project doit exister et être disponible
+        if ($project->isSousContrat()) {
+            throw new \InvalidArgumentException('Ce project est déjà sous contrat et n\'est pas disponible pour une nouvelle discussion.');
         }
 
         $discussion = new Discussion();
         $discussion->setType(Discussion::TYPE_PUBLICATION_RIGHTS);
         $discussion->setInitiateur($initiateur);
         $discussion->setDestinataire($destinataire);
-        $discussion->setprojet($projet);
+        $discussion->setproject($project);
         $discussion->setTitre($titre);
         $discussion->setStatut(Discussion::STATUT_EN_COURS);
 
@@ -55,7 +55,7 @@ class DiscussionService
     }
 
     /**
-     * Crée une discussion Type B (Custom Order) sans projet
+     * Crée une discussion Type B (Custom Order) sans project
      */
     public function creerDiscussionTypeB(
         User $initiateur,
@@ -67,7 +67,7 @@ class DiscussionService
         $discussion->setType(Discussion::TYPE_CUSTOM_ORDER);
         $discussion->setInitiateur($initiateur);
         $discussion->setDestinataire($destinataire);
-        $discussion->setprojet(null); // Pas de projet pour Type B
+        $discussion->setproject(null); // Pas de project pour Type B
         $discussion->setTitre($titre);
         $discussion->setStatut(Discussion::STATUT_EN_COURS);
 
@@ -125,20 +125,20 @@ class DiscussionService
             throw new \InvalidArgumentException('Cette discussion a déjà un contrat associé.');
         }
 
-        // Validation Type A: le projet du contrat doit correspondre
+        // Validation Type A: le project du contrat doit correspondre
         if ($discussion->isTypePublicationRights()) {
-            if (!$discussion->getprojet()) {
-                throw new \InvalidArgumentException('Discussion Type A sans projet - état invalide.');
+            if (!$discussion->getproject()) {
+                throw new \InvalidArgumentException('Discussion Type A sans project - état invalide.');
             }
-            if ($contrat->getprojet()?->getId() !== $discussion->getprojet()->getId()) {
-                throw new \InvalidArgumentException('Le projet du contrat doit correspondre au projet de la discussion.');
+            if ($contrat->getproject()?->getId() !== $discussion->getproject()->getId()) {
+                throw new \InvalidArgumentException('Le project du contrat doit correspondre au project de la discussion.');
             }
         }
 
-        // Validation Type B: pas de projet dans le contrat à la création
+        // Validation Type B: pas de project dans le contrat à la création
         if ($discussion->isTypeCustomOrder()) {
-            if ($contrat->getprojet()) {
-                throw new \InvalidArgumentException('Pour une commande personnalisée, le projet est créé après la signature du contrat.');
+            if ($contrat->getproject()) {
+                throw new \InvalidArgumentException('Pour une commande personnalisée, le project est créé après la signature du contrat.');
             }
         }
 

@@ -2,19 +2,19 @@
 
 namespace App\Controller;
 
-use App\Entity\Projet;
-use App\Repository\ProjetRepository;
+use App\Entity\Project;
+use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/projet')]
-class ProjetController extends AbstractController
+#[Route('/project')]
+class ProjectController extends AbstractController
 {
-    #[Route('/', name: 'projet_index', methods: ['GET'])]
-    public function index(ProjetRepository $projetRepository, UserRepository $userRepo, Request $request): Response
+    #[Route('/', name: 'project_index', methods: ['GET'])]
+    public function index(ProjectRepository $projectRepository, UserRepository $userRepo, Request $request): Response
     {
         // Récupérer les paramètres de recherche et tri
         $search = $request->query->get('search', '');
@@ -24,12 +24,12 @@ class ProjetController extends AbstractController
         // Check if user is connected
         $userId = $request->cookies->get('user_id');
         $user = null;
-        $mesProjets = [];
-        $autresProjets = [];
+        $mesProjects = [];
+        $autresProjects = [];
         $isCreator = false;
         
         // Construire la requête avec filtres
-        $qb = $projetRepository->createQueryBuilder('p');
+        $qb = $projectRepository->createQueryBuilder('p');
         
         // Filtre de recherche
         if ($search) {
@@ -65,7 +65,7 @@ class ProjetController extends AbstractController
                 $qb->orderBy('p.dateCreation', 'DESC');
         }
         
-        $allProjets = $qb->getQuery()->getResult();
+        $allProjects = $qb->getQuery()->getResult();
         
         if ($userId) {
             $user = $userRepo->find($userId);
@@ -73,30 +73,30 @@ class ProjetController extends AbstractController
                 $userType = strtolower($user->getUserType() ?? '');
                 $isCreator = in_array($userType, ['artiste', 'musicien', 'scénariste']);
                 
-                // Si c'est un créateur, séparer ses Projets des autres
+                // Si c'est un créateur, séparer ses Projects des autres
                 if ($isCreator) {
-                    foreach ($allProjets as $Projet) {
-                        if ($Projet->getArtist() && $Projet->getArtist()->getId() === $user->getId()) {
-                            $mesProjets[] = $Projet;
+                    foreach ($allProjects as $project) {
+                        if ($project->getArtist() && $project->getArtist()->getId() === $user->getId()) {
+                            $mesProjects[] = $project;
                         } else {
-                            $autresProjets[] = $Projet;
+                            $autresProjects[] = $project;
                         }
                     }
                 } else {
-                    // Pour les non-créateurs, tous les Projets dans "autres"
-                    $autresProjets = $allProjets;
+                    // Pour les non-créateurs, tous les Projects dans "autres"
+                    $autresProjects = $allProjects;
                 }
             }
         } else {
-            // Utilisateur non connecté - tous les Projets
-            $autresProjets = $allProjets;
+            // Utilisateur non connecté - tous les Projects
+            $autresProjects = $allProjects;
         }
         
-        $categories = $projetRepository->findAllCategories();
+        $categories = $projectRepository->findAllCategories();
 
-        return $this->render('projet/index.html.twig', [
-            'mesProjets' => $mesProjets,
-            'autresProjets' => $autresProjets,
+        return $this->render('project/index.html.twig', [
+            'mesProjects' => $mesProjects,
+            'autresProjects' => $autresProjects,
             'categories' => $categories,
             'selected_categorie' => $categorie,
             'isCreator' => $isCreator,
@@ -104,7 +104,7 @@ class ProjetController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'projet_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'project_new', methods: ['GET', 'POST'])]
     public function new(Request $request, UserRepository $userRepo): Response
     {
         // Check if user is connected
@@ -122,25 +122,25 @@ class ProjetController extends AbstractController
         // Check if user is a creator
         $userType = strtolower($user->getUserType() ?? '');
         if (!in_array($userType, ['artiste', 'musicien', 'scénariste'])) {
-            $this->addFlash('error', 'Seuls les créateurs (Artiste, Musicien, Scénariste) peuvent créer des projets.');
-            return $this->redirectToRoute('projet_index');
+            $this->addFlash('error', 'Seuls les créateurs (Artiste, Musicien, Scénariste) peuvent créer des projects.');
+            return $this->redirectToRoute('project_index');
         }
 
-        // TODO: Implémenter le formulaire de création de projet
-        $this->addFlash('info', 'La création de projets sera bientôt disponible.');
-        return $this->redirectToRoute('projet_index');
+        // TODO: Implémenter le formulaire de création de project
+        $this->addFlash('info', 'La création de projects sera bientôt disponible.');
+        return $this->redirectToRoute('project_index');
     }
 
-    #[Route('/{id}', name: 'projet_show', methods: ['GET'])]
-    public function show(Projet $projet): Response
+    #[Route('/{id}', name: 'project_show', methods: ['GET'])]
+    public function show(Project $project): Response
     {
-        return $this->render('projet/show.html.twig', [
-            'projet' => $projet,
+        return $this->render('project/show.html.twig', [
+            'project' => $project,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'projet_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Projet $projet, UserRepository $userRepo): Response
+    #[Route('/{id}/edit', name: 'project_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Project $project, UserRepository $userRepo): Response
     {
         // Check if user is connected
         $userId = $request->cookies->get('user_id');
@@ -154,24 +154,24 @@ class ProjetController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user owns this product
-        if (!$projet->getArtist() || $projet->getArtist()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Vous ne pouvez modifier que vos propres projets.');
-            return $this->redirectToRoute('projet_show', ['id' => $projet->getId()]);
+        // Check if user owns this project
+        if (!$project->getArtist() || $project->getArtist()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez modifier que vos propres projects.');
+            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
         }
 
-        // Check if product is under contract
-        if ($projet->isSousContrat()) {
-            $this->addFlash('error', 'Ce projet est sous contrat et ne peut pas être modifié.');
-            return $this->redirectToRoute('projet_show', ['id' => $projet->getId()]);
+        // Check if project is under contract
+        if ($project->isSousContrat()) {
+            $this->addFlash('error', 'Ce project est sous contrat et ne peut pas être modifié.');
+            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
         }
 
-        $this->addFlash('info', 'La modification de projets sera bientôt disponible.');
-        return $this->redirectToRoute('projet_show', ['id' => $projet->getId()]);
+        $this->addFlash('info', 'La modification de projects sera bientôt disponible.');
+        return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
     }
 
-    #[Route('/{id}', name: 'projet_delete', methods: ['POST'])]
-    public function delete(Request $request, Projet $projet, UserRepository $userRepo): Response
+    #[Route('/{id}', name: 'project_delete', methods: ['POST'])]
+    public function delete(Request $request, Project $project, UserRepository $userRepo): Response
     {
         // Check if user is connected
         $userId = $request->cookies->get('user_id');
@@ -185,20 +185,20 @@ class ProjetController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user owns this product
-        if (!$projet->getArtist() || $projet->getArtist()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres projets.');
-            return $this->redirectToRoute('projet_index');
+        // Check if user owns this project
+        if (!$project->getArtist() || $project->getArtist()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres projects.');
+            return $this->redirectToRoute('project_index');
         }
 
-        // Check if product is under contract
-        if ($projet->isSousContrat()) {
-            $this->addFlash('error', 'Ce projet est sous contrat et ne peut pas être supprimé.');
-            return $this->redirectToRoute('projet_show', ['id' => $projet->getId()]);
+        // Check if project is under contract
+        if ($project->isSousContrat()) {
+            $this->addFlash('error', 'Ce project est sous contrat et ne peut pas être supprimé.');
+            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
         }
 
-        $this->addFlash('info', 'La suppression de projets sera bientôt disponible.');
-        return $this->redirectToRoute('projet_index');
+        $this->addFlash('info', 'La suppression de projects sera bientôt disponible.');
+        return $this->redirectToRoute('project_index');
     }
 }
 

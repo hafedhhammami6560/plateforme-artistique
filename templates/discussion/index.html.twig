@@ -25,7 +25,7 @@
                 <div class="col-md-4">
                     <label for="search" class="form-label">Rechercher</label>
                     <input type="text" class="form-control" id="search" name="search" 
-                           value="{{ search }}" placeholder="Titre, utilisateur, projet...">
+                           value="{{ search }}" placeholder="Titre, utilisateur, project...">
                 </div>
                 
                 <div class="col-md-2">
@@ -105,9 +105,9 @@
                             {{ discussion.initiateur.name }}
                         {% endif %}
                     </p>
-                    {% if discussion.projet %}
+                    {% if discussion.project %}
                         <p class="mb-1">
-                            <strong>projet:</strong> {{ discussion.projet.nom }}
+                            <strong>project:</strong> {{ discussion.project.nom }}
                         </p>
                     {% endif %}
                     <small>
@@ -131,3 +131,5 @@
     {% endif %}
 </div>
 {% endblock %}
+
+

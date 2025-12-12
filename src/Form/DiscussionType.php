@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Discussion;
-use App\Entity\Projet;
+use App\Entity\Project;
 use App\Entity\User;
 use App\Service\PermissionService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -25,7 +25,7 @@ class DiscussionType extends AbstractType
         
         // Afficher tous les types mais déterminer lesquels sont disponibles
         $allTypes = [
-            'publication_rights' => 'Type A: droits sur projet existant (Publisher/Sponsor)',
+            'publication_rights' => 'Type A: droits sur produit existant (Publisher/Sponsor)',
             'custom_order' => 'Type B: commande œuvre sur mesure (Artiste/Musicien/Scénariste)'
         ];
         
@@ -69,19 +69,19 @@ class DiscussionType extends AbstractType
                 'required' => true
             ]);
 
-        // Ajouter le champ projet uniquement pour Type A
+        // Ajouter le champ produit uniquement pour Type A
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $discussion = $event->getData();
             $form = $event->getForm();
 
             if (!$discussion || $discussion->getType() === Discussion::TYPE_PUBLICATION_RIGHTS) {
-                $form->add('projet', EntityType::class, [
-                    'class' => Projet::class,
-                    'choice_label' => function(projet $projet) {
-                        return $projet->getNom() . ' - ' . $projet->getPrix() . '€';
+                $form->add('project', EntityType::class, [
+                    'class' => Project::class,
+                    'choice_label' => function(Project $project) {
+                        return $project->getNom() . ' - ' . $project->getPrix() . '€';
                     },
-                    'label' => 'projet concerné',
-                    'placeholder' => 'Sélectionnez un projet',
+                    'label' => 'Project concerné',
+                    'placeholder' => 'Sélectionnez un project',
                     'attr' => ['class' => 'form-select'],
                     'required' => false,
                     'help' => 'Obligatoire pour Type A (Publication Rights)'
@@ -94,13 +94,13 @@ class DiscussionType extends AbstractType
             $form = $event->getForm();
 
             if (isset($data['type']) && $data['type'] === Discussion::TYPE_PUBLICATION_RIGHTS) {
-                if (!$form->has('projet')) {
-                    $form->add('projet', EntityType::class, [
-                        'class' => Projet::class,
-                        'choice_label' => function(projet $projet) {
-                            return $projet->getNom() . ' - ' . $projet->getPrix() . '€';
+                if (!$form->has('project')) {
+                    $form->add('project', EntityType::class, [
+                        'class' => Project::class,
+                        'choice_label' => function(Project $project) {
+                            return $project->getNom() . ' - ' . $project->getPrix() . '€';
                         },
-                        'label' => 'projet concerné',
+                        'label' => 'Project concerné',
                         'attr' => ['class' => 'form-select'],
                         'required' => false
                     ]);
@@ -118,4 +118,3 @@ class DiscussionType extends AbstractType
         ]);
     }
 }
-

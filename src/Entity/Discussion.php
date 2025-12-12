@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DiscussionRepository::class)]
 class Discussion
 {
-    const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // Droits sur un seul projet
-    const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Droits sur tous les projets de l'artiste
+    const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // Droits sur un seul produit
+    const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Droits sur tous les produits de l'artiste
     const TYPE_CUSTOM_ORDER = 'custom_order';
     
     // Ancien type pour rétrocompatibilité (sera traité comme single)
@@ -71,9 +71,9 @@ class Discussion
     #[ORM\JoinColumn(nullable: true)]
     private ?Contrat $contrat = null;
 
-    #[ORM\ManyToOne(targetEntity: Projet::class)]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Projet $projet = null;
+    private ?Project $project = null;
 
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'discussion', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
@@ -212,14 +212,14 @@ class Discussion
         return $this;
     }
 
-    public function getProjet(): ?Projet
+    public function getProject(): ?Project
     {
-        return $this->projet;
+        return $this->project;
     }
 
-    public function setProjet(?Projet $projet): static
+    public function setProject(?Project $project): static
     {
-        $this->projet = $projet;
+        $this->project = $project;
 
         return $this;
     }

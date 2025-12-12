@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ project.nom }} - Admin{% endblock %}
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">{{ project.nom }}</h1>
+    <div>
+      <a class="btn btn-warning" href="{{ path('admin_project_edit', {id:project.id}) }}">Modifier</a>
+      <a class="btn btn-secondary" href="{{ path('admin_project_index') }}">Retour</a>
+    </div>
+  </div>
+  <div class="card"><div class="card-body">
+    {% if project.image %}
+      <div class="mb-3 text-center"><img src="{{ asset('uploads/projects/' ~ project.image) }}" class="img-fluid" alt="{{ project.nom }}" style="max-height: 320px; object-fit: cover"></div>
+    {% endif %}
+    <table class="table">
+      <tbody>
+        <tr><th>ID</th><td>{{ project.id }}</td></tr>
+        <tr><th>Nom</th><td>{{ project.nom }}</td></tr>
+        <tr><th>Description</th><td>{{ project.description ?: '-' }}</td></tr>
+        <tr><th>Catégorie</th><td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}</td></tr>
+        <tr><th>Prix</th><td>{{ project.prix }} €</td></tr>
+        <tr><th>Créé le</th><td>{{ project.dateCreation ? project.dateCreation|date('d/m/Y') : '-' }}</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}
+
+

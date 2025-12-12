@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ project.nom }}{% endblock %}
+
+{% block body %}
+<div class="container">
+        <h1>{{ project.nom }}</h1>
+        {% if project.image %}
+            <div class="mb-3"><img src="{{ asset('uploads/projects/' ~ project.image) }}" alt="{{ project.nom }}" class="img-fluid" style="max-height: 360px; object-fit: cover"></div>
+        {% endif %}
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>ID</th>
+                <td>{{ project.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ project.nom }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ project.description }}</td>
+            </tr>
+            <tr>
+                <th>Prix</th>
+                <td>{{ project.prix }} €</td>
+            </tr>
+            <tr>
+                <th>Catégorie</th>
+                <td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}</td>
+            </tr>
+            <tr>
+                <th>Date de création</th>
+                <td>{{ project.dateCreation ? project.dateCreation|date('Y-m-d') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('project_index') }}" class="btn btn-secondary">Retour à la liste</a>
+</div>
+{% endblock %}
+
+

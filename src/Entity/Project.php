@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\ProjetRepository;
+use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ProjetRepository::class)]
-class Projet
+#[ORM\Entity(repositoryClass: ProjectRepository::class)]
+class Project
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -31,7 +31,7 @@ class Projet
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'projets')]
+    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Categorie $categorie = null;
 
@@ -50,7 +50,7 @@ class Projet
     private ?string $statut = 'disponible';
 
     // Relation avec Contrat - One to One
-    #[ORM\OneToOne(targetEntity: Contrat::class, mappedBy: 'projet')]
+    #[ORM\OneToOne(targetEntity: Contrat::class, mappedBy: 'project')]
     private ?Contrat $contrat = null;
 
     public function __construct()
@@ -193,12 +193,12 @@ class Projet
     {
         // Unset the owning side of the relation if necessary
         if ($contrat === null && $this->contrat !== null) {
-            $this->contrat->setprojet(null);
+            $this->contrat->setProject(null);
         }
 
         // Set the owning side of the relation if necessary
-        if ($contrat !== null && $contrat->getprojet() !== $this) {
-            $contrat->setprojet($this);
+        if ($contrat !== null && $contrat->getProject() !== $this) {
+            $contrat->setProject($this);
         }
 
         $this->contrat = $contrat;
@@ -222,6 +222,6 @@ class Projet
 
     public function __toString(): string
     {
-        return $this->nom ?? 'projet';
+        return $this->nom ?? 'Project';
     }
 }

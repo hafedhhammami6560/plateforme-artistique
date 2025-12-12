@@ -105,13 +105,13 @@
                     <p class="fs-3 text-primary"><strong>{{ contrat.prix }}€</strong></p>
                 </div>
                 <div class="col-md-6">
-                    {% if contrat.projet %}
-                        <h5><i class="bi bi-box"></i> projet</h5>
-                        <p><strong>{{ contrat.projet.nom }}</strong></p>
-                        <p class="text-muted small">{{ contrat.projet.description|slice(0, 100) }}...</p>
+                    {% if contrat.project %}
+                        <h5><i class="bi bi-box"></i> project</h5>
+                        <p><strong>{{ contrat.project.nom }}</strong></p>
+                        <p class="text-muted small">{{ contrat.project.description|slice(0, 100) }}...</p>
                     {% else %}
                         <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Le projet sera créé après signature complète (Type B)
+                            <i class="bi bi-info-circle"></i> Le project sera créé après signature complète (Type B)
                         </div>
                     {% endif %}
                 </div>
@@ -418,3 +418,5 @@
     </div>
 </div>
 {% endblock %}
+
+

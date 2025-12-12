@@ -22,14 +22,14 @@ class Categorie
     private ?string $description = null;
 
     /**
-     * @var Collection<int, Projet>
+     * @var Collection<int, Project>
      */
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'categorie')]
-    private Collection $projets;
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'categorie')]
+    private Collection $projects;
 
     public function __construct()
     {
-        $this->projets = new ArrayCollection();
+        $this->projects = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,28 +62,28 @@ class Categorie
     }
 
     /**
-     * @return Collection<int, Projet>
+     * @return Collection<int, Project>
      */
-    public function getProjets(): Collection
+    public function getProjects(): Collection
     {
-        return $this->projets;
+        return $this->projects;
     }
 
-    public function addProjet(Projet $projet): static
+    public function addProject(Project $project): static
     {
-        if (!$this->projets->contains($projet)) {
-            $this->projets->add($projet);
-            $projet->setCategorie($this);
+        if (!$this->projects->contains($project)) {
+            $this->projects->add($project);
+            $project->setCategorie($this);
         }
 
         return $this;
     }
 
-    public function removeProjet(Projet $projet): static
+    public function removeProject(Project $project): static
     {
-        if ($this->projets->removeElement($projet)) {
-            if ($projet->getCategorie() === $this) {
-                $projet->setCategorie(null);
+        if ($this->projects->removeElement($project)) {
+            if ($project->getCategorie() === $this) {
+                $project->setCategorie(null);
             }
         }
 

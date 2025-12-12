@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Contrat{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Contrat #{{ contrat.id }}</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>ID</th>
+                <td>{{ contrat.id }}</td>
+            </tr>
+            <tr>
+                <th>Montant</th>
+                <td>{{ contrat.montant }} €</td>
+            </tr>
+            <tr>
+                <th>Date début</th>
+                <td>{{ contrat.dateDebut ? contrat.dateDebut|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Date fin</th>
+                <td>{{ contrat.dateFin ? contrat.dateFin|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ contrat.statut }}</td>
+            </tr>
+            <tr>
+                <th>Termes</th>
+                <td>{{ contrat.termes }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('contrat_index') }}" class="btn btn-secondary">Retour à la liste</a>
+</div>
+{% endblock %}

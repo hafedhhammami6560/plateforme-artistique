@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New User{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #05468b; color: white;">
+                    <h4 class="mb-0"><i class="fas fa-user-plus"></i> Add New User</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label fw-semibold">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label fw-semibold">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label fw-semibold">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="role" class="form-label fw-semibold">Role</label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="ROLE_USER">User</option>
+                                    <option value="ROLE_ADMIN">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="status" class="form-label fw-semibold">Status</label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="1">Verified</option>
+                                    <option value="0">Not Verified</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ path('app_admin_user_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
+                                <i class="fas fa-plus"></i> Create User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: #f5f7fb;
+    }
+    .card {
+        border: none;
+        border-radius: 12px;
+    }
+    .form-control {
+        border-radius: 6px;
+    }
+    .form-label {
+        color: #2c3e50;
+    }
+</style>
+{% endblock %}

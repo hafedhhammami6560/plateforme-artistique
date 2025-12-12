@@ -1,0 +1,8 @@
+1. Ouvrir le fichier migrations/sql/community_feedback.sql de la branche feature/search-filter-sort.
+2. Copier tout le contenu du fichier dans phpMyAdmin ou un client SQL pour créer les tables et relations.
+3. Vérifier s'il existe d'autres fichiers de migration (pour user, contrat, produit, etc.) et exécuter leur SQL également.
+4. Lancer php bin/console cache:clear pour vider le cache Symfony.
+5. Lancer le serveur PHP intégré : php -S localhost:8000 -t public
+6. Tester l'application sur http://localhost:8000
+7. Si erreur Doctrine, vérifier la structure de la base et les entités.
+8. Si besoin, me demander le SQL pour une entité précise ou une correction manuelle.

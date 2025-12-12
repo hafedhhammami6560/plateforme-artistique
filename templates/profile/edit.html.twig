@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modifier le Profil - Plateforme Artistique</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Inter:400,500,600,700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #05468b 0%, #0260d3 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(-5px);
+        }
+
+        .edit-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        .edit-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .edit-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .edit-subtitle {
+            font-size: 16px;
+            color: #718096;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #05468b;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #05468b 0%, #0260d3 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #38a169;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .password-note {
+            padding: 16px;
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .password-note p {
+            font-size: 14px;
+            color: #2c5282;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ path('app_profile') }}" class="back-link">
+            ← Retour au profil
+        </a>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-error">{{ message }}</div>
+        {% endfor %}
+
+        <div class="edit-card">
+            <div class="edit-header">
+                <h1 class="edit-title">✏️ Modifier le profil</h1>
+                <p class="edit-subtitle">Mettez à jour vos informations personnelles</p>
+            </div>
+
+            <form method="POST" action="{{ path('app_profile_edit') }}">
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h2 class="section-title">📋 Informations personnelles</h2>
+                    
+                    <div class="form-group">
+                        <label for="name">Nom complet</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            value="{{ user.name }}" 
+                            required 
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Adresse email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            value="{{ user.email }}" 
+                            required 
+                        />
+                        <p class="help-text">Utilisé pour la connexion et les notifications</p>
+                    </div>
+                </div>
+
+                <!-- Password Section -->
+                <div class="form-section">
+                    <h2 class="section-title">🔒 Modifier le mot de passe</h2>
+                    
+                    <div class="password-note">
+                        <p><strong>Note :</strong> Laissez vide si vous ne souhaitez pas changer votre mot de passe.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="current_password">Mot de passe actuel</label>
+                        <input 
+                            type="password" 
+                            id="current_password" 
+                            name="current_password" 
+                            placeholder="••••••••" 
+                        />
+                        <p class="help-text">Requis pour changer le mot de passe</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new_password">Nouveau mot de passe</label>
+                        <input 
+                            type="password" 
+                            id="new_password" 
+                            name="new_password" 
+                            placeholder="••••••••" 
+                        />
+                        <p class="help-text">Minimum 6 caractères</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                        <input 
+                            type="password" 
+                            id="confirm_password" 
+                            name="confirm_password" 
+                            placeholder="••••••••" 
+                        />
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        💾 Enregistrer les modifications
+                    </button>
+                    <a href="{{ path('app_profile') }}" class="btn btn-secondary">
+                        ❌ Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

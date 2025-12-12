@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Feedbacks{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-comments"></i> Feedbacks</h1>
+        <a href="{{ path('feedback_new') }}" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
+            <i class="fas fa-plus"></i> Nouveau Feedback
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Filtres et recherche -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-header" style="background-color: #f8f9fa;">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Recherche & Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ path('feedback_index') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label"><i class="fas fa-search"></i> Rechercher</label>
+                    <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="Contenu ou auteur...">
+                </div>
+                <div class="col-md-2">
+                    <label for="type" class="form-label"><i class="fas fa-tag"></i> Type</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="">Tous</option>
+                        <option value="product" {% if type == 'product' %}selected{% endif %}>Produit</option>
+                        <option value="artist" {% if type == 'artist' %}selected{% endif %}>Artiste</option>
+                        <option value="publisher" {% if type == 'publisher' %}selected{% endif %}>Éditeur</option>
+                        <option value="other" {% if type == 'other' %}selected{% endif %}>Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="rating" class="form-label"><i class="fas fa-star"></i> Note</label>
+                    <select class="form-control" id="rating" name="rating">
+                        <option value="">Toutes</option>
+                        <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                        <option value="4">⭐⭐⭐⭐ (4+)</option>
+                        <option value="3">⭐⭐⭐ (3+)</option>
+                        <option value="2">⭐⭐ (2+)</option>
+                        <option value="1">⭐ (1+)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="sort" class="form-label"><i class="fas fa-sort"></i> Trier par</label>
+                    <select class="form-control" id="sort" name="sort">
+                        <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date</option>
+                        <option value="rating" {% if sortBy == 'rating' %}selected{% endif %}>Note</option>
+                        <option value="authorName" {% if sortBy == 'authorName' %}selected{% endif %}>Auteur</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label for="order" class="form-label">Ordre</label>
+                    <select class="form-control" id="order" name="order">
+                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑</option>
+                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary" style="background-color: #05468b; border-color: #05468b;">
+                        <i class="fas fa-search"></i> Appliquer
+                    </button>
+                    <a href="{{ path('feedback_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </a>
+                    <span class="text-muted ms-3">
+                        <i class="fas fa-info-circle"></i> {{ feedbacks|length }} résultat(s)
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if feedbacks|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background-color: #05468b; color: white;">
+                        <tr>
+                            <th>ID</th>
+                            <th>Auteur</th>
+                            <th>Type</th>
+                            <th>Note</th>
+                            <th>Contenu</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for f in feedbacks %}
+                        <tr>
+                            <td>{{ f.id }}</td>
+                            <td>{{ f.authorName|default('-') }}</td>
+                            <td><span class="badge bg-secondary">{{ f.type }}</span></td>
+                            <td>
+                                {% if f.rating %}
+                                    <span class="text-warning">
+                                        {% for i in 1..f.rating %}★{% endfor %}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ f.content|default('-')|slice(0, 50) }}{% if f.content|length > 50 %}...{% endif %}</td>
+                            <td>
+                                {% if f.status == 'published' %}
+                                    <span class="badge bg-success">Publié</span>
+                                {% elseif f.status == 'pending' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Archivé</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ f.createdAt|date('Y-m-d H:i') }}</td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('feedback_show', {'id': f.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('feedback_edit', {'id': f.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('feedback_delete', {'id': f.id}) }}" style="display: inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce feedback ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ f.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aucun feedback trouvé.</p>
+                    <a href="{{ path('feedback_new') }}" class="btn btn-primary" style="background-color: #05468b;">
+                        <i class="fas fa-plus"></i> Créer un feedback
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+</style>
+{% endblock %}

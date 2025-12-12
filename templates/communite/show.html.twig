@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Communauté {{ communite.name }}{% endblock %}
+
+{% block body %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <h1>{{ communite.name }}</h1>
+    <p>{{ communite.description }}</p>
+    <p>Créée le {{ communite.createdAt|date('Y-m-d H:i') }}</p>
+    <p>Créée par: {{ communite.createdBy ?: 'anonyme' }}</p>
+
+    <h2>Organisations</h2>
+    <ul>
+        {% for org in communite.organisations %}
+            <li><a href="{{ path('organisation_show', {id: org.id}) }}">{{ org.name }}</a></li>
+        {% else %}
+            <li>Aucune organisation.</li>
+        {% endfor %}
+    </ul>
+
+    <h2 class="mt-4">Feedbacks</h2>
+    {% if feedbacks|length > 0 %}
+        <div class="row">
+            {% for feedback in feedbacks %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ feedback.authorName ?? 'Anonyme' }}</h5>
+                                {% if feedback.rating %}
+                                    <div class="text-warning">
+                                        {% for i in 1..feedback.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for i in feedback.rating+1..5 %}
+                                            <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <p class="card-text">{{ feedback.content }}</p>
+                            <small class="text-muted">{{ feedback.createdAt|date('d/m/Y H:i') }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">Aucun feedback pour cette communauté.</p>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ path('communite_index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <a href="{{ path('feedback_new', {communiteId: communite.id}) }}" class="btn btn-success">
+            <i class="fas fa-comment"></i> Laisser un Feedback
+        </a>
+        <a href="{{ path('communite_edit', {'id': communite.id}) }}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        <form method="post" action="{{ path('communite_delete', {'id': communite.id}) }}" style="display: inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette communauté ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ communite.id) }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Supprimer
+            </button>
+        </form>
+    </div>
+{% endblock %}

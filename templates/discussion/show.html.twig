@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ discussion.titre }}{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- En-tête de la discussion -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-comments"></i> {{ discussion.titre }}
+                    </h4>
+                    <div>
+                        {% if discussion.statut == 'en_cours' %}
+                            <span class="badge bg-success">En cours</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Terminée</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-user"></i> Initiateur:</strong>
+                            {{ discussion.initiateur ? discussion.initiateur.name : 'N/A' }}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-user-tie"></i> Destinataire:</strong>
+                            {{ discussion.destinataire ? discussion.destinataire.name : 'N/A' }}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-tag"></i> Type:</strong>
+                            {% if discussion.type == 'publication_rights' %}
+                                Droits de publication
+                            {% else %}
+                                Commande personnalisée
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong><i class="fas fa-calendar"></i> Créée le:</strong>
+                            {{ discussion.createdAt|date('d/m/Y à H:i') }}
+                        </div>
+                        {% if discussion.sujet %}
+                        <div class="col-md-12 mt-2">
+                            <strong><i class="fas fa-info-circle"></i> Sujet:</strong>
+                            {{ discussion.sujet }}
+                        </div>
+                        {% endif %}
+                        {% if discussion.contrat %}
+                        <div class="col-md-12 mt-2">
+                            <strong><i class="fas fa-file-contract"></i> Contrat lié:</strong>
+                            #{{ discussion.contrat.id }} - {{ discussion.contrat.montant }} €
+                        </div>
+                        {% endif %}
+                        {% if discussion.produit %}
+                        <div class="col-md-12 mt-2">
+                            <strong><i class="fas fa-project-diagram"></i> Projet lié:</strong>
+                            {{ discussion.produit.title }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages de la discussion -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-comment-dots"></i> Messages ({{ discussion.messages|length }})</h5>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% if discussion.messages|length > 0 %}
+                        {% for msg in discussion.messages %}
+                            <div class="message-item mb-3 p-3 {{ msg.auteur.id == discussion.initiateur.id ? 'bg-light' : 'bg-primary bg-opacity-10' }} rounded">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>
+                                        <i class="fas fa-user-circle"></i> 
+                                        {{ msg.auteur ? msg.auteur.name : 'Anonyme' }}
+                                    </strong>
+                                    <small class="text-muted">
+                                        {{ msg.createdAt|date('d/m/Y à H:i') }}
+                                    </small>
+                                </div>
+                                <div>{{ msg.contenu|nl2br }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucun message pour l'instant</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Formulaire d'ajout de message -->
+            {% if discussion.statut == 'en_cours' %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-paper-plane"></i> Envoyer un message</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <textarea name="message" class="form-control" rows="4" 
+                                      placeholder="Écrivez votre message..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-paper-plane"></i> Envoyer le message
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Cette discussion est terminée. Vous ne pouvez plus envoyer de messages.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar avec actions -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                        <a href="{{ path('app_discussion_edit', {'id': discussion.id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        {% if discussion.statut == 'en_cours' %}
+                            <form method="post" action="{{ path('app_discussion_close', {'id': discussion.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('close' ~ discussion.id) }}">
+                                <button type="submit" class="btn btn-secondary w-100" 
+                                        onclick="return confirm('Êtes-vous sûr de vouloir fermer cette discussion ?')">
+                                    <i class="fas fa-lock"></i> Fermer la discussion
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="{{ path('app_discussion_reopen', {'id': discussion.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('reopen' ~ discussion.id) }}">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-unlock"></i> Réouvrir la discussion
+                                </button>
+                            </form>
+                        {% endif %}
+                        <hr>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir supprimer cette discussion ?
+                <br><strong class="text-danger">Cette action est irréversible.</strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_discussion_delete', {'id': discussion.id}) }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ discussion.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-item {
+        border-left: 4px solid #0d6efd;
+    }
+</style>
+{% endblock %}

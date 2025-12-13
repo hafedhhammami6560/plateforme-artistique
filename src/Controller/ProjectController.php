@@ -18,7 +18,7 @@ class ProjectController extends AbstractController
     {
         // Récupérer les paramètres de recherche et tri
         $search = $request->query->get('search', '');
-        $categorie = $request->query->get('categorie', '');
+            $category = $request->query->get('category', '');
         $sort = $request->query->get('sort', 'date_desc');
         
         // Check if user is connected
@@ -39,9 +39,9 @@ class ProjectController extends AbstractController
         }
         
         // Filtre de catégorie
-        if ($categorie) {
-            $qb->andWhere('p.categorieLabel = :categorie OR p.categorie = :categorie')
-               ->setParameter('categorie', $categorie);
+            if ($category) {
+                $qb->andWhere('p.categoryLabel = :category')
+                   ->setParameter('category', $category);
         }
         
         // Tri
@@ -92,13 +92,13 @@ class ProjectController extends AbstractController
             $autresProjects = $allProjects;
         }
         
-        $categories = $projectRepository->findAllCategories();
+        $categorys = $projectRepository->findAllcategorys();
 
         return $this->render('project/index.html.twig', [
             'mesProjects' => $mesProjects,
             'autresProjects' => $autresProjects,
-            'categories' => $categories,
-            'selected_categorie' => $categorie,
+            'categorys' => $categorys,
+                'selected_category' => $category,
             'isCreator' => $isCreator,
             'user' => $user,
         ]);

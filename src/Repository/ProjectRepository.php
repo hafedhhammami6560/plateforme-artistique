@@ -22,8 +22,8 @@ class ProjectRepository extends ServiceEntityRepository
     public function findByCategorie(string $categorieLabel): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.categorieLabel = :categorie')
-            ->setParameter('categorie', $categorieLabel)
+              ->where('p.categoryLabel = :category')
+              ->setParameter('category', $categoryLabel)
             ->orderBy('p.nom', 'ASC')
             ->getQuery()
             ->getResult();
@@ -49,9 +49,9 @@ class ProjectRepository extends ServiceEntityRepository
     public function findAllCategories(): array
     {
         $result = $this->createQueryBuilder('p')
-            ->select('DISTINCT p.categorieLabel AS label')
-            ->where('p.categorieLabel IS NOT NULL')
-            ->orderBy('label', 'ASC')
+              ->select('DISTINCT p.categoryLabel AS label')
+              ->where('p.categoryLabel IS NOT NULL')
+              ->orderBy('p.categoryLabel', 'ASC')
             ->getQuery()
             ->getResult();
 

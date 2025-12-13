@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+{% block title %}Discussion Details{% endblock %}
+{% block body %}
+<h1>Discussion Details (Admin)</h1>
+<ul>
+    <li>ID: {{ discussion.id }}</li>
+    <li>Title: {{ discussion.titre }}</li>
+    <li>User: {{ discussion.initiateur.name }}</li>
+    <!-- Add more fields as needed -->
+</ul>
+<a href="{{ path('admin_discussion_edit', {'id': discussion.id}) }}">Edit</a>
+<form method="post" action="{{ path('admin_discussion_delete', {'id': discussion.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ discussion.id) }}">
+    <button class="btn btn-link p-0 m-0 align-baseline">Delete</button>
+</form>
+<a href="{{ path('admin_discussion_dashboard') }}">Back to dashboard</a>
+{% endblock %}

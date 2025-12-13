@@ -6,6 +6,7 @@ use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use App\Entity\Category;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
@@ -31,13 +32,13 @@ class Project
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'projects')]
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Categorie $categorie = null;
+    private ?Category $category = null;
 
     // Libellé de catégorie (compatibilité scripts de seed)
-    #[ORM\Column(name: 'categorie', length: 255, nullable: true)]
-    private ?string $categorieLabel = null;
+    #[ORM\Column(name: 'category', length: 255, nullable: true)]
+    private ?string $categoryLabel = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -125,26 +126,26 @@ class Project
         return $this;
     }
 
-    public function getCategorie(): ?Categorie
+    public function getCategory(): ?Category
     {
-        return $this->categorie;
+        return $this->category;
     }
 
-    public function setCategorie(?Categorie $categorie): static
+    public function setCategory(?Category $category): static
     {
-        $this->categorie = $categorie;
+        $this->category = $category;
 
         return $this;
     }
 
-    public function getCategorieLabel(): ?string
+    public function getCategoryLabel(): ?string
     {
-        return $this->categorieLabel;
+        return $this->categoryLabel;
     }
 
-    public function setCategorieLabel(?string $categorieLabel): static
+    public function setCategoryLabel(?string $categoryLabel): static
     {
-        $this->categorieLabel = $categorieLabel;
+        $this->categoryLabel = $categoryLabel;
         return $this;
     }
 

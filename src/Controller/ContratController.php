@@ -43,63 +43,19 @@ class ContratController extends AbstractController
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
 
-        // Build query - admin can see all contracts, others only their own
-        $qb = $repo->createQueryBuilder('c');
-        
-        // If not admin, filter by user participation
-        if ($user->getUserType() !== 'admin') {
-            $qb->where('c.artiste = :user OR c.producteur = :user')
-               ->setParameter('user', $user);
-        }
+            // Only show contracts where user is participant (not admin dashboard)
+            $contrats = $repo->createQueryBuilder('c')
+                ->where('c.artiste = :user OR c.producteur = :user')
+                ->setParameter('user', $user)
+                ->getQuery()->getResult();
 
-        // Search filter
-        if ($search) {
-            $qb->andWhere('c.numeroContrat LIKE :search OR c.conditionsTexte LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Type filter
-        if ($typeFilter) {
-            $qb->andWhere('c.type = :type')
-               ->setParameter('type', $typeFilter);
-        }
-
-        // Status filter
-        if ($statutFilter) {
-            $qb->andWhere('c.statut = :statut')
-               ->setParameter('statut', $statutFilter);
-        }
-
-        // Sorting
-        switch ($sortBy) {
-            case 'date_asc':
-                $qb->orderBy('c.createdAt', 'ASC');
-                break;
-            case 'montant_asc':
-                $qb->orderBy('c.prix', 'ASC');
-                break;
-            case 'montant_desc':
-                $qb->orderBy('c.prix', 'DESC');
-                break;
-            case 'numero_asc':
-                $qb->orderBy('c.numeroContrat', 'ASC');
-                break;
-            case 'numero_desc':
-                $qb->orderBy('c.numeroContrat', 'DESC');
-                break;
-            default: // date_desc
-                $qb->orderBy('c.createdAt', 'DESC');
-        }
-
-        $contrats = $qb->getQuery()->getResult();
-
-        return $this->render('contrat/index.html.twig', [
-            'contrats' => $contrats,
-            'search' => $search,
-            'typeFilter' => $typeFilter,
-            'statutFilter' => $statutFilter,
-            'sortBy' => $sortBy,
-        ]);
+            return $this->render('contrat/index.html.twig', [
+                'contrats' => $contrats,
+                'search' => $search,
+                'typeFilter' => $typeFilter,
+                'statutFilter' => $statutFilter,
+                'sortBy' => $sortBy,
+            ]);
     }
 
     #[Route('/new', name: 'app_contrat_new', methods: ['GET', 'POST'])]
@@ -239,14 +195,12 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user can view this contract
-        $canView = $contrat->getArtiste()->getId() === $user->getId() 
-                || $contrat->getProducteur()->getId() === $user->getId();
-        
-        if (!$canView) {
-            $this->addFlash('error', 'Vous n\'avez pas accès à ce contrat.');
-            return $this->redirectToRoute('app_contrat_index');
-        }
+            // Only allow user to view if they are participant
+            $canView = $contrat->getArtiste()->getId() === $user->getId() || $contrat->getProducteur()->getId() === $user->getId();
+            if (!$canView) {
+                $this->addFlash('error', 'Vous n\'avez pas accès à ce contrat.');
+                return $this->redirectToRoute('app_contrat_index');
+            }
 
         // Handle signature
         if ($request->isMethod('POST')) {
@@ -288,26 +242,16 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user is admin
-        $isAdmin = $user->getUserType() === 'admin';
-
-        // Vérifier si le contrat est archivé
-        if ($contrat->isArchived() && !$isAdmin) {
-            $this->addFlash('error', 'Ce contrat est archivé et ne peut plus être modifié. Seul un administrateur peut le modifier.');
-            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-        }
-
-        // Check if user can edit this contract
-        if (!$isAdmin && $contrat->getArtiste()->getId() !== $user->getId() && $contrat->getProducteur()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Vous n\'avez pas la permission de modifier ce contrat.');
-            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-        }
-
-        // Les utilisateurs normaux ne peuvent modifier que les brouillons
-        if (!$isAdmin && !$contrat->canBeEditedByUser()) {
-            $this->addFlash('error', 'Seuls les contrats brouillons peuvent être modifiés. Ce contrat est déjà finalisé ou signé.');
-            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
-        }
+            // Only allow user to edit if they are participant and contract is not archived
+            if ($contrat->isArchived()) {
+                $this->addFlash('error', 'Ce contrat est archivé et ne peut plus être modifié.');
+                return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+            }
+            $canEdit = $contrat->getArtiste()->getId() === $user->getId() || $contrat->getProducteur()->getId() === $user->getId();
+            if (!$canEdit) {
+                $this->addFlash('error', 'Vous n\'avez pas la permission de modifier ce contrat.');
+                return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+            }
 
         $showproject = $contrat->getType() === Contrat::TYPE_PUBLICATION_RIGHTS;
 

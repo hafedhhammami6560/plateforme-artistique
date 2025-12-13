@@ -46,49 +46,11 @@ class DiscussionController extends AbstractController
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
 
-        // Build query - admin can see all discussions, others only their own (excluding hidden)
-        $qb = $repo->createQueryBuilder('d');
-        
-        // If not admin, filter by user participation and exclude hidden discussions
-        if ($user->getUserType() !== 'admin') {
-            $qb->where('(d.initiateur = :user AND d.hiddenByInitiateur = false) OR (d.destinataire = :user AND d.hiddenByDestinataire = false)')
-               ->setParameter('user', $user);
-        }
-
-        // Search filter
-        if ($search) {
-            $qb->andWhere('d.titre LIKE :search OR d.contenu LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Type filter
-        if ($typeFilter) {
-            $qb->andWhere('d.type = :type')
-               ->setParameter('type', $typeFilter);
-        }
-
-        // Status filter
-        if ($statutFilter) {
-            $qb->andWhere('d.statut = :statut')
-               ->setParameter('statut', $statutFilter);
-        }
-
-        // Sorting
-        switch ($sortBy) {
-            case 'date_asc':
-                $qb->orderBy('d.createdAt', 'ASC');
-                break;
-            case 'titre_asc':
-                $qb->orderBy('d.titre', 'ASC');
-                break;
-            case 'titre_desc':
-                $qb->orderBy('d.titre', 'DESC');
-                break;
-            default: // date_desc
-                $qb->orderBy('d.createdAt', 'DESC');
-        }
-
-        $discussions = $qb->getQuery()->getResult();
+        // Only show discussions where user is participant (not admin dashboard)
+        $discussions = $repo->createQueryBuilder('d')
+            ->where('(d.initiateur = :user AND d.hiddenByInitiateur = false) OR (d.destinataire = :user AND d.hiddenByDestinataire = false)')
+            ->setParameter('user', $user)
+            ->getQuery()->getResult();
 
         return $this->render('discussion/index.html.twig', [
             'discussions' => $discussions,
@@ -204,8 +166,9 @@ class DiscussionController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user can view this discussion
-        if (!$this->permissionService->canViewDiscussion($user, $discussion)) {
+        // Only allow user to view if they are participant
+        $canView = $discussion->getInitiateur()->getId() === $user->getId() || $discussion->getDestinataire()->getId() === $user->getId();
+        if (!$canView) {
             $this->addFlash('error', 'Vous n\'avez pas accès à cette discussion.');
             return $this->redirectToRoute('app_discussion_index');
         }
@@ -265,8 +228,9 @@ class DiscussionController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user can edit this discussion
-        if (!$this->permissionService->canEditDiscussion($user, $discussion)) {
+        // Only allow user to edit if they are participant
+        $canEdit = $discussion->getInitiateur()->getId() === $user->getId() || $discussion->getDestinataire()->getId() === $user->getId();
+        if (!$canEdit) {
             $this->addFlash('error', 'Vous n\'avez pas la permission de modifier cette discussion.');
             return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
         }
@@ -393,11 +357,9 @@ class DiscussionController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
 
-        // SEUL L'ADMIN peut supprimer définitivement
-        if ($user->getUserType() !== 'admin') {
-            $this->addFlash('error', 'Seul un administrateur peut supprimer définitivement une discussion.');
-            return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
-        }
+        // Remove admin-only delete: users cannot delete discussions, only hide/soft-delete if needed
+        $this->addFlash('error', 'La suppression définitive est réservée à l\'administration.');
+        return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
 
         // Vérifier le token CSRF
         if (!$this->isCsrfTokenValid('delete_discussion_' . $discussion->getId(), $request->request->get('_token'))) {

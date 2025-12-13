@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+{% block title %}Contrat Details{% endblock %}
+{% block body %}
+<h1>Contrat Details (Admin)</h1>
+<ul>
+    <li>ID: {{ contrat.id }}</li>
+    <li>Title: {{ contrat.title }}</li>
+    <li>User: {{ contrat.user.username }}</li>
+    <!-- Add more fields as needed -->
+</ul>
+<a href="{{ path('admin_contrat_edit', {'id': contrat.id}) }}">Edit</a>
+<form method="post" action="{{ path('admin_contrat_delete', {'id': contrat.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ contrat.id) }}">
+    <button class="btn btn-link p-0 m-0 align-baseline">Delete</button>
+</form>
+<a href="{{ path('admin_contrat_dashboard') }}">Back to dashboard</a>
+{% endblock %}

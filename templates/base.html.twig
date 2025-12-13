@@ -163,10 +163,56 @@
                 border-radius: 5px;
                 cursor: pointer;
             }
+            
+            /* No sidebar styles */
+            .no-sidebar body {
+                padding-left: 0;
+            }
+            .no-sidebar .main-content {
+                padding: 0;
+                width: 100%;
+            }
+            .no-sidebar header {
+                width: 100%;
+                padding: 20px;
+            }
+            .no-sidebar .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
         </style>
     </head>
-    <body>
+    {% set is_client_page = app.request.cookies.get('user_role') != 'admin' %}
+    <body{% if is_client_page %} class="no-sidebar"{% endif %}>
+        {% if is_client_page %}
+        <!-- Client Header -->
+        <header style="display:flex; align-items:center; justify-content:space-between; background:#05468b; padding:20px; color:white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width:100%;">
+            <nav>
+                <ul style="display:flex; list-style:none; gap:30px; margin:0; padding:0;">
+                    {% if app.request.cookies.get('user_id') %}
+                        <li><a href="{{ path('app_home') }}" style="color:white; text-decoration:none;">Home</a></li>
+                        <li><a href="{{ path('communite_index') }}" style="color:white; text-decoration:none;">Community</a></li>
+                        <li><a href="{{ path('organisation_index') }}" style="color:white; text-decoration:none;">Organisation</a></li>
+                        <li><a href="{{ path('project_index') }}" style="color:white; text-decoration:none;">Projects</a></li>
+                        <li><a href="{{ path('app_discussion_index') }}" style="color:white; text-decoration:none;">Discussions</a></li>
+                        <li><a href="{{ path('app_contrat_index') }}" style="color:white; text-decoration:none;">Contrats</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div style="font-size:24px; font-weight:bold;">
+                <i class="fas fa-palette"></i> ArtConnect Gallery
+            </div>
+            <div>
+                {% if app.request.cookies.get('user_id') %}
+                    <a href="{{ path('app_profile') }}" style="color:white; text-decoration:none; margin-right:20px;">Profile</a>
+                    <a href="{{ path('auth_logout') }}" style="color:white; text-decoration:none;">Logout</a>
+                {% endif %}
+            </div>
+        </header>
+        {% endif %}
+
         <!-- Sidebar -->
+        {% if not is_client_page %}
         <div class="sidebar">
             <a href="/" class="sidebar-brand">
                 <i class="fas fa-palette"></i> Plateforme
@@ -197,13 +243,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('app_contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
+                    <a href="{% if app.request.cookies.get('user_role') == 'admin' %}{{ path('admin_contrat_dashboard') }}{% else %}{{ path('app_contrat_index') }}{% endif %}" class="{% if app.request.cookies.get('user_role') == 'admin' and (app.request.attributes.get('_route') starts with 'admin_contrat_') or (app.request.cookies.get('user_role') != 'admin' and (app.request.attributes.get('_route') starts with 'app_contrat_')) %}active{% endif %}">
                         <i class="fas fa-file-contract"></i>
                         <span>Contrats</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('app_discussion_index') }}" class="{{ app.request.attributes.get('_route') starts with 'discussion_' ? 'active' : '' }}">
+                    <a href="{% if app.request.cookies.get('user_role') == 'admin' %}{{ path('admin_discussion_dashboard') }}{% else %}{{ path('app_discussion_index') }}{% endif %}" class="{% if app.request.cookies.get('user_role') == 'admin' and (app.request.attributes.get('_route') starts with 'admin_discussion_') or (app.request.cookies.get('user_role') != 'admin' and (app.request.attributes.get('_route') starts with 'app_discussion_')) %}active{% endif %}">
                         <i class="fas fa-comment-dots"></i>
                         <span>Discussions</span>
                     </a>
@@ -237,11 +283,14 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
 
         <!-- Mobile Toggle -->
+        {% if not is_client_page %}
         <button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('active')">
             <i class="fas fa-bars"></i>
         </button>
+        {% endif %}
 
         <!-- Main Content -->
         <div class="main-content">

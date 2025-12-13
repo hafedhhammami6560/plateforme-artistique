@@ -43,10 +43,14 @@ class ContratController extends AbstractController
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
 
-        // Build query - user can see contracts where they are artist or producer
-        $qb = $repo->createQueryBuilder('c')
-            ->where('c.artiste = :user OR c.producteur = :user')
-            ->setParameter('user', $user);
+        // Build query - admin can see all contracts, others only their own
+        $qb = $repo->createQueryBuilder('c');
+        
+        // If not admin, filter by user participation
+        if ($user->getUserType() !== 'admin') {
+            $qb->where('c.artiste = :user OR c.producteur = :user')
+               ->setParameter('user', $user);
+        }
 
         // Search filter
         if ($search) {

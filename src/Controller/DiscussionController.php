@@ -46,10 +46,14 @@ class DiscussionController extends AbstractController
         $statutFilter = $request->query->get('statut', '');
         $sortBy = $request->query->get('sort', 'date_desc');
 
-        // Build query - Exclure les discussions masquées
-        $qb = $repo->createQueryBuilder('d')
-            ->where('(d.initiateur = :user AND d.hiddenByInitiateur = false) OR (d.destinataire = :user AND d.hiddenByDestinataire = false)')
-            ->setParameter('user', $user);
+        // Build query - admin can see all discussions, others only their own (excluding hidden)
+        $qb = $repo->createQueryBuilder('d');
+        
+        // If not admin, filter by user participation and exclude hidden discussions
+        if ($user->getUserType() !== 'admin') {
+            $qb->where('(d.initiateur = :user AND d.hiddenByInitiateur = false) OR (d.destinataire = :user AND d.hiddenByDestinataire = false)')
+               ->setParameter('user', $user);
+        }
 
         // Search filter
         if ($search) {

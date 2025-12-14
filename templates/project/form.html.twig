@@ -12,6 +12,12 @@
     </div>
 
     <div class="form-group mb-3">
+        {{ form_label(form.prix, 'Prix') }}
+        {{ form_widget(form.prix, {'attr': {'class': 'form-control'}}) }}
+        {{ form_errors(form.prix) }}
+    </div>
+
+    <div class="form-group mb-3">
         {{ form_label(form.category, 'Catégorie') }}
         {{ form_widget(form.category, {'attr': {'class': 'form-control'}}) }}
         {{ form_errors(form.category) }}

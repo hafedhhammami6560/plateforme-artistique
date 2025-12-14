@@ -42,6 +42,15 @@ class ProjectType extends AbstractType
                     new Assert\NotBlank(message: 'La description du projet est obligatoire'),
                 ],
             ])
+            ->add('prix', \Symfony\Component\Form\Extension\Core\Type\MoneyType::class, [
+                'label' => 'Prix',
+                'currency' => 'EUR',
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Le prix est obligatoire'),
+                    new Assert\Positive(message: 'Le prix doit être positif'),
+                ],
+            ])
             ->add('category', EntityType::class, [
                 'class' => Category::class,
                 'choice_label' => 'name',

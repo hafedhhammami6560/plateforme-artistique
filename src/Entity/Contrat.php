@@ -14,15 +14,15 @@ class Contrat
     const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // Droits sur un seul produit
     const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Droits sur tous les produits de l'artiste
     const TYPE_CUSTOM_ORDER = 'custom_order';
-    
+
     // Ancien type pour rétrocompatibilité (sera traité comme single)
     const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
-    
+
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_EN_ATTENTE_SIGNATURE = 'en_attente_signature';
     const STATUT_SIGNE = 'signe';
     const STATUT_FINAL = 'final'; // Contrat final prêt à signer
-    
+
     // Anciens statuts pour rétrocompatibilité
     const STATUT_EN_ATTENTE = 'EN_ATTENTE';
     const STATUT_ACCEPTE = 'ACCEPTE';
@@ -113,7 +113,7 @@ class Contrat
 
     #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'contrat', cascade: ['remove'])]
     private Collection $discussions;
-    
+
     // Discussion d'origine pour les brouillons de contrats
     #[ORM\ManyToOne(targetEntity: Discussion::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -360,17 +360,15 @@ class Contrat
         return $this->dateSignatureClient;
     }
 
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
     public function setDateSignatureClient(?\DateTimeImmutable $dateSignatureClient): static
     {
         $this->dateSignatureClient = $dateSignatureClient;
         return $this;
     }
-
-    public function getProject(): ?Project
-    {
-        return $this->project;
-    }
-
     public function setProject(?Project $project): static
     {
         $this->project = $project;
@@ -399,7 +397,7 @@ class Contrat
 
     public function isTypePublicationRightsSingle(): bool
     {
-        return $this->type === self::TYPE_PUBLICATION_RIGHTS_SINGLE || 
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS_SINGLE ||
                $this->type === self::TYPE_PUBLICATION_RIGHTS; // Rétrocompatibilité
     }
 
@@ -462,11 +460,11 @@ class Contrat
     public function setIsArchived(bool $isArchived): static
     {
         $this->isArchived = $isArchived;
-        
+
         if ($isArchived && $this->archivedAt === null) {
             $this->archivedAt = new \DateTimeImmutable();
         }
-        
+
         return $this;
     }
 

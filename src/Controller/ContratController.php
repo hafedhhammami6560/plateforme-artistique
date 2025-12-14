@@ -27,7 +27,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -63,7 +63,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -74,26 +74,26 @@ class ContratController extends AbstractController
         }
 
         $contrat = new Contrat();
-        
+
         // Pre-fill with discussion data if coming from discussion
         $discussionId = $request->query->get('discussion_id') ?? $request->query->get('discussion');
         $fromDiscussion = false;
         $discussion = null;
-        
+
         if ($discussionId) {
             $discussion = $this->em->getRepository(\App\Entity\Discussion::class)->find($discussionId);
             if ($discussion) {
                 // Verify user is participant in discussion
-                if ($discussion->getInitiateur()->getId() !== $user->getId() && 
+                if ($discussion->getInitiateur()->getId() !== $user->getId() &&
                     $discussion->getDestinataire()->getId() !== $user->getId()) {
                     $this->addFlash('error', 'Vous n\'êtes pas participant à cette discussion.');
                     return $this->redirectToRoute('app_contrat_index');
                 }
-                
+
                 $fromDiscussion = true;
                 $contrat->setType($discussion->getType());
                 $contrat->setStatut(Contrat::STATUT_BROUILLON); // Brouillon par défaut
-                
+
                 // Set parties based on discussion
                 if ($discussion->getInitiateur()->getId() === $user->getId()) {
                     $contrat->setArtiste($user);
@@ -102,7 +102,7 @@ class ContratController extends AbstractController
                     $contrat->setArtiste($discussion->getDestinataire());
                     $contrat->setProducteur($user);
                 }
-                
+
                 // Set product if Type A
                 if ($discussion->isTypePublicationRights() && $discussion->getproject()) {
                     $contrat->setproject($discussion->getproject());
@@ -111,7 +111,7 @@ class ContratController extends AbstractController
         } else {
             // Auto-fill based on user type when NOT from discussion
             $userType = strtolower($user->getUserType() ?? '');
-            
+
             // Si artiste/musicien/scénariste → pré-remplir comme artiste
             if (in_array($userType, ['artiste', 'musicien', 'scénariste'])) {
                 $contrat->setArtiste($user);
@@ -129,7 +129,7 @@ class ContratController extends AbstractController
             'show_project' => $showproject,
             'is_edit' => false,
         ]);
-        
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -145,7 +145,7 @@ class ContratController extends AbstractController
                     $contrat->getDateFin(),
                     $contrat->getproject()
                 );
-                
+
                 // Link to discussion if creating from discussion
                 if ($discussion) {
                     $createdContrat->setDiscussionOrigine($discussion);
@@ -153,17 +153,17 @@ class ContratController extends AbstractController
 
                 $this->em->flush();
 
-                $successMessage = $createdContrat->getStatut() === Contrat::STATUT_BROUILLON 
+                $successMessage = $createdContrat->getStatut() === Contrat::STATUT_BROUILLON
                     ? 'Brouillon de contrat créé avec succès ! Numéro: ' . $createdContrat->getNumeroContrat()
                     : 'Contrat créé avec succès ! Numéro: ' . $createdContrat->getNumeroContrat();
-                
+
                 $this->addFlash('success', $successMessage);
-                
+
                 // Redirect to discussion if coming from there
                 if ($discussion) {
                     return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
                 }
-                
+
                 return $this->redirectToRoute('app_contrat_show', ['id' => $createdContrat->getId()]);
 
             } catch (\InvalidArgumentException $e) {
@@ -185,7 +185,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -205,7 +205,7 @@ class ContratController extends AbstractController
         // Handle signature
         if ($request->isMethod('POST')) {
             $action = $request->request->get('action');
-            
+
             try {
                 if ($action === 'sign_artist' && $contrat->getArtiste()->getId() === $user->getId()) {
                     $this->contratService->signerParArtist($contrat, $user);
@@ -232,7 +232,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -260,7 +260,7 @@ class ContratController extends AbstractController
             'show_project' => $showproject,
             'is_edit' => true,
         ]);
-        
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -287,7 +287,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -326,7 +326,7 @@ class ContratController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -357,7 +357,7 @@ class ContratController extends AbstractController
         try {
             // Marquer l'acceptation de l'utilisateur
             $isArtist = $contrat->getArtiste()->getId() === $user->getId();
-            
+
             if ($isArtist) {
                 $contrat->setAcceptationArtiste(true);
             } else {

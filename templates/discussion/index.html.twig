@@ -24,10 +24,10 @@
             <form method="get" action="{{ path('app_discussion_index') }}" class="row g-3">
                 <div class="col-md-4">
                     <label for="search" class="form-label">Rechercher</label>
-                    <input type="text" class="form-control" id="search" name="search" 
+                    <input type="text" class="form-control" id="search" name="search"
                            value="{{ search }}" placeholder="Titre, utilisateur, project...">
                 </div>
-                
+
                 <div class="col-md-2">
                     <label for="type" class="form-label">Type</label>
                     <select class="form-select" id="type" name="type">
@@ -36,7 +36,7 @@
                         <option value="custom_order" {% if typeFilter == 'custom_order' %}selected{% endif %}>Custom Order</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2">
                     <label for="statut" class="form-label">Statut</label>
                     <select class="form-select" id="statut" name="statut">
@@ -45,7 +45,7 @@
                         <option value="terminee" {% if statutFilter == 'terminee' %}selected{% endif %}>Terminée</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2">
                     <label for="sort" class="form-label">Trier par</label>
                     <select class="form-select" id="sort" name="sort">
@@ -55,7 +55,7 @@
                         <option value="titre_desc" {% if sortBy == 'titre_desc' %}selected{% endif %}>Titre (Z-A)</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-search"></i> Filtrer
@@ -83,7 +83,7 @@
         </div>
         <div class="list-group">
             {% for discussion in discussions %}
-                <a href="{{ path('app_discussion_show', {id: discussion.id}) }}" 
+                <a href="{{ path('app_discussion_show', {id: discussion.id}) }}"
                    class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">
@@ -116,11 +116,11 @@
                         {% else %}
                             <span class="badge bg-secondary">Terminée</span>
                         {% endif %}
-                        
+
                         {% if discussion.contrat %}
                             <span class="badge bg-info">Contrat lié</span>
                         {% endif %}
-                        
+
                         <span class="badge bg-light text-dark">
                             {{ discussion.messages|length }} message{{ discussion.messages|length > 1 ? 's' : '' }}
                         </span>

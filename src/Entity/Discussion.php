@@ -14,13 +14,13 @@ class Discussion
     const TYPE_PUBLICATION_RIGHTS_SINGLE = 'publication_rights_single';  // Droits sur un seul produit
     const TYPE_PUBLICATION_RIGHTS_CATALOG = 'publication_rights_catalog'; // Droits sur tous les produits de l'artiste
     const TYPE_CUSTOM_ORDER = 'custom_order';
-    
+
     // Ancien type pour rétrocompatibilité (sera traité comme single)
     const TYPE_PUBLICATION_RIGHTS = 'publication_rights';
-    
+
     const STATUT_EN_COURS = 'en_cours';
     const STATUT_TERMINEE = 'terminee';
-    
+
     // Anciens statuts pour rétrocompatibilité
     const STATUT_OUVERTE = 'OUVERTE';
     const STATUT_FERMEE = 'FERMEE';
@@ -264,7 +264,7 @@ class Discussion
 
     public function isTypePublicationRightsSingle(): bool
     {
-        return $this->type === self::TYPE_PUBLICATION_RIGHTS_SINGLE || 
+        return $this->type === self::TYPE_PUBLICATION_RIGHTS_SINGLE ||
                $this->type === self::TYPE_PUBLICATION_RIGHTS; // Rétrocompatibilité
     }
 

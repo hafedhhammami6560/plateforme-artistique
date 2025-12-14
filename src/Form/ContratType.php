@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Contrat;
-use App\Entity\project;
+use App\Entity\Project;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -13,7 +13,6 @@ use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-
 class ContratType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -89,8 +88,8 @@ class ContratType extends AbstractType
         // Ajouter le champ project uniquement pour Type Publication Rights
         if ($options['show_project']) {
             $projectOptions = [
-                'class' => project::class,
-                'choice_label' => function(project $project) {
+                'class' => Project::class, // Assurez-vous que le 'use' en haut est correct
+                'choice_label' => function(Project $project) {
                     return $project->getNom() . ' - ' . $project->getPrix() . '€';
                 },
                 'label' => 'project concerné',
@@ -100,7 +99,7 @@ class ContratType extends AbstractType
                 'disabled' => $options['is_edit'],
                 'help' => 'Obligatoire pour les contrats de type Publication Rights'
             ];
-            
+
             // Filtrer les projects par artiste si current_user est fourni
             if ($options['current_user']) {
                 $projectOptions['query_builder'] = function($repository) use ($options) {
@@ -110,7 +109,7 @@ class ContratType extends AbstractType
                         ->orderBy('p.nom', 'ASC');
                 };
             }
-            
+
             $builder->add('project', EntityType::class, $projectOptions);
         }
     }
@@ -126,4 +125,3 @@ class ContratType extends AbstractType
         ]);
     }
 }
-

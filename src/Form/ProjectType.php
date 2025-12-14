@@ -7,11 +7,11 @@ use App\Entity\Project;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\File;
 
 class ProjectType extends AbstractType
@@ -20,18 +20,27 @@ class ProjectType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom du Projet',
-                'attr' => ['class' => 'form-control']
+                'label' => 'Titre du projet',
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Le titre du projet est obligatoire'),
+                    new Assert\Length(
+                        min: 2,
+                        max: 255,
+                        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères',
+                        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères'
+                    ),
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
-                'required' => false,
-                'attr' => ['class' => 'form-control', 'rows' => 6]
-            ])
-            ->add('prix', MoneyType::class, [
-                'label' => 'Prix',
-                'currency' => 'EUR',
-                'attr' => ['class' => 'form-control']
+                'attr' => [
+                    'class' => 'form-control',
+                    'rows' => 6,
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(message: 'La description du projet est obligatoire'),
+                ],
             ])
             ->add('category', EntityType::class, [
                 'class' => Category::class,
@@ -39,20 +48,28 @@ class ProjectType extends AbstractType
                 'required' => false,
                 'placeholder' => 'Aucune',
                 'label' => 'Catégorie',
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control'],
+                'placeholder' => 'Choisir une catégorie',
+                'constraints' => [
+                    new Assert\NotNull(message: 'La catégorie est obligatoire'),
+                ],
             ])
-            ->add('imageFile', FileType::class, [
-                'label' => 'Image',
+            ->add('image', FileType::class, [
+                'label' => 'Image du projet',
                 'mapped' => false,
                 'required' => false,
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
                     new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg','image/png','image/gif'],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG, GIF)'
+                        'maxSize' => '2M',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/jpg',
+                        ],
+                        'mimeTypesMessage' => 'Veuillez uploader une image valide (JPG, JPEG ou PNG)',
                     ])
-                ]
+                ],
             ])
         ;
     }
@@ -64,4 +81,3 @@ class ProjectType extends AbstractType
         ]);
     }
 }
-

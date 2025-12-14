@@ -24,10 +24,10 @@
             <form method="get" action="{{ path('app_contrat_index') }}" class="row g-3">
                 <div class="col-md-3">
                     <label for="search" class="form-label">Rechercher</label>
-                    <input type="text" class="form-control" id="search" name="search" 
+                    <input type="text" class="form-control" id="search" name="search"
                            value="{{ search }}" placeholder="Numéro, utilisateur, project...">
                 </div>
-                
+
                 <div class="col-md-2">
                     <label for="type" class="form-label">Type</label>
                     <select class="form-select" id="type" name="type">
@@ -36,7 +36,7 @@
                         <option value="custom_order" {% if typeFilter == 'custom_order' %}selected{% endif %}>Custom Order</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2">
                     <label for="statut" class="form-label">Statut</label>
                     <select class="form-select" id="statut" name="statut">
@@ -46,7 +46,7 @@
                         <option value="signe" {% if statutFilter == 'signe' %}selected{% endif %}>Signé</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-3">
                     <label for="sort" class="form-label">Trier par</label>
                     <select class="form-select" id="sort" name="sort">
@@ -58,7 +58,7 @@
                         <option value="numero_desc" {% if sortBy == 'numero_desc' %}selected{% endif %}>Numéro (Z-A)</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-search"></i> Filtrer
@@ -106,7 +106,7 @@
                                     <span class="badge bg-success">Custom Order</span>
                                 {% endif %}
                             </h5>
-                            
+
                             <p class="card-text">
                                 <strong>Montant:</strong> {{ contrat.prix }}€<br>
                                 <strong>Période:</strong> {{ contrat.dateDebut|date('d/m/Y') }} - {{ contrat.dateFin|date('d/m/Y') }}
@@ -130,7 +130,7 @@
                                         {% else %}
                                             {% if contrat.artiste.id|number_format(0, '', '') == currentUserId and contrat.statut in ['en_attente_signature', 'final'] %}
                                                 {% if contrat.artiste.hasSignature() %}
-                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;" 
+                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;"
                                                           onsubmit="return confirm('Signer ce contrat ?');">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
                                                         <button type="submit" class="btn btn-sm btn-success">
@@ -160,7 +160,7 @@
                                         {% else %}
                                             {% if contrat.producteur.id|number_format(0, '', '') == currentUserId and contrat.statut in ['en_attente_signature', 'final'] %}
                                                 {% if contrat.producteur.hasSignature() %}
-                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;" 
+                                                    <form method="post" action="{{ path('app_signature_sign', {id: contrat.id}) }}" style="display:inline;"
                                                           onsubmit="return confirm('Signer ce contrat ?');">
                                                         <input type="hidden" name="_token" value="{{ csrf_token('sign_contract_' ~ contrat.id) }}">
                                                         <button type="submit" class="btn btn-sm btn-success">

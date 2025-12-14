@@ -1,44 +1,66 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ project.nom }}{% endblock %}
+{% block title %}{{ project.title }} - ArtConnect{% endblock %}
 
 {% block body %}
-<div class="container">
-        <h1>{{ project.nom }}</h1>
-        {% if project.image %}
-            <div class="mb-3"><img src="{{ asset('uploads/projects/' ~ project.image) }}" alt="{{ project.nom }}" class="img-fluid" style="max-height: 360px; object-fit: cover"></div>
-        {% endif %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-project-diagram"></i> {{ project.title }}</h1>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if app.request.cookies.get('user_id') %}
+                <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Éditer
+                </a>
+            {% endif %}
+            <a href="{{ path('app_project_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ app.request.uri|url_encode }}" target="_blank" class="btn btn-primary" title="Partager sur Facebook">
+                <i class="fab fa-facebook"></i> Facebook
+            </a>
+            <a href="https://pinterest.com/pin/create/button/?url={{ app.request.uri|url_encode }}&description={{ project.title|url_encode }}" target="_blank" class="btn btn-danger" title="Partager sur Pinterest">
+                <i class="fab fa-pinterest"></i> Pinterest
+            </a>
+        </div>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>ID</th>
-                <td>{{ project.id }}</td>
-            </tr>
-            <tr>
-                <th>Nom</th>
-                <td>{{ project.nom }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ project.description }}</td>
-            </tr>
-            <tr>
-                <th>Prix</th>
-                <td>{{ project.prix }} €</td>
-            </tr>
-            <tr>
-                <th>Catégorie</th>
-                <td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}</td>
-            </tr>
-            <tr>
-                <th>Date de création</th>
-                <td>{{ project.dateCreation ? project.dateCreation|date('Y-m-d') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="row">
+        <div class="col-md-8">
+            {% if project.image %}
+                <img src="{{ asset('uploads/projects/' ~ project.image) }}" class="img-fluid rounded mb-4" alt="{{ project.title }}">
+            {% else %}
+                <div class="bg-gradient rounded mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 400px; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fas fa-image fa-8x"></i>
+                </div>
+            {% endif %}
 
-    <a href="{{ path('project_index') }}" class="btn btn-secondary">Retour à la liste</a>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ project.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Détails</h5>
+                    <p class="mb-2">
+                        <strong><i class="fas fa-folder"></i> Catégorie :</strong>
+                        {% if project.category %}
+                            <a href="{{ path('app_category_show', {'id': project.category.id}) }}">{{ project.category.name }}</a>
+                        {% else %}
+                            <span class="text-muted">Sans catégorie</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-2">
+                        <strong><i class="fas fa-calendar"></i> Créé le :</strong> {{ project.createdAt|date('d/m/Y H:i') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

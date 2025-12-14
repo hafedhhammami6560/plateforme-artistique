@@ -1,8 +1,84 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Projects{% endblock %}
+{% block title %}Projets - ArtConnect{% endblock %}
 
 {% block body %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-project-diagram"></i> Projets</h1>
+        <a href="{{ path('app_project_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau projet
+        </a>
+    </div>
+
+    <!-- Filtre par catégorie -->
+    {% if categories %}
+        <div class="mb-4">
+            <label for="categoryFilter" class="form-label"><i class="fas fa-filter"></i> Filtrer par catégorie :</label>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ path('app_project_index') }}" class="btn btn-outline-secondary {% if not selectedCategory %}active{% endif %}">
+                    Toutes les catégories
+                </a>
+                {% for category in categories %}
+                    <a href="{{ path('app_project_index', {'category': category.id}) }}" class="btn btn-outline-info {% if selectedCategory == category.id %}active{% endif %}">
+                        <i class="fas fa-folder"></i> {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if projects %}
+        <div class="row g-4">
+            {% for project in projects %}
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        {% if project.image %}
+                            <img src="{{ asset('uploads/projects/' ~ project.image) }}" class="card-img-top" alt="{{ project.title }}">
+                        {% else %}
+                            <div class="card-img-top bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center; color: white;">
+                                <i class="fas fa-image fa-4x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ project.title }}</h5>
+                            <p class="card-text">{{ project.description|slice(0, 100) }}{{ project.description|length > 100 ? '...' : '' }}</p>
+                            <p class="text-muted small">
+                                <i class="fas fa-folder"></i>
+                                {% if project.category %}
+                                    {{ project.category.name }}
+                                {% else %}
+                                    Sans catégorie
+                                {% endif %}
+                            </p>
+                            <p class="text-muted small">
+                                <i class="fas fa-calendar"></i> {{ project.createdAt|date('d/m/Y') }}
+                            </p>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                {% if app.request.cookies.get('user_id') %}
+                                    <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Éditer
+                                    </a>
+                                    <form method="post" action="{{ path('app_project_delete', {'id': project.id}) }}" style="display:inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ project.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?')">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Aucun projet trouvé.
+            <a href="{{ path('app_project_new') }}" class="alert-link">Créer le premier</a>
 <div class="container mt-4">
     <h1><i class="fas fa-cube"></i> Projects</h1>
 
@@ -12,11 +88,11 @@
             <form method="get" action="{{ path('project_index') }}" class="row g-3">
                 <div class="col-md-4">
                     <label for="search" class="form-label"><i class="fas fa-search"></i> Rechercher</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           value="{{ app.request.query.get('search', '') }}" 
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="{{ app.request.query.get('search', '') }}"
                            placeholder="Nom du project, artiste...">
                 </div>
-                
+
                 {% if categories is defined and categories %}
                 <div class="col-md-3">
                     <label for="categorie" class="form-label"><i class="fas fa-filter"></i> Catégorie</label>
@@ -28,7 +104,7 @@
                     </select>
                 </div>
                 {% endif %}
-                
+
                 <div class="col-md-3">
                     <label for="sort" class="form-label"><i class="fas fa-sort"></i> Trier par</label>
                     <select class="form-select" id="sort" name="sort">
@@ -40,7 +116,7 @@
                         <option value="prix_desc" {% if app.request.query.get('sort') == 'prix_desc' %}selected{% endif %}>Prix (décroissant)</option>
                     </select>
                 </div>
-                
+
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-check"></i> Appliquer
@@ -52,7 +128,7 @@
 
     {% if isCreator %}
         {# Section pour les créateurs (Artiste, Musicien, Scénariste) #}
-        
+
         {# Mes projects #}
         <div class="card mb-4">
             <div class="card-header bg-success text-white">

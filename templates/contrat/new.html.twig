@@ -14,7 +14,7 @@
     <div class="card">
         <div class="card-header {% if from_discussion %}bg-secondary{% else %}bg-success{% endif %} text-white">
             <h2 class="mb-0">
-                <i class="bi bi-file-earmark-text"></i> 
+                <i class="bi bi-file-earmark-text"></i>
                 {% if from_discussion %}
                     Créer un Brouillon de Contrat
                     <span class="badge bg-warning text-dark">BROUILLON</span>
@@ -27,11 +27,11 @@
             {% if from_discussion %}
                 <div class="alert alert-info mb-4">
                     <i class="bi bi-lightbulb"></i> <strong>Conseil :</strong>
-                    Vous créez un brouillon de contrat depuis une discussion. 
+                    Vous créez un brouillon de contrat depuis une discussion.
                     Ce brouillon peut être modifié jusqu'à ce qu'il soit marqué comme "contrat final" et signé.
                 </div>
             {% endif %}
-            
+
             {% for message in app.flashes('error') %}
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="bi bi-exclamation-circle"></i> {{ message }}
@@ -40,8 +40,8 @@
             {% endfor %}
 
             <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle"></i> 
-                <strong>Important:</strong> Les contrats doivent toujours être créés à partir d'une discussion existante. 
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Important:</strong> Les contrats doivent toujours être créés à partir d'une discussion existante.
                 Le type de contrat est automatiquement défini par le type de la discussion.
             </div>
 
@@ -58,14 +58,14 @@
                     <div class="alert alert-secondary small mb-3">
                         <i class="bi bi-lock"></i> Le type de contrat est en lecture seule car il est automatiquement défini par la discussion associée.
                     </div>
-                    
+
                     {% for child in form.type %}
                         <div class="form-check mb-2">
                             {{ form_widget(child, {'attr': {'class': 'form-check-input'}}) }}
                             {{ form_label(child, null, {'label_attr': {'class': 'form-check-label'}}) }}
                         </div>
                     {% endfor %}
-                    
+
                     {{ form_errors(form.type) }}
                     <div class="form-text">{{ form.type.vars.help }}</div>
                 </div>
@@ -127,8 +127,8 @@
                 </div>
 
                 <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> 
-                    <strong>Important:</strong> Une fois créé, le contrat devra être signé par les deux parties. 
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Important:</strong> Une fois créé, le contrat devra être signé par les deux parties.
                     Après la première signature, le contrat ne pourra plus être modifié.
                 </div>
 

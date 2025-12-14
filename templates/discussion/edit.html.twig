@@ -21,9 +21,9 @@
     <div class="card mt-4">
         <div class="card-body">
             {{ form_start(form) }}
-                
+
                 {{ form_row(form.type) }}
-                
+
                 {% if form.project is defined %}
                     <div id="project-field">
                         {{ form_row(form.project) }}
@@ -56,7 +56,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const typeRadios = document.querySelectorAll('input[name="discussion[type]"]');
         const projectField = document.getElementById('project-field');
-        
+
         if (typeRadios.length && projectField) {
             function toggleprojectField() {
                 const selectedType = document.querySelector('input[name="discussion[type]"]:checked');
@@ -64,11 +64,11 @@
                     projectField.style.display = selectedType.value === 'publication_rights' ? 'block' : 'none';
                 }
             }
-            
+
             typeRadios.forEach(radio => {
                 radio.addEventListener('change', toggleprojectField);
             });
-            
+
             toggleprojectField();
         }
     });

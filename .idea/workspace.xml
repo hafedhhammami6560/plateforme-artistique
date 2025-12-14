@@ -5,32 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ae113ef-14f2-4d8b-b022-f297f0354ff1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/vendor/@hotwired/stimulus/stimulus.index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/vendor/@hotwired/turbo/turbo.index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assets/vendor/installed.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/migrations/Version20251209094154.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/uploads/projects/Sans-titre-693779178b98f.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/uploads/projects/images-6937ebcdc0706.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/uploads/projects/imgA-69376fe694ded.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/uploads/projects/imgB-69376fade89bd.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/uploads/projects/imgC-69376fbd3e6c5.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Command/SendMailCommand.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Controller/CategoryController.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Form/CategoryType.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/category/edit.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/category/form.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/category/index.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/category/new.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/category/show.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/project/edit.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/project/form.html.twig" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/project/new.html.twig" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/migrations/Version20251213202455.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/migrations/Version20251213205536.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/bundles.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/bundles.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/packages/knpu_oauth2_client.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/packages/knpu_oauth2_client.yaml.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/packages/knpu_oauth2_client.yaml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controller/AuthController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/AuthController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controller/ContratController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/ContratController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Controller/DiscussionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/DiscussionController.php" afterDir="false" />
@@ -242,7 +226,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Merging merge-plan/b8e669b-into-feature",
+    "git-widget-placeholder": "merge-plan/b8e669b-into-feature",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/symfony git/Art_GestioonsPC-main",
     "node.js.detected.package.eslint": "true",

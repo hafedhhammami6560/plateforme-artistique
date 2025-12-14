@@ -3,135 +3,91 @@
 namespace App\Controller;
 
 use App\Entity\Project;
+use App\Form\ProjectType;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
-use Symfony\Component\HttpFoundation\Request;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/project')]
 class ProjectController extends AbstractController
 {
-    #[Route('/', name: 'project_index', methods: ['GET'])]
-    public function index(ProjectRepository $projectRepository, UserRepository $userRepo, Request $request): Response
+    #[Route('/', name: 'app_project_index', methods: ['GET'])]
+    public function index(Request $request, ProjectRepository $projectRepository, \App\Repository\CategoryRepository $categoryRepository): Response
     {
-        // Récupérer les paramètres de recherche et tri
-        $search = $request->query->get('search', '');
-            $category = $request->query->get('category', '');
-        $sort = $request->query->get('sort', 'date_desc');
-        
-        // Check if user is connected
-        $userId = $request->cookies->get('user_id');
-        $user = null;
-        $mesProjects = [];
-        $autresProjects = [];
-        $isCreator = false;
-        
-        // Construire la requête avec filtres
-        $qb = $projectRepository->createQueryBuilder('p');
-        
-        // Filtre de recherche
-        if ($search) {
-            $qb->leftJoin('p.artist', 'a')
-               ->andWhere('p.nom LIKE :search OR p.description LIKE :search OR a.name LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
-        }
-        
-        // Filtre de catégorie
-            if ($category) {
-                $qb->andWhere('p.categoryLabel = :category')
-                   ->setParameter('category', $category);
-        }
-        
-        // Tri
-        switch ($sort) {
-            case 'date_asc':
-                $qb->orderBy('p.dateCreation', 'ASC');
-                break;
-            case 'nom_asc':
-                $qb->orderBy('p.nom', 'ASC');
-                break;
-            case 'nom_desc':
-                $qb->orderBy('p.nom', 'DESC');
-                break;
-            case 'prix_asc':
-                $qb->orderBy('p.prix', 'ASC');
-                break;
-            case 'prix_desc':
-                $qb->orderBy('p.prix', 'DESC');
-                break;
-            default: // date_desc
-                $qb->orderBy('p.dateCreation', 'DESC');
-        }
-        
-        $allProjects = $qb->getQuery()->getResult();
-        
-        if ($userId) {
-            $user = $userRepo->find($userId);
-            if ($user) {
-                $userType = strtolower($user->getUserType() ?? '');
-                $isCreator = in_array($userType, ['artiste', 'musicien', 'scénariste']);
-                
-                // Si c'est un créateur, séparer ses Projects des autres
-                if ($isCreator) {
-                    foreach ($allProjects as $project) {
-                        if ($project->getArtist() && $project->getArtist()->getId() === $user->getId()) {
-                            $mesProjects[] = $project;
-                        } else {
-                            $autresProjects[] = $project;
-                        }
-                    }
-                } else {
-                    // Pour les non-créateurs, tous les Projects dans "autres"
-                    $autresProjects = $allProjects;
-                }
-            }
+        $categoryId = $request->query->get('category', null);
+
+        if ($categoryId) {
+            $projects = $projectRepository->findBy(['category' => $categoryId]);
         } else {
-            // Utilisateur non connecté - tous les Projects
-            $autresProjects = $allProjects;
+            $projects = $projectRepository->findAllOrderedByName();
         }
-        
-        $categorys = $projectRepository->findAllcategorys();
+
+        $categories = $categoryRepository->findAllOrdered();
 
         return $this->render('project/index.html.twig', [
-            'mesProjects' => $mesProjects,
-            'autresProjects' => $autresProjects,
-            'categorys' => $categorys,
-                'selected_category' => $category,
-            'isCreator' => $isCreator,
-            'user' => $user,
+            'projects' => $projects,
+            'categories' => $categories,
+            'selectedCategory' => $categoryId ? (int)$categoryId : null,
         ]);
     }
 
-    #[Route('/new', name: 'project_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, UserRepository $userRepo): Response
+    #[Route('/new', name: 'app_project_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, UserRepository $userRepository): Response
     {
-        // Check if user is connected
+        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
         $userId = $request->cookies->get('user_id');
-        
-        if (!$userId) {
-            return $this->redirectToRoute('auth_login');
-        }
-
-        $user = $userRepo->find($userId);
+        $user = $userId ? $userRepository->find($userId) : null;
         if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour créer un projet.');
             return $this->redirectToRoute('auth_login');
         }
 
-        // Check if user is a creator
-        $userType = strtolower($user->getUserType() ?? '');
-        if (!in_array($userType, ['artiste', 'musicien', 'scénariste'])) {
-            $this->addFlash('error', 'Seuls les créateurs (Artiste, Musicien, Scénariste) peuvent créer des projects.');
-            return $this->redirectToRoute('project_index');
+        $project = new Project();
+        $form = $this->createForm(ProjectType::class, $project);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $project->setArtist($user); // Associer automatiquement le projet à l'utilisateur connecté
+
+            // Handle file upload
+            $imageFile = $form->get('image')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('kernel.project_dir').'/public/uploads/projects',
+                        $newFilename
+                    );
+                    $project->setImage($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                }
+            }
+
+            $entityManager->persist($project);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Projet créé avec succès !');
+
+            return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        // TODO: Implémenter le formulaire de création de project
-        $this->addFlash('info', 'La création de projects sera bientôt disponible.');
-        return $this->redirectToRoute('project_index');
+        return $this->render('project/new.html.twig', [
+            'project' => $project,
+            'form' => $form,
+        ]);
     }
 
-    #[Route('/{id}', name: 'project_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_project_show', methods: ['GET'])]
     public function show(Project $project): Response
     {
         return $this->render('project/show.html.twig', [
@@ -139,66 +95,70 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'project_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Project $project, UserRepository $userRepo): Response
+    #[Route('/{id}/edit', name: 'app_project_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Project $project, EntityManagerInterface $entityManager, SluggerInterface $slugger, UserRepository $userRepository): Response
     {
-        // Check if user is connected
+        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
         $userId = $request->cookies->get('user_id');
-        
-        if (!$userId) {
+        $user = $userId ? $userRepository->find($userId) : null;
+        if (!$user || $project->getArtist() !== $user) { // Vérifier aussi que l'utilisateur est bien le propriétaire
+            $this->addFlash('error', 'Vous devez être connecté pour éditer un projet.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $user = $userRepo->find($userId);
-        if (!$user) {
-            return $this->redirectToRoute('auth_login');
+        $form = $this->createForm(ProjectType::class, $project);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Handle file upload
+            $imageFile = $form->get('image')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('kernel.project_dir').'/public/uploads/projects',
+                        $newFilename
+                    );
+                    $project->setImage($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                }
+            }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Projet modifié avec succès !');
+
+            return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        // Check if user owns this project
-        if (!$project->getArtist() || $project->getArtist()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Vous ne pouvez modifier que vos propres projects.');
-            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
-        }
-
-        // Check if project is under contract
-        if ($project->isSousContrat()) {
-            $this->addFlash('error', 'Ce project est sous contrat et ne peut pas être modifié.');
-            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
-        }
-
-        $this->addFlash('info', 'La modification de projects sera bientôt disponible.');
-        return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
+        return $this->render('project/edit.html.twig', [
+            'project' => $project,
+            'form' => $form,
+        ]);
     }
 
-    #[Route('/{id}', name: 'project_delete', methods: ['POST'])]
-    public function delete(Request $request, Project $project, UserRepository $userRepo): Response
+    #[Route('/{id}', name: 'app_project_delete', methods: ['POST'])]
+    public function delete(Request $request, Project $project, EntityManagerInterface $entityManager, UserRepository $userRepository): Response
     {
-        // Check if user is connected
+        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
         $userId = $request->cookies->get('user_id');
-        
-        if (!$userId) {
+        $user = $userId ? $userRepository->find($userId) : null;
+        if (!$user || $project->getArtist() !== $user) { // Vérifier aussi que l'utilisateur est bien le propriétaire
+            $this->addFlash('error', 'Vous devez être connecté pour supprimer un projet.');
             return $this->redirectToRoute('auth_login');
         }
 
-        $user = $userRepo->find($userId);
-        if (!$user) {
-            return $this->redirectToRoute('auth_login');
+        if ($this->isCsrfTokenValid('delete'.$project->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($project);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Projet supprimé avec succès !');
         }
 
-        // Check if user owns this project
-        if (!$project->getArtist() || $project->getArtist()->getId() !== $user->getId()) {
-            $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres projects.');
-            return $this->redirectToRoute('project_index');
-        }
-
-        // Check if project is under contract
-        if ($project->isSousContrat()) {
-            $this->addFlash('error', 'Ce project est sous contrat et ne peut pas être supprimé.');
-            return $this->redirectToRoute('project_show', ['id' => $project->getId()]);
-        }
-
-        $this->addFlash('info', 'La suppression de projects sera bientôt disponible.');
-        return $this->redirectToRoute('project_index');
+        return $this->redirectToRoute('app_project_index', [], Response::HTTP_SEE_OTHER);
     }
 }
-

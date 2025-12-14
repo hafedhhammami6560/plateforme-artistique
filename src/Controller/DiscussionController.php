@@ -30,7 +30,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -66,7 +66,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -83,19 +83,19 @@ class DiscussionController extends AbstractController
         }
 
         $discussion = new Discussion();
-        
+
         $form = $this->createForm(DiscussionType::class, $discussion, [
             'user' => $user,
             'permission_service' => $this->permissionService
         ]);
-        
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $messageInitial = $form->get('messageInitial')->getData();
                 $destinataire = $discussion->getDestinataire();
-                
+
                 // Déterminer automatiquement le type selon l'initiateur et le destinataire
                 $type = $this->permissionService->determineDiscussionType($user, $destinataire);
                 $discussion->setType($type);
@@ -156,7 +156,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -176,7 +176,7 @@ class DiscussionController extends AbstractController
         // Handle message submission
         if ($request->isMethod('POST')) {
             $messageContent = $request->request->get('message');
-            
+
             if ($messageContent) {
                 try {
                     if (!$this->permissionService->canSendMessage($user, $discussion)) {
@@ -218,7 +218,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -239,7 +239,7 @@ class DiscussionController extends AbstractController
             'user' => $user,
             'permission_service' => $this->permissionService
         ]);
-        
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -266,7 +266,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -277,7 +277,7 @@ class DiscussionController extends AbstractController
         }
 
         // Check if user can terminate this discussion (must be participant)
-        if ($discussion->getInitiateur()->getId() !== $user->getId() && 
+        if ($discussion->getInitiateur()->getId() !== $user->getId() &&
             $discussion->getDestinataire()->getId() !== $user->getId()) {
             $this->addFlash('error', 'Vous n\'avez pas la permission de terminer cette discussion.');
             return $this->redirectToRoute('app_discussion_show', ['id' => $discussion->getId()]);
@@ -307,7 +307,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }
@@ -347,7 +347,7 @@ class DiscussionController extends AbstractController
     {
         // Check if user is connected via cookie
         $userId = $request->cookies->get('user_id');
-        
+
         if (!$userId) {
             return $this->redirectToRoute('auth_login');
         }

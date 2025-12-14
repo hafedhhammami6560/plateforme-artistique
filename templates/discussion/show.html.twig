@@ -55,22 +55,22 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             {# Section Contrats/Brouillons #}
             <div class="mt-4">
                 <h5><i class="bi bi-file-earmark-text"></i> Contrats et Brouillons</h5>
                 <div class="alert alert-secondary small">
                     <i class="bi bi-info-circle"></i>
-                    <strong>Workflow :</strong> Échangez des messages pour vous mettre d'accord sur les détails. 
-                    Créez des brouillons de contrat à chaque étape d'accord. Une fois tous les détails convenus, 
+                    <strong>Workflow :</strong> Échangez des messages pour vous mettre d'accord sur les détails.
+                    Créez des brouillons de contrat à chaque étape d'accord. Une fois tous les détails convenus,
                     marquez un brouillon comme "contrat final" et signez-le.
                 </div>
-                
+
                 {# Contrat final lié #}
                 {% if discussion.contrat %}
                     <div class="alert alert-success">
-                        <i class="bi bi-file-earmark-check"></i> 
-                        <strong>Contrat final lié :</strong> 
+                        <i class="bi bi-file-earmark-check"></i>
+                        <strong>Contrat final lié :</strong>
                         <a href="{{ path('app_contrat_show', {id: discussion.contrat.id}) }}" class="alert-link">
                             {{ discussion.contrat.numeroContrat }}
                         </a>
@@ -79,13 +79,13 @@
                         </span>
                     </div>
                 {% endif %}
-                
+
                 {# Liste des brouillons #}
                 {% if brouillons is defined and brouillons|length > 0 %}
                     <h6 class="mt-3">Brouillons créés ({{ brouillons|length }})</h6>
                     <div class="list-group mb-3">
                         {% for brouillon in brouillons %}
-                            <a href="{{ path('app_contrat_show', {id: brouillon.id}) }}" 
+                            <a href="{{ path('app_contrat_show', {id: brouillon.id}) }}"
                                class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                     <div>
@@ -96,7 +96,7 @@
                                             </span>
                                         </h6>
                                         <small class="text-muted">
-                                            Prix: {{ brouillon.prix }}€ | 
+                                            Prix: {{ brouillon.prix }}€ |
                                             Créé le {{ brouillon.createdAt|date('d/m/Y à H:i') }}
                                         </small>
                                     </div>
@@ -110,12 +110,12 @@
                         <i class="bi bi-inbox"></i> Aucun brouillon de contrat créé pour le moment.
                     </p>
                 {% endif %}
-                
+
                 {# Bouton pour créer un brouillon #}
                 {% set currentUserId = app.request.cookies.get('user_id')|number_format(0, '', '') %}
                 {% set isInitiateur = discussion.initiateur.id|number_format(0, '', '') == currentUserId %}
                 {% set isDestinataire = discussion.destinataire.id|number_format(0, '', '') == currentUserId %}
-                
+
                 {% if discussion.statut == 'en_cours' and (isInitiateur or isDestinataire) %}
                     <div class="d-grid gap-2 mt-3">
                         <a href="{{ path('app_contrat_new', {discussion: discussion.id}) }}" class="btn btn-outline-primary">
@@ -179,10 +179,10 @@
         <a href="{{ path('app_discussion_index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Retour
         </a>
-        
+
         <div>
             {% if discussion.statut == 'en_cours' %}
-                <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}" 
+                <form method="post" action="{{ path('app_discussion_terminer', {id: discussion.id}) }}"
                       onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette discussion ?');" style="display: inline;">
                     <input type="hidden" name="_token" value="{{ csrf_token('terminer' ~ discussion.id) }}">
                     <button type="submit" class="btn btn-warning">
@@ -190,22 +190,22 @@
                     </button>
                 </form>
             {% endif %}
-            
+
             {# Masquer la discussion (soft delete) #}
-            <form method="post" action="{{ path('app_discussion_hide', {id: discussion.id}) }}" 
+            <form method="post" action="{{ path('app_discussion_hide', {id: discussion.id}) }}"
                   onsubmit="return confirm('Voulez-vous masquer cette discussion de votre liste ? Elle ne sera pas supprimée définitivement.');" style="display: inline;">
                 <input type="hidden" name="_token" value="{{ csrf_token('hide_discussion_' ~ discussion.id) }}">
                 <button type="submit" class="btn btn-outline-secondary">
                     <i class="bi bi-eye-slash"></i> Masquer
                 </button>
             </form>
-            
+
             {# Supprimer définitivement (Admin seulement) #}
             {% set currentUser = app.request.cookies.get('user_id') %}
             {% if currentUser %}
                 {% set userType = '' %}
                 {# On ne peut pas facilement récupérer userType ici, on affiche le bouton pour tous #}
-                <form method="post" action="{{ path('app_discussion_delete', {id: discussion.id}) }}" 
+                <form method="post" action="{{ path('app_discussion_delete', {id: discussion.id}) }}"
                       onsubmit="return confirm('⚠️ ADMIN UNIQUEMENT ⚠️\n\nSupprimer définitivement cette discussion de la base de données ?\n\nCette action est irréversible !');" style="display: inline;">
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_discussion_' ~ discussion.id) }}">
                     <button type="submit" class="btn btn-danger">

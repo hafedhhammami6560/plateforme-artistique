@@ -12,7 +12,7 @@
             nav a { margin-right:20px; text-decoration:none; color:#05468b; font-weight:500; transition: color 0.3s; }
             nav a:hover { color:#0260d3; }
             .container { max-width:1100px; margin:20px auto; }
-            
+
             /* Sidebar styles */
             .sidebar {
                 position: fixed;
@@ -25,6 +25,8 @@
                 box-shadow: 2px 0 10px rgba(0,0,0,0.1);
                 z-index: 1000;
                 overflow-y: auto;
+                display: flex;
+                flex-direction: column;
             }
             .sidebar-brand {
                 padding: 20px 25px;
@@ -40,6 +42,8 @@
                 list-style: none;
                 padding: 0;
                 margin: 0;
+                flex: 1;
+                padding-bottom: 100px;
             }
             .sidebar-menu li {
                 margin: 5px 0;
@@ -65,7 +69,7 @@
                 margin-right: 12px;
                 font-size: 18px;
             }
-            
+
             /* Submenu styles */
             .sidebar-menu .has-submenu > a {
                 cursor: pointer;
@@ -98,14 +102,13 @@
             .submenu li a.active {
                 padding-left: 56px;
             }
-            
+
             .sidebar-footer {
-                position: absolute;
-                bottom: 20px;
+                margin-top: auto;
                 width: 100%;
-                padding: 0 25px;
+                padding: 20px 25px;
                 border-top: 1px solid rgba(255,255,255,0.1);
-                padding-top: 20px;
+                background: rgba(0,0,0,0.1);
             }
             .sidebar-footer a {
                 color: rgba(255,255,255,0.8);
@@ -121,7 +124,7 @@
             .sidebar-footer a i {
                 margin-right: 10px;
             }
-            
+
             /* Adjust main content */
             body {
                 padding-left: 250px;
@@ -133,7 +136,7 @@
                 margin-left: 0;
                 padding: 20px 30px;
             }
-            
+
             /* Responsive */
             @media (max-width: 768px) {
                 .sidebar {
@@ -163,7 +166,7 @@
                 border-radius: 5px;
                 cursor: pointer;
             }
-            
+
             /* No sidebar styles */
             .no-sidebar body {
                 padding-left: 0;
@@ -182,18 +185,18 @@
             }
         </style>
     </head>
-    {% set is_client_page = app.request.cookies.get('user_role') != 'admin' %}
+    {% set is_client_page = app.user and not is_granted('ROLE_ADMIN') %}
     <body{% if is_client_page %} class="no-sidebar"{% endif %}>
         {% if is_client_page %}
         <!-- Client Header -->
         <header style="display:flex; align-items:center; justify-content:space-between; background:#05468b; padding:20px; color:white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width:100%;">
             <nav>
                 <ul style="display:flex; list-style:none; gap:30px; margin:0; padding:0;">
-                    {% if app.request.cookies.get('user_id') %}
-                        <li><a href="{{ path('app_home') }}" style="color:white; text-decoration:none;">Home</a></li>
-                        <li><a href="{{ path('communite_index') }}" style="color:white; text-decoration:none;">Community</a></li>
-                        <li><a href="{{ path('organisation_index') }}" style="color:white; text-decoration:none;">Organisation</a></li>
-                        <li><a href="{{ path('project_index') }}" style="color:white; text-decoration:none;">Projects</a></li>
+                    {% if app.user %}
+                        <li><a href="{{ path('app_home') }}" style="color:white; text-decoration:none;">Accueil</a></li>
+                        <li><a href="{{ path('communite_index') }}" style="color:white; text-decoration:none;">Communautés</a></li>
+                        <li><a href="{{ path('organisation_index') }}" style="color:white; text-decoration:none;">Organisations</a></li>
+                        <li><a href="{{ path('app_project_index') }}" style="color:white; text-decoration:none;">Projets</a></li>
                         <li><a href="{{ path('app_discussion_index') }}" style="color:white; text-decoration:none;">Discussions</a></li>
                         <li><a href="{{ path('app_contrat_index') }}" style="color:white; text-decoration:none;">Contrats</a></li>
                     {% endif %}
@@ -203,7 +206,7 @@
                 <i class="fas fa-palette"></i> ArtConnect Gallery
             </div>
             <div>
-                {% if app.request.cookies.get('user_id') %}
+                {% if app.user %}
                     <a href="{{ path('app_profile') }}" style="color:white; text-decoration:none; margin-right:20px;">Profile</a>
                     <a href="{{ path('auth_logout') }}" style="color:white; text-decoration:none;">Logout</a>
                 {% endif %}
@@ -237,24 +240,24 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('project_index') }}" class="{{ app.request.attributes.get('_route') starts with 'project_' ? 'active' : '' }}">
-                        <i class="fas fa-shopping-bag"></i>
-                        <span>projects</span>
+                    <a href="{{ path('app_project_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_project_' ? 'active' : '' }}">
+                        <i class="fas fa-paint-brush"></i>
+                        <span>Projets</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% if app.request.cookies.get('user_role') == 'admin' %}{{ path('admin_contrat_dashboard') }}{% else %}{{ path('app_contrat_index') }}{% endif %}" class="{% if app.request.cookies.get('user_role') == 'admin' and (app.request.attributes.get('_route') starts with 'admin_contrat_') or (app.request.cookies.get('user_role') != 'admin' and (app.request.attributes.get('_route') starts with 'app_contrat_')) %}active{% endif %}">
+                    <a href="{% if is_granted('ROLE_ADMIN') %}{{ path('admin_contrat_dashboard') }}{% else %}{{ path('app_contrat_index') }}{% endif %}" class="{% if is_granted('ROLE_ADMIN') and (app.request.attributes.get('_route') starts with 'admin_contrat_') or (not is_granted('ROLE_ADMIN') and (app.request.attributes.get('_route') starts with 'app_contrat_')) %}active{% endif %}">
                         <i class="fas fa-file-contract"></i>
                         <span>Contrats</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{% if app.request.cookies.get('user_role') == 'admin' %}{{ path('admin_discussion_dashboard') }}{% else %}{{ path('app_discussion_index') }}{% endif %}" class="{% if app.request.cookies.get('user_role') == 'admin' and (app.request.attributes.get('_route') starts with 'admin_discussion_') or (app.request.cookies.get('user_role') != 'admin' and (app.request.attributes.get('_route') starts with 'app_discussion_')) %}active{% endif %}">
+                    <a href="{% if is_granted('ROLE_ADMIN') %}{{ path('admin_discussion_dashboard') }}{% else %}{{ path('app_discussion_index') }}{% endif %}" class="{% if is_granted('ROLE_ADMIN') and (app.request.attributes.get('_route') starts with 'admin_discussion_') or (not is_granted('ROLE_ADMIN') and (app.request.attributes.get('_route') starts with 'app_discussion_')) %}active{% endif %}">
                         <i class="fas fa-comment-dots"></i>
                         <span>Discussions</span>
                     </a>
                 </li>
-                {% if app.request.cookies.get('user_role') == 'admin' %}
+                {% if is_granted('ROLE_ADMIN') %}
                 <li>
                     <a href="{{ path('app_admin_user_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'app_admin_user_' ? 'active' : '' }}">
                         <i class="fas fa-user-shield"></i>
@@ -270,17 +273,10 @@
                 </li>
             </ul>
             <div class="sidebar-footer">
-                {% if app.request.cookies.get('user_role') == 'admin' %}
-                    <a href="{{ path('auth_logout') }}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Déconnexion Admin</span>
-                    </a>
-                {% else %}
-                    <a href="{{ path('auth_logout') }}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Déconnexion</span>
-                    </a>
-                {% endif %}
+                <a href="{{ path('auth_logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </a>
             </div>
         </div>
         {% endif %}
@@ -296,9 +292,16 @@
         <div class="main-content">
             {% block body %}{% endblock %}
         </div>
-        
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Submenu toggle
+            document.querySelectorAll('.has-submenu > a').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.parentElement.classList.toggle('open');
+                });
+            });
+        </script>
     </body>
 </html>
-
-

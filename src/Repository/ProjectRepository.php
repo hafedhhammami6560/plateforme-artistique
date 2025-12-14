@@ -17,17 +17,18 @@ class ProjectRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find products by category
+     * Find all projects ordered by name
      */
-    public function findByCategorie(string $categorieLabel): array
+    public function findAllOrderedByName(): array
     {
         return $this->createQueryBuilder('p')
-              ->where('p.categoryLabel = :category')
-              ->setParameter('category', $categoryLabel)
             ->orderBy('p.nom', 'ASC')
             ->getQuery()
             ->getResult();
     }
+    /**
+     * Find products by category
+     */
 
     /**
      * Find products by price range
@@ -46,17 +47,6 @@ class ProjectRepository extends ServiceEntityRepository
     /**
      * Find all categories
      */
-    public function findAllCategories(): array
-    {
-        $result = $this->createQueryBuilder('p')
-              ->select('DISTINCT p.categoryLabel AS label')
-              ->where('p.categoryLabel IS NOT NULL')
-              ->orderBy('p.categoryLabel', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        return array_column($result, 'label');
-    }
 
     /**
      * Search products by name or description
@@ -67,6 +57,20 @@ class ProjectRepository extends ServiceEntityRepository
             ->where('p.nom LIKE :keyword OR p.description LIKE :keyword')
             ->setParameter('keyword', '%' . $keyword . '%')
             ->orderBy('p.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve les projets récents, triés par date de création.
+     * @param int $limit Le nombre maximum de projets à retourner.
+     * @return Project[]
+     */
+    public function findRecent(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.dateCreation', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

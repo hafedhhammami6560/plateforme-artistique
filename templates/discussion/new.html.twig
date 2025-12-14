@@ -81,7 +81,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const typeInputs = document.querySelectorAll('input[name="discussion_type[type]"]');
         const projectField = document.getElementById('project-field');
-        
+
         if (typeInputs.length > 0 && projectField) {
             typeInputs.forEach(input => {
                 input.addEventListener('change', function() {
@@ -92,7 +92,7 @@
                     }
                 });
             });
-            
+
             // Initial state
             const checkedType = document.querySelector('input[name="discussion_type[type]"]:checked');
             if (checkedType && checkedType.value === 'custom_order') {

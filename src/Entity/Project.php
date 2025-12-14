@@ -36,10 +36,6 @@ class Project
     #[ORM\JoinColumn(nullable: true)]
     private ?Category $category = null;
 
-    // Libellé de catégorie (compatibilité scripts de seed)
-    #[ORM\Column(name: 'category', length: 255, nullable: true)]
-    private ?string $categoryLabel = null;
-
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $artist = null;
@@ -138,17 +134,6 @@ class Project
         return $this;
     }
 
-    public function getCategoryLabel(): ?string
-    {
-        return $this->categoryLabel;
-    }
-
-    public function setCategoryLabel(?string $categoryLabel): static
-    {
-        $this->categoryLabel = $categoryLabel;
-        return $this;
-    }
-
     public function getArtist(): ?User
     {
         return $this->artist;
@@ -221,8 +206,42 @@ class Project
         return $this;
     }
 
+    /**
+     * Compatibility aliases for templates built for a different Project model.
+     * Some templates expect `project.title` and `project.createdAt` while this
+     * entity uses `nom` and `dateCreation`. Provide aliases to avoid template changes.
+     */
+    public function getTitle(): ?string
+    {
+        return $this->getNom();
+    }
+
+    public function setTitle(string $title): static
+    {
+        return $this->setNom($title);
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->getDateCreation();
+    }
+
+    public function setCreatedAt(\DateTimeInterface $dt): static
+    {
+        // Ensure we store an immutable instance as expected by this entity.
+        // If $dt is not immutable, create a DateTimeImmutable from its formatted value.
+        if (!($dt instanceof \DateTimeImmutable)) {
+            // DateTimeInterface guarantees format(), so use a precise format to keep time.
+            $dt = new \DateTimeImmutable($dt->format('Y-m-d H:i:s'));
+        }
+
+        $this->setDateCreation($dt);
+
+        return $this;
+    }
+
     public function __toString(): string
     {
-        return $this->nom ?? 'Project';
+        return $this->nom ?? 'Projet sans nom';
     }
 }

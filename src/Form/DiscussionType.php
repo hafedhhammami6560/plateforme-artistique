@@ -22,23 +22,23 @@ class DiscussionType extends AbstractType
     {
         $user = $options['user'] ?? null;
         $permissionService = $options['permission_service'] ?? null;
-        
+
         // Afficher tous les types mais déterminer lesquels sont disponibles
         $allTypes = [
             'publication_rights' => 'Type A: droits sur produit existant (Publisher/Sponsor)',
             'custom_order' => 'Type B: commande œuvre sur mesure (Artiste/Musicien/Scénariste)'
         ];
-        
+
         $availableTypes = [];
         if ($user && $permissionService) {
             $availableTypes = $permissionService->getAvailableDiscussionTypes($user);
         } else {
             $availableTypes = $allTypes;
         }
-        
+
         // Déterminer le type par défaut
         $defaultType = !empty($availableTypes) ? array_key_first($availableTypes) : null;
-        
+
         $builder
             ->add('titre', TextType::class, [
                 'label' => 'Titre de la discussion',

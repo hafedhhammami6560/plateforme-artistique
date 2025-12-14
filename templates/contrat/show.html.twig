@@ -380,9 +380,14 @@
                                 {% endif %}
                             </small>
                         </div>
-                        <a href="{{ path('app_signature_history', {id: contrat.id}) }}" class="btn btn-outline-success">
-                            <i class="bi bi-clock-history"></i> Voir l'historique
-                        </a>
+                        <div class="btn-group">
+                            <a href="{{ path('app_contrat_pdf', {id: contrat.id}) }}" class="btn btn-outline-danger" target="_blank">
+                                <i class="bi bi-file-earmark-pdf"></i> Télécharger PDF
+                            </a>
+                            <a href="{{ path('app_signature_history', {id: contrat.id}) }}" class="btn btn-outline-success">
+                                <i class="bi bi-clock-history"></i> Voir l'historique
+                            </a>
+                        </div>
                     </div>
                 </div>
             {% endif %}

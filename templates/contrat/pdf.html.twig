@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Contrat N° {{ contrat.numeroContrat }}</title>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; line-height: 1.5; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: #666; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .parties { margin-bottom: 30px; }
+        .party { width: 48%; display: inline-block; vertical-align: top; }
+        .content { background: #f9f9f9; padding: 15px; border: 1px solid #eee; margin-bottom: 30px; white-space: pre-wrap; }
+        .signatures { margin-top: 50px; page-break-inside: avoid; }
+        .signature-box { width: 45%; display: inline-block; vertical-align: top; border: 1px solid #ccc; padding: 10px; min-height: 150px; }
+        .signature-img { max-width: 150px; max-height: 80px; margin-top: 10px; }
+        .stamp { text-align: center; color: #888; font-size: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">CONTRAT DE PRESTATION ARTISTIQUE</div>
+        <div class="subtitle">Référence: {{ contrat.numeroContrat }}</div>
+        <div class="subtitle">Date: {{ contrat.createdAt|date('d/m/Y') }}</div>
+    </div>
+
+    <div class="section parties">
+        <div class="party">
+            <div class="section-title">ENTRE L'ARTISTE (Prestataire)</div>
+            <p>
+                <strong>Nom/Pseudo:</strong> {{ contrat.artiste.name }}<br>
+                <strong>Email:</strong> {{ contrat.artiste.email }}
+            </p>
+        </div>
+        <div class="party" style="margin-left: 4%;">
+            <div class="section-title">ET LE CLIENT (Commanditaire)</div>
+            <p>
+                <strong>Nom:</strong> {{ contrat.producteur.name }}<br>
+                <strong>Email:</strong> {{ contrat.producteur.email }}
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">OBJET DU CONTRAT</div>
+        <p>Le présent contrat a pour objet la réalisation de la prestation suivante :</p>
+        {% if contrat.project %}
+            <p><strong>Projet:</strong> {{ contrat.project.nom }}</p>
+            <p><strong>Description:</strong> {{ contrat.project.description }}</p>
+        {% else %}
+            <p>Commande personnalisée (détails ci-dessous)</p>
+        {% endif %}
+        <p><strong>Prix convenu:</strong> {{ contrat.prix }} EUR</p>
+        <p><strong>Période:</strong> Du {{ contrat.dateDebut|date('d/m/Y') }} au {{ contrat.dateFin|date('d/m/Y') }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">CONDITIONS GÉNÉRALES ET PARTICULIÈRES</div>
+        <div class="content">
+            {{ contrat.conditionsTexte }}
+        </div>
+    </div>
+
+    <div class="signatures">
+        <div class="section-title">SIGNATURES</div>
+        <div class="signature-box">
+            <p><strong>Pour l'Artiste :</strong></p>
+            <p>{{ contrat.artiste.name }}</p>
+            {% if contrat.signatureArtist %}
+                <img src="{{ contrat.artiste.signatureElectronique }}" class="signature-img" />
+                <div class="stamp">Signé électroniquement le {{ contrat.dateSignatureArtist|date('d/m/Y H:i') }}</div>
+            {% else %}
+                <p style="margin-top: 30px; color: #999;">[En attente de signature]</p>
+            {% endif %}
+        </div>
+        
+        <div class="signature-box" style="margin-left: 8%;">
+            <p><strong>Pour le Client :</strong></p>
+            <p>{{ contrat.producteur.name }}</p>
+            {% if contrat.signatureClient %}
+                <img src="{{ contrat.producteur.signatureElectronique }}" class="signature-img" />
+                <div class="stamp">Signé électroniquement le {{ contrat.dateSignatureClient|date('d/m/Y H:i') }}</div>
+            {% else %}
+                <p style="margin-top: 30px; color: #999;">[En attente de signature]</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-size: 10px; color: #888;">
+        Ce document a été généré électroniquement par la Plateforme Artistique ArtConnect.<br>
+        Il a valeur légale de preuve conformément à la réglementation sur la signature électronique.
+    </div>
+</body>
+</html>

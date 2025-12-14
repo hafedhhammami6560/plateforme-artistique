@@ -201,10 +201,7 @@
             </form>
 
             {# Supprimer définitivement (Admin seulement) #}
-            {% set currentUser = app.request.cookies.get('user_id') %}
-            {% if currentUser %}
-                {% set userType = '' %}
-                {# On ne peut pas facilement récupérer userType ici, on affiche le bouton pour tous #}
+            {% if is_granted('ROLE_ADMIN') %}
                 <form method="post" action="{{ path('app_discussion_delete', {id: discussion.id}) }}"
                       onsubmit="return confirm('⚠️ ADMIN UNIQUEMENT ⚠️\n\nSupprimer définitivement cette discussion de la base de données ?\n\nCette action est irréversible !');" style="display: inline;">
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_discussion_' ~ discussion.id) }}">

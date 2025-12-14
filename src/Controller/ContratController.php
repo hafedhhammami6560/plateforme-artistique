@@ -381,4 +381,59 @@ class ContratController extends AbstractController
 
         return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
     }
+
+    #[Route('/{id}/pdf', name: 'app_contrat_pdf', methods: ['GET'])]
+    public function generatePdf(Request $request, Contrat $contrat, UserRepository $userRepo): Response
+    {
+        // Check if user is connected via cookie
+        $userId = $request->cookies->get('user_id');
+
+        if (!$userId) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $user = $userRepo->find($userId);
+        if (!$user) {
+            return $this->redirectToRoute('auth_login');
+        }
+
+        // Only allow user to view if they are participant
+        $canView = $contrat->getArtiste()->getId() === $user->getId() || $contrat->getProducteur()->getId() === $user->getId();
+        if (!$canView && $user->getUserType() !== 'admin') {
+            throw $this->createAccessDeniedException("Vous n'avez pas accès à ce contrat.");
+        }
+
+        // Verify contract is fully signed
+        if (!$contrat->isFullySigned()) {
+            $this->addFlash('error', "Le contrat doit être entièrement signé pour générer le PDF.");
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        // Configure Dompdf
+        $pdfOptions = new \Dompdf\Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isRemoteEnabled', true); // Important for images
+        
+        $dompdf = new \Dompdf\Dompdf($pdfOptions);
+
+        // Retrieve the HTML generated in our twig file
+        $html = $this->renderView('contrat/pdf.html.twig', [
+            'contrat' => $contrat,
+        ]);
+
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+
+        // (Optional) Setup the paper size and orientation
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser (inline view)
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="contrat-' . $contrat->getNumeroContrat() . '.pdf"',
+        ]);
+    }
 }

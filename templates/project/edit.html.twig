@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Éditer {{ project.title }} - ArtConnect{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4"><i class="fas fa-edit"></i> Éditer le projet</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            {% include 'project/form.html.twig' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

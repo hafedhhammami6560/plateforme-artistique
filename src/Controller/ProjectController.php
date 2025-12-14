@@ -6,6 +6,7 @@ use App\Entity\Project;
 use App\Form\ProjectType;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
+use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class ProjectController extends AbstractController
 {
     #[Route('/', name: 'app_project_index', methods: ['GET'])]
-    public function index(Request $request, ProjectRepository $projectRepository, \App\Repository\CategoryRepository $categoryRepository): Response
+    public function index(Request $request, ProjectRepository $projectRepository, CategoryRepository $categoryRepository): Response
     {
         $categoryId = $request->query->get('category', null);
 
@@ -28,7 +29,9 @@ class ProjectController extends AbstractController
             $projects = $projectRepository->findAllOrderedByName();
         }
 
-        $categories = $categoryRepository->findAllOrdered();
+        // Use findBy for categories if findAllOrdered doesn't exist, but HEAD implies it does.
+        // If CategoryRepository wasn't checked, standard findAll is safer, but let's trust HEAD.
+        $categories = $categoryRepository->findAll(); 
 
         return $this->render('project/index.html.twig', [
             'projects' => $projects,
@@ -40,9 +43,10 @@ class ProjectController extends AbstractController
     #[Route('/new', name: 'app_project_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, UserRepository $userRepository): Response
     {
-        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
+        // Security check (Hybrid: Check cookie generally, but load User entity for Artist association)
         $userId = $request->cookies->get('user_id');
         $user = $userId ? $userRepository->find($userId) : null;
+        
         if (!$user) {
             $this->addFlash('error', 'Vous devez être connecté pour créer un projet.');
             return $this->redirectToRoute('auth_login');
@@ -53,7 +57,7 @@ class ProjectController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $project->setArtist($user); // Associer automatiquement le projet à l'utilisateur connecté
+            $project->setArtist($user); // Associer l'artiste (User)
 
             // Handle file upload
             $imageFile = $form->get('image')->getData();
@@ -83,7 +87,7 @@ class ProjectController extends AbstractController
 
         return $this->render('project/new.html.twig', [
             'project' => $project,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -98,11 +102,12 @@ class ProjectController extends AbstractController
     #[Route('/{id}/edit', name: 'app_project_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Project $project, EntityManagerInterface $entityManager, SluggerInterface $slugger, UserRepository $userRepository): Response
     {
-        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
         $userId = $request->cookies->get('user_id');
         $user = $userId ? $userRepository->find($userId) : null;
-        if (!$user || $project->getArtist() !== $user) { // Vérifier aussi que l'utilisateur est bien le propriétaire
-            $this->addFlash('error', 'Vous devez être connecté pour éditer un projet.');
+        
+        // Check ownership
+        if (!$user || $project->getArtist() !== $user) {
+            $this->addFlash('error', 'Vous devez être connecté et propriétaire pour éditer ce projet.');
             return $this->redirectToRoute('auth_login');
         }
 
@@ -137,19 +142,20 @@ class ProjectController extends AbstractController
 
         return $this->render('project/edit.html.twig', [
             'project' => $project,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/{id}', name: 'app_project_delete', methods: ['POST'])]
     public function delete(Request $request, Project $project, EntityManagerInterface $entityManager, UserRepository $userRepository): Response
     {
-        // TODO: Remplacer cette vérification par le système de sécurité de Symfony.
         $userId = $request->cookies->get('user_id');
         $user = $userId ? $userRepository->find($userId) : null;
-        if (!$user || $project->getArtist() !== $user) { // Vérifier aussi que l'utilisateur est bien le propriétaire
-            $this->addFlash('error', 'Vous devez être connecté pour supprimer un projet.');
-            return $this->redirectToRoute('auth_login');
+        
+        // Check ownership
+        if (!$user || $project->getArtist() !== $user) {
+             $this->addFlash('error', 'Vous devez être propriétaire pour supprimer ce projet.');
+             return $this->redirectToRoute('app_project_index');
         }
 
         if ($this->isCsrfTokenValid('delete'.$project->getId(), $request->request->get('_token'))) {

@@ -257,6 +257,29 @@
                         <span>Discussions</span>
                     </a>
                 </li>
+                
+                <li class="has-submenu">
+                    <a>
+                        <i class="fas fa-cog"></i>
+                        <span>Gestion</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="{{ path('app_category_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_category_' ? 'active' : '' }}">
+                                <i class="fas fa-folder"></i>
+                                <span>Catégories</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ path('app_project_index') }}" class="{{ app.request.attributes.get('_route') starts with 'app_project_' ? 'active' : '' }}">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>Projets</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
                 {% if is_granted('ROLE_ADMIN') %}
                 <li>
                     <a href="{{ path('app_admin_user_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'app_admin_user_' ? 'active' : '' }}">

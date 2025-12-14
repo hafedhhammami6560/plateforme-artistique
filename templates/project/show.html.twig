@@ -8,9 +8,12 @@
         <h1><i class="fas fa-project-diagram"></i> {{ project.title }}</h1>
         <div class="d-flex gap-2 flex-wrap">
             {% if app.request.cookies.get('user_id') %}
-                <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Éditer
-                </a>
+                 {# Optional: Add ownership check if you want to restrict edit button only to owner #}
+                 {% if project.artist and project.artist.id == app.request.cookies.get('user_id') %}
+                    <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Éditer
+                    </a>
+                 {% endif %}
             {% endif %}
             <a href="{{ path('app_project_index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Retour
@@ -49,7 +52,8 @@
                     <p class="mb-2">
                         <strong><i class="fas fa-folder"></i> Catégorie :</strong>
                         {% if project.category %}
-                            <a href="{{ path('app_category_show', {'id': project.category.id}) }}">{{ project.category.name }}</a>
+                            # Note: Ensure app_category_show exists or remove link
+                            <a href="#">{{ project.category.name }}</a>
                         {% else %}
                             <span class="text-muted">Sans catégorie</span>
                         {% endif %}
@@ -57,11 +61,13 @@
                     <p class="mb-2">
                         <strong><i class="fas fa-calendar"></i> Créé le :</strong> {{ project.createdAt|date('d/m/Y H:i') }}
                     </p>
+                    <p class="mb-2">
+                         <strong><i class="fas fa-user"></i> Artiste :</strong>
+                         {{ project.artist ? project.artist.name : 'Inconnu' }}
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
-

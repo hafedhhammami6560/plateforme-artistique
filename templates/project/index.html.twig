@@ -44,7 +44,7 @@
                             <h5 class="card-title">{{ project.title }}</h5>
                             <p class="card-text">{{ project.description|slice(0, 100) }}{{ project.description|length > 100 ? '...' : '' }}</p>
                             <p class="text-muted small">
-                                <i class="fas fa-folder"></i>
+                                <i class="fas fa-folder"></i> 
                                 {% if project.category %}
                                     {{ project.category.name }}
                                 {% else %}
@@ -58,7 +58,7 @@
                                 <a href="{{ path('app_project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
-                                {% if app.request.cookies.get('user_id') %}
+                                {% if app.request.cookies.get('user_id') and project.artist and project.artist.id == app.request.cookies.get('user_id') %}
                                     <a href="{{ path('app_project_edit', {'id': project.id}) }}" class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i> Éditer
                                     </a>
@@ -77,220 +77,9 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> Aucun projet trouvé.
+            <i class="fas fa-info-circle"></i> Aucun projet trouvé. :
             <a href="{{ path('app_project_new') }}" class="alert-link">Créer le premier</a>
-<div class="container mt-4">
-    <h1><i class="fas fa-cube"></i> Projects</h1>
-
-    {# Filtres et Recherche #}
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" action="{{ path('project_index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label for="search" class="form-label"><i class="fas fa-search"></i> Rechercher</label>
-                    <input type="text" class="form-control" id="search" name="search"
-                           value="{{ app.request.query.get('search', '') }}"
-                           placeholder="Nom du project, artiste...">
-                </div>
-
-                {% if categories is defined and categories %}
-                <div class="col-md-3">
-                    <label for="categorie" class="form-label"><i class="fas fa-filter"></i> Catégorie</label>
-                    <select class="form-select" id="categorie" name="categorie">
-                        <option value="">Toutes les catégories</option>
-                        {% for cat in categories %}
-                            <option value="{{ cat }}" {% if selected_categorie == cat %}selected{% endif %}>{{ cat }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-
-                <div class="col-md-3">
-                    <label for="sort" class="form-label"><i class="fas fa-sort"></i> Trier par</label>
-                    <select class="form-select" id="sort" name="sort">
-                        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Date (récent)</option>
-                        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Date (ancien)</option>
-                        <option value="nom_asc" {% if app.request.query.get('sort') == 'nom_asc' %}selected{% endif %}>Nom (A-Z)</option>
-                        <option value="nom_desc" {% if app.request.query.get('sort') == 'nom_desc' %}selected{% endif %}>Nom (Z-A)</option>
-                        <option value="prix_asc" {% if app.request.query.get('sort') == 'prix_asc' %}selected{% endif %}>Prix (croissant)</option>
-                        <option value="prix_desc" {% if app.request.query.get('sort') == 'prix_desc' %}selected{% endif %}>Prix (décroissant)</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-check"></i> Appliquer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {% if isCreator %}
-        {# Section pour les créateurs (Artiste, Musicien, Scénariste) #}
-
-        {# Mes projects #}
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0"><i class="fas fa-user-circle"></i> Mes projects</h3>
-                    <a href="{{ path('project_new') }}" class="btn btn-light btn-sm">
-                        <i class="fas fa-plus"></i> Créer un project
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if mesProjects is empty %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Vous n'avez pas encore créé de projects.
-                    </div>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nom</th>
-                                    <th>Prix</th>
-                                    <th>Catégorie</th>
-                                    <th>Statut</th>
-                                    <th>Date création</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for project in mesProjects %}
-                                <tr>
-                                    <td><strong>#{{ project.id }}</strong></td>
-                                    <td>{{ project.nom }}</td>
-                                    <td>{{ project.prix }} €</td>
-                                    <td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}
-                                    <td>
-                                        {% if project.sousContrat %}
-                                            <span class="badge bg-warning">Sous contrat</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Disponible</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ project.dateCreation ? project.dateCreation|date('d/m/Y') : '' }}</td>
-                                    <td>
-                                        <a href="{{ path('project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Voir
-                                        </a>
-                                        {% if not project.sousContrat %}
-                                            <button class="btn btn-sm btn-warning" disabled>
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" disabled>
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        {# Autres projects #}
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="fas fa-shopping-bag"></i> projects des Autres Artistes</h3>
-            </div>
-            <div class="card-body">
-                {% if autresProjects is empty %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Aucun autre project disponible.
-                    </div>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nom</th>
-                                    <th>Artiste</th>
-                                    <th>Prix</th>
-                                    <th>Catégorie</th>
-                                    <th>Date création</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for project in autresProjects %}
-                                <tr>
-                                    <td>{{ project.id }}</td>
-                                    <td>{{ project.nom }}</td>
-                                    <td>{{ project.artist ? project.artist.name : '-' }}</td>
-                                    <td>{{ project.prix }} €</td>
-                                    <td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}</td>
-                                    <td>{{ project.dateCreation ? project.dateCreation|date('d/m/Y') : '' }}</td>
-                                    <td>
-                                        <a href="{{ path('project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Voir
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-    {% else %}
-        {# Section pour les non-créateurs (Publisher, Sponsor, Utilisateur) #}
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="fas fa-shopping-bag"></i> Tous les Projects</h3>
-            </div>
-            <div class="card-body">
-                {% if autresProjects is empty %}
-                <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle"></i> Aucun project disponible.
-                    </div>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nom</th>
-                                    <th>Artiste</th>
-                                    <th>Prix</th>
-                                    <th>Catégorie</th>
-                                    <th>Date création</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for project in autresProjects %}
-                                <tr>
-                                    <td>{{ project.id }}</td>
-                                    <td>{{ project.nom }}</td>
-                                    <td>{{ project.artist ? project.artist.name : '-' }}</td>
-                                    <td>{{ project.prix }} €</td>
-                                    <td>{{ project.categorie ? project.categorie.nom : (project.categorieLabel ?: '-') }}</td>
-                                    <td>{{ project.dateCreation ? project.dateCreation|date('d/m/Y') : '' }}</td>
-                                    <td>
-                                        <a href="{{ path('project_show', {'id': project.id}) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> Voir
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </div>
         </div>
     {% endif %}
 </div>
 {% endblock %}
-
-

@@ -19,7 +19,7 @@ class ProjectType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('nom', TextType::class, [
+            ->add('title', TextType::class, [ // Using 'title' as per Origin (Project entiy has alias)
                 'label' => 'Titre du projet',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
@@ -45,16 +45,12 @@ class ProjectType extends AbstractType
             ->add('category', EntityType::class, [
                 'class' => Category::class,
                 'choice_label' => 'name',
-                'required' => false,
-                'placeholder' => 'Aucune',
                 'label' => 'Catégorie',
                 'attr' => ['class' => 'form-control'],
                 'placeholder' => 'Choisir une catégorie',
-                'constraints' => [
-                    new Assert\NotNull(message: 'La catégorie est obligatoire'),
-                ],
+                'required' => false, // Relaxed constraint from HEAD preference
             ])
-            ->add('image', FileType::class, [
+             ->add('image', FileType::class, [
                 'label' => 'Image du projet',
                 'mapped' => false,
                 'required' => false,

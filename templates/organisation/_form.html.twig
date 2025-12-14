@@ -2,14 +2,132 @@
     <div>
         {{ form_row(form.name) }}
     </div>
-    <div>
-        {{ form_row(form.address) }}
-    </div>
+    {# address field removed: use only map-based locationAddress to avoid duplication #}
     <div>
         {{ form_row(form.email) }}
     </div>
     <div>
         {{ form_row(form.communite) }}
     </div>
+    <div>
+        {{ form_row(form.eventDate) }}
+    </div>
+    <div>
+        {{ form_row(form.eventType) }}
+    </div>
+
+    <div>
+        {{ form_label(form.locationAddress) }}
+        {{ form_widget(form.locationAddress, {'attr': {'id': 'gmaps-address', 'placeholder':'Saisir une adresse ou choisir sur la carte'}}) }}
+        {{ form_errors(form.locationAddress) }}
+    </div>
+    {{ form_widget(form.locationLat, {'attr': {'id':'gmaps-lat'}}) }}
+    {{ form_widget(form.locationLng, {'attr': {'id':'gmaps-lng'}}) }}
+
+    <div id="gmaps" style="width:100%;height:360px;margin:12px 0;border:1px solid #ddd;border-radius:6px;"></div>
     <button type="submit">Enregistrer</button>
-{{ form_end(form) }}
+
+    {# Render CSRF token explicitly and avoid auto-rendering remaining fields (prevent duplicate address) #}
+    {{ form_widget(form._token) }}
+    {{ form_end(form, {'render_rest': false}) }}
+ 
+{# --- Intégration plus simple de la carte --- #}
+{# Nous utilisons Leaflet (OpenStreetMap) + Control.Geocoder pour éviter
+     d'avoir une clé API Google. Cette approche est gratuite et plus simple
+     à mettre en place localement. #}
+
+{# Flatpickr pour la sélection date/heure (léger et convivial) #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+{# Leaflet CSS/JS et geocoder (utilise Nominatim) #}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialisation du datepicker
+        try {
+            flatpickr(document.querySelector('input[name="organisation[eventDate]"]'), {
+                enableTime: true,
+                dateFormat: 'Y-m-d H:i',
+            });
+        } catch (e) {
+            console.warn('flatpickr non initialisé', e);
+        }
+
+        // Initialisation de la carte Leaflet
+        const mapDiv = document.getElementById('gmaps');
+        const input = document.getElementById('gmaps-address');
+        const latField = document.getElementById('gmaps-lat');
+        const lngField = document.getElementById('gmaps-lng');
+
+        if (!mapDiv) return; // si pas de map, on stoppe
+
+        // Crée la carte centrée sur Paris par défaut
+        const map = L.map(mapDiv).setView([48.8566, 2.3522], 12);
+
+        // Tiles OpenStreetMap (gratuit)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Marker draggable
+        const marker = L.marker([48.8566, 2.3522], {draggable: true}).addTo(map);
+
+        // Geocoder control (recherche d'adresse)
+        const geocoder = L.Control.geocoder({
+            defaultMarkGeocode: false
+        })
+        .on('markgeocode', function(e) {
+            const latlng = e.geocode.center;
+            marker.setLatLng(latlng);
+            map.setView(latlng, 15);
+            // Remplit les champs lat/lng et l'adresse
+            if (latField) latField.value = latlng.lat;
+            if (lngField) lngField.value = latlng.lng;
+            if (input) input.value = e.geocode.name;
+        })
+        .addTo(map);
+
+        // Lorsque le marqueur est déplacé, on fait un reverse geocode via Nominatim
+        marker.on('dragend', function(ev) {
+            const pos = marker.getLatLng();
+            if (latField) latField.value = pos.lat;
+            if (lngField) lngField.value = pos.lng;
+            // Reverse geocoding simple (Nominatim)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.lat}&lon=${pos.lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (input && data && data.display_name) input.value = data.display_name;
+                })
+                .catch(err => console.warn('Reverse geocode failed', err));
+        });
+
+        // Si l'utilisateur tape une adresse manuellement et quitte le champ, essayer de géocoder
+        if (input) {
+            input.addEventListener('blur', function() {
+                const q = input.value.trim();
+                if (!q) return;
+                // Requête Nominatim pour géocoder l'adresse saisie
+                fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}`)
+                    .then(r => r.json())
+                    .then(results => {
+                        if (results && results.length > 0) {
+                            const place = results[0];
+                            const lat = parseFloat(place.lat);
+                            const lon = parseFloat(place.lon);
+                            marker.setLatLng([lat, lon]);
+                            map.setView([lat, lon], 15);
+                            if (latField) latField.value = lat;
+                            if (lngField) lngField.value = lon;
+                        }
+                    })
+                    .catch(err => console.warn('Geocoding failed', err));
+            });
+        }
+    });
+</script>

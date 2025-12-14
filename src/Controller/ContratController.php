@@ -128,11 +128,25 @@ class ContratController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Générer un numéro de contrat unique
+            $numeroContrat = 'CTR-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+            $contrat->setNumeroContrat($numeroContrat);
             $contrat->setCreatedAt(new \DateTimeImmutable());
+            
+            // Initialiser le prix avec le montant si non défini
+            if ($contrat->getPrix() === null && $contrat->getMontant() !== null) {
+                $contrat->setPrix((string)$contrat->getMontant());
+            }
+            
+            // Initialiser conditionsTexte si non défini
+            if ($contrat->getConditionsTexte() === null) {
+                $contrat->setConditionsTexte($contrat->getTermes() ?? '');
+            }
+            
             $entityManager->persist($contrat);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Le contrat a été créé avec succès.');
+            $this->addFlash('success', 'Le contrat ' . $numeroContrat . ' a été créé avec succès.');
             return $this->redirectToRoute('app_contrat_index');
         }
 

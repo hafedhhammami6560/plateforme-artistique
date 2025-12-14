@@ -60,15 +60,35 @@ class ContratType extends AbstractType
                 'constraints' => [new NotBlank()],
             ])
             ->add('artiste', EntityType::class, [
-                'label' => 'Artiste',
+                'label' => 'Type utilisateur',
                 'class' => User::class,
                 'choice_label' => function ($user) {
-                    return $user->getName() . ' (' . $user->getEmail() . ')';
+                    $roles = $user->getRoles();
+                    $roleLabel = '';
+                    if (in_array('ROLE_ADMIN', $roles)) {
+                        $roleLabel = 'Admin';
+                    } elseif (in_array('ROLE_ARTIST', $roles)) {
+                        $roleLabel = 'Artiste';
+                    } elseif (in_array('ROLE_PRODUCER', $roles)) {
+                        $roleLabel = 'Producteur';
+                    } else {
+                        $roleLabel = 'Client';
+                    }
+                    return $user->getName() . ' - ' . $roleLabel . ' (' . $user->getEmail() . ')';
+                },
+                'group_by' => function ($user) {
+                    $roles = $user->getRoles();
+                    if (in_array('ROLE_ADMIN', $roles)) {
+                        return 'Administrateurs';
+                    } elseif (in_array('ROLE_ARTIST', $roles)) {
+                        return 'Artistes';
+                    } elseif (in_array('ROLE_PRODUCER', $roles)) {
+                        return 'Producteurs';
+                    }
+                    return 'Clients';
                 },
                 'query_builder' => function ($repo) {
                     return $repo->createQueryBuilder('u')
-                        ->where('u.roles LIKE :role')
-                        ->setParameter('role', '%ROLE_ARTIST%')
                         ->orderBy('u.name', 'ASC');
                 },
                 'constraints' => [new NotBlank()],

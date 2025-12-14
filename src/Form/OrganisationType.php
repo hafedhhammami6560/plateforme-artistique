@@ -19,10 +19,22 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class OrganisationType extends AbstractType
 {
+    /**
+     * OrganisationType
+     * 
+     * Ce formulaire gère la création / modification d'une `Organisation`.
+     * Les champs `locationLat` et `locationLng` sont des champs cachés
+     * remplis par le JavaScript de la page (carte + recherche d'adresse).
+     * Le champ `locationAddress` contient l'adresse textuelle affichée
+     * et peut être modifiée par l'utilisateur.
+     */
     /**
      * Construction du formulaire
      * 
@@ -49,6 +61,31 @@ class OrganisationType extends AbstractType
                 'placeholder' => 'Choisir une communauté',  // Option vide
                 'required' => false,                  // Optionnel
             ])
+            // Date/heure de l'événement associé
+            ->add('eventDate', DateTimeType::class, [
+                'label' => 'Date et heure de l\'événement',
+                'widget' => 'single_text',
+                'required' => false,
+            ])
+
+            // Type d'événement (choix simple)
+            ->add('eventType', ChoiceType::class, [
+                'label' => 'Type d\'événement',
+                'choices' => [
+                    'Exposition' => 'exposition',
+                    'Atelier' => 'atelier',
+                    'Rencontre' => 'rencontre',
+                    'Projection' => 'projection',
+                    'Autre' => 'other',
+                ],
+                'required' => false,
+                'placeholder' => 'Sélectionner un type',
+            ])
+
+            // Adresse et coordonnées (remplies via Google Maps)
+            ->add('locationAddress', TextType::class, ['label' => 'Emplacement (adresse)', 'required' => false])
+            ->add('locationLat', HiddenType::class, ['required' => false])
+            ->add('locationLng', HiddenType::class, ['required' => false])
         ;
     }
 

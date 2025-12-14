@@ -13,7 +13,7 @@
     <table class="table table-striped table-hover">
         <thead class="table-dark">
             <tr>
-                <th>ID</th>
+                <th>N° Contrat</th>
                 <th>Producteur</th>
                 <th>Artiste</th>
                 <th>Montant</th>
@@ -26,7 +26,7 @@
         <tbody>
         {% for contrat in contrats %}
             <tr>
-                <td>{{ contrat.id }}</td>
+                <td><strong>{{ contrat.numeroContrat }}</strong></td>
                 <td>{{ contrat.producteur.name }}</td>
                 <td>{{ contrat.artiste.name }}</td>
                 <td>{{ contrat.montant|number_format(2, ',', ' ') }} €</td>

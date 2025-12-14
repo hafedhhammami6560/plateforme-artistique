@@ -55,14 +55,14 @@ class ContratController extends AbstractController
             ->orWhere('c.producteur = :userId')
             ->setParameter('userId', $userId);
         
-        // Recherche par numéro de contrat, nom d'utilisateur ou produit
+        // Recherche par numéro de contrat, nom d'utilisateur ou projet
         if (!empty($search)) {
             $qb->andWhere(
                 $qb->expr()->orX(
                     $qb->expr()->like('c.numeroContrat', ':search'),
                     $qb->expr()->like('artiste.name', ':search'),
                     $qb->expr()->like('producteur.name', ':search'),
-                    $qb->expr()->like('produit.nom', ':search')
+                    $qb->expr()->like('produit.title', ':search')
                 )
             )
             ->setParameter('search', '%' . $search . '%');
@@ -114,5 +114,85 @@ class ContratController extends AbstractController
         ]);
     }
 
-    // ... (autres méthodes avancées à intégrer, voir le fichier source complet de la branche)
+    #[Route('/new', name: 'app_contrat_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $userId = $request->cookies->get('user_id');
+        if (!$userId) {
+            $this->addFlash('error', 'Vous devez être connecté.');
+            return $this->redirectToRoute('auth_login');
+        }
+
+        $contrat = new Contrat();
+        $form = $this->createForm(ContratType::class, $contrat);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Générer un numéro de contrat unique
+            $numeroContrat = 'CTR-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+            $contrat->setNumeroContrat($numeroContrat);
+            $contrat->setCreatedAt(new \DateTimeImmutable());
+            
+            // Initialiser le prix avec le montant si non défini
+            if ($contrat->getPrix() === null && $contrat->getMontant() !== null) {
+                $contrat->setPrix((string)$contrat->getMontant());
+            }
+            
+            // Initialiser conditionsTexte si non défini
+            if ($contrat->getConditionsTexte() === null) {
+                $contrat->setConditionsTexte($contrat->getTermes() ?? '');
+            }
+            
+            $entityManager->persist($contrat);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Le contrat ' . $numeroContrat . ' a été créé avec succès.');
+            return $this->redirectToRoute('app_contrat_index');
+        }
+
+        return $this->render('contrat/new.html.twig', [
+            'contrat' => $contrat,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_contrat_show', methods: ['GET'])]
+    public function show(Contrat $contrat): Response
+    {
+        return $this->render('contrat/show.html.twig', [
+            'contrat' => $contrat,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_contrat_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Contrat $contrat, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(ContratType::class, $contrat);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $contrat->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Le contrat a été modifié avec succès.');
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
+        return $this->render('contrat/edit.html.twig', [
+            'contrat' => $contrat,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_contrat_delete', methods: ['POST'])]
+    public function delete(Request $request, Contrat $contrat, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$contrat->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($contrat);
+            $entityManager->flush();
+            $this->addFlash('success', 'Le contrat a été supprimé avec succès.');
+        }
+
+        return $this->redirectToRoute('app_contrat_index');
+    }
 }

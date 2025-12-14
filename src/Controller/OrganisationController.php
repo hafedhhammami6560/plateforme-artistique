@@ -71,6 +71,11 @@ class OrganisationController extends AbstractController
         $queryBuilder = $repo->createQueryBuilder('o')
             ->leftJoin('o.communite', 'c');  // LEFT JOIN pour inclure les orgas sans communauté
 
+        // Si l'utilisateur n'est pas admin, ne montrer que les organisations approuvées
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $queryBuilder->andWhere('o.status = :status')->setParameter('status', Organisation::STATUS_APPROVED);
+        }
+
         // FILTRE 1: Recherche textuelle (nom OU email OU adresse)
         if ($search) {
             $queryBuilder->andWhere('o.name LIKE :search OR o.email LIKE :search OR o.address LIKE :search')
@@ -133,13 +138,20 @@ class OrganisationController extends AbstractController
         // Vérification soumission et validation
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                // Si l'utilisateur n'est pas admin, marquer l'organisation en attente
+                // d'approbation par un administrateur.
+                if ($request->cookies->get('user_role') !== 'admin') {
+                    $organisation->setStatus(\App\Entity\Organisation::STATUS_PENDING);
+                    $this->addFlash('info', 'Organisation créée — en attente d\'approbation par un administrateur.');
+                } else {
+                    $organisation->setStatus(\App\Entity\Organisation::STATUS_APPROVED);
+                    $this->addFlash('success', 'Organisation créée et approuvée.');
+                }
+
                 // Sauvegarde en base de données
                 $em->persist($organisation);
                 $em->flush();
 
-                // Message de succès
-                $this->addFlash('success', 'Organisation créée avec succès!');
-                
                 // Redirection vers la liste (pattern PRG)
                 return $this->redirectToRoute('organisation_index');
                 
@@ -163,8 +175,19 @@ class OrganisationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'organisation_show', methods: ['GET'])]
-    public function show(Organisation $organisation, EntityManagerInterface $em): Response
+    public function show(Request $request, ?Organisation $organisation, EntityManagerInterface $em): Response
     {
+        // Si l'entité n'existe pas (id invalide), rediriger proprement
+        if (null === $organisation) {
+            $this->addFlash('error', 'Organisation introuvable.');
+            return $this->redirectToRoute('organisation_index');
+        }
+
+        // Empêcher l'accès aux organisations non approuvées pour les non-admins
+        if ($organisation->getStatus() !== Organisation::STATUS_APPROVED && $request->cookies->get('user_role') !== 'admin') {
+            throw $this->createNotFoundException('Organisation non disponible.');
+        }
+
         // Récupérer les feedbacks liés à cette organisation
         $feedbacks = $em->getRepository(\App\Entity\Feedback::class)
             ->createQueryBuilder('f')
@@ -271,4 +294,67 @@ class OrganisationController extends AbstractController
         return $this->redirectToRoute('organisation_index');
     }
     
+    /**
+     * Liste des organisations en attente d'approbation (admin only)
+     */
+    #[Route('/pending', name: 'organisation_pending', methods: ['GET'])]
+    public function pending(EntityManagerInterface $em, Request $request): Response
+    {
+        // Vérification des droits admin via cookie
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $this->addFlash('error', 'Accès refusé : droits administrateur requis.');
+            return $this->redirectToRoute('organisation_index');
+        }
+
+        $pending = $em->getRepository(Organisation::class)->findBy(['status' => Organisation::STATUS_PENDING]);
+
+        return $this->render('organisation/pending.html.twig', [
+            'pending' => $pending,
+        ]);
+    }
+
+    /**
+     * Approuver une organisation (admin)
+     */
+    #[Route('/{id}/approve', name: 'organisation_approve', methods: ['POST'])]
+    public function approve(Request $request, Organisation $organisation, EntityManagerInterface $em): Response
+    {
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $this->addFlash('error', 'Accès refusé : droits administrateur requis.');
+            return $this->redirectToRoute('organisation_index');
+        }
+
+        if ($this->isCsrfTokenValid('approve'.$organisation->getId(), $request->request->get('_token'))) {
+            $organisation->setStatus(Organisation::STATUS_APPROVED);
+            $em->flush();
+            $this->addFlash('success', 'Organisation approuvée.');
+        } else {
+            $this->addFlash('error', 'Token invalide.');
+        }
+
+        return $this->redirectToRoute('organisation_pending');
+    }
+
+    /**
+     * Rejeter une organisation (admin)
+     */
+    #[Route('/{id}/reject', name: 'organisation_reject', methods: ['POST'])]
+    public function reject(Request $request, Organisation $organisation, EntityManagerInterface $em): Response
+    {
+        if ($request->cookies->get('user_role') !== 'admin') {
+            $this->addFlash('error', 'Accès refusé : droits administrateur requis.');
+            return $this->redirectToRoute('organisation_index');
+        }
+
+        if ($this->isCsrfTokenValid('reject'.$organisation->getId(), $request->request->get('_token'))) {
+            $organisation->setStatus(Organisation::STATUS_REJECTED);
+            $em->flush();
+            $this->addFlash('success', 'Organisation rejetée.');
+        } else {
+            $this->addFlash('error', 'Token invalide.');
+        }
+
+        return $this->redirectToRoute('organisation_pending');
+    }
 }
+

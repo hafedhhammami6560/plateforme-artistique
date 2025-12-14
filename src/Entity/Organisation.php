@@ -79,6 +79,41 @@ class Organisation
     private ?Communite $communite = null;
 
     /**
+     * Date/heure de l'événement associé (optionnel)
+     * @var \DateTimeInterface|null
+     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $eventDate = null;
+
+    /**
+     * Type d'événement (ex: exposition, atelier, rencontre)
+     * @var string|null
+     */
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $eventType = null;
+
+    /**
+     * Adresse complète de l'emplacement (récupérée via Google Maps)
+     * @var string|null
+     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $locationAddress = null;
+
+    /**
+     * Latitude de l'emplacement
+     * @var float|null
+     */
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $locationLat = null;
+
+    /**
+     * Longitude de l'emplacement
+     * @var float|null
+     */
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $locationLng = null;
+
+    /**
      * Constructeur - Initialise les valeurs par défaut
      */
     public function __construct()
@@ -87,6 +122,8 @@ class Organisation
         $this->createdAt = new \DateTime();
         // Créateur par défaut (système statique)
         $this->createdBy = 'admin';
+        // Statut par défaut: approved pour conserver le comportement existant
+        $this->status = self::STATUS_APPROVED;
     }
 
     // ========== GETTERS & SETTERS ==========
@@ -212,8 +249,84 @@ class Organisation
         return $this;
     }
 
+    public function getEventDate(): ?\DateTimeInterface
+    {
+        return $this->eventDate;
+    }
+
+    public function setEventDate(?\DateTimeInterface $eventDate): static
+    {
+        $this->eventDate = $eventDate;
+        return $this;
+    }
+
+    public function getEventType(): ?string
+    {
+        return $this->eventType;
+    }
+
+    public function setEventType(?string $eventType): static
+    {
+        $this->eventType = $eventType;
+        return $this;
+    }
+
+    public function getLocationAddress(): ?string
+    {
+        return $this->locationAddress;
+    }
+
+    public function setLocationAddress(?string $locationAddress): static
+    {
+        $this->locationAddress = $locationAddress;
+        return $this;
+    }
+
+    public function getLocationLat(): ?float
+    {
+        return $this->locationLat;
+    }
+
+    public function setLocationLat(?float $locationLat): static
+    {
+        $this->locationLat = $locationLat;
+        return $this;
+    }
+
+    public function getLocationLng(): ?float
+    {
+        return $this->locationLng;
+    }
+
+    public function setLocationLng(?float $locationLng): static
+    {
+        $this->locationLng = $locationLng;
+        return $this;
+    }
+
     public function __toString(): string
     {
         return $this->name ?? '';
+    }
+
+    /**
+     * Statuts possibles pour une organisation (workflow d'approbation)
+     */
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $status;
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+        return $this;
     }
 }

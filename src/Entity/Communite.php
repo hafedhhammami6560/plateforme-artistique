@@ -28,6 +28,13 @@ class Communite
     #[ORM\Column(type: 'string', length: 100)]
     private ?string $createdBy = null;
 
+    /**
+     * Type d'utilisateur principal pour la communauté
+     * (ex: artiste, organisateur, galerie, collectionneur)
+     */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $userType = null;
+
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'communite', cascade: ['persist', 'remove'])]
     private Collection $organisations;
 
@@ -114,5 +121,16 @@ class Communite
     public function __toString(): string
     {
         return $this->name ?? '';
+    }
+
+    public function getUserType(): ?string
+    {
+        return $this->userType;
+    }
+
+    public function setUserType(?string $userType): static
+    {
+        $this->userType = $userType;
+        return $this;
     }
 }

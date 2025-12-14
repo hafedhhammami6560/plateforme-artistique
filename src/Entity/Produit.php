@@ -44,10 +44,6 @@ class Produit
     #[ORM\Column(length: 50)]
     private ?string $statut = 'disponible';
 
-    // Relation avec Contrat - One to One
-    #[ORM\OneToOne(targetEntity: Contrat::class, mappedBy: 'produit')]
-    private ?Contrat $contrat = null;
-
     public function __construct()
     {
         $this->dateCreation = new \DateTimeImmutable();
@@ -168,40 +164,9 @@ class Produit
         return $this;
     }
 
-    public function getContrat(): ?Contrat
-    {
-        return $this->contrat;
-    }
-
-    public function setContrat(?Contrat $contrat): static
-    {
-        // Unset the owning side of the relation if necessary
-        if ($contrat === null && $this->contrat !== null) {
-            $this->contrat->setProduit(null);
-        }
-
-        // Set the owning side of the relation if necessary
-        if ($contrat !== null && $contrat->getProduit() !== $this) {
-            $contrat->setProduit($this);
-        }
-
-        $this->contrat = $contrat;
-
-        return $this;
-    }
-
     public function isDisponible(): bool
     {
         return $this->statut === 'disponible' && !$this->sousContrat;
-    }
-
-    public function marquerSousContrat(Contrat $contrat): static
-    {
-        $this->sousContrat = true;
-        $this->contrat = $contrat;
-        $this->statut = 'sous_contrat';
-
-        return $this;
     }
 
     public function __toString(): string

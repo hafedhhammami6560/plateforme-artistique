@@ -90,6 +90,7 @@
                             <th>Community</th>
                             <th>Created By</th>
                             <th>Created At</th>
+                            <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -109,6 +110,17 @@
                             </td>
                             <td>{{ o.createdBy }}</td>
                             <td>{{ o.createdAt|date('Y-m-d') }}</td>
+                            <td>
+                                {% if o.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% elseif o.status == 'approved' %}
+                                    <span class="badge bg-success">Approuvée</span>
+                                {% elseif o.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejetée</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ o.status }}</span>
+                                {% endif %}
+                            </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     <a href="{{ path('organisation_show', {'id': o.id}) }}" class="btn btn-sm btn-info" title="View">
@@ -123,6 +135,21 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+                                    {# Admin: show approve/reject for pending organisations #}
+                                    {% if app.request.cookies.get('user_role') == 'admin' and o.status == 'pending' %}
+                                        <form method="post" action="{{ path('organisation_approve', {'id': o.id}) }}" style="display:inline-block; margin-left:6px;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ o.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Approuver">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{{ path('organisation_reject', {'id': o.id}) }}" style="display:inline-block; margin-left:4px;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ o.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Rejeter">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

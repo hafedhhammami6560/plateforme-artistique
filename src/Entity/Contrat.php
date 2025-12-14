@@ -39,10 +39,10 @@ class Contrat
     #[ORM\Column]
     private ?float $montant = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $prix = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $conditionsTexte = null;
 
     #[ORM\Column]
@@ -90,9 +90,9 @@ class Contrat
     #[ORM\JoinColumn(nullable: false)]
     private ?User $artiste = null;
 
-    #[ORM\OneToOne(targetEntity: Produit::class, inversedBy: 'contrat')]
+    #[ORM\OneToOne(targetEntity: Project::class, inversedBy: 'contrat')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Produit $produit = null;
+    private ?Project $produit = null;
 
     #[ORM\OneToMany(targetEntity: Discussion::class, mappedBy: 'contrat', cascade: ['remove'])]
     private Collection $discussions;
@@ -332,12 +332,12 @@ class Contrat
         return $this->dateSignatureClient;
     }
 
-    public function getProduit(): ?Produit
+    public function getProduit(): ?Project
     {
         return $this->produit;
     }
 
-    public function setProduit(?Produit $produit): static
+    public function setProduit(?Project $produit): static
     {
         $this->produit = $produit;
 

@@ -17,6 +17,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class CommuniteType extends AbstractType
 {
@@ -38,6 +39,19 @@ class CommuniteType extends AbstractType
             ->add('description', TextareaType::class, [
                 'label' => 'Description', 
                 'required' => false  // Pas obligatoire
+            ])
+            // Type d'utilisateur principal pour cette communauté
+            ->add('userType', ChoiceType::class, [
+                'label' => 'Type de membre principal',
+                'choices' => [
+                    'Artiste' => 'artist',
+                    'Organisateur' => 'organizer',
+                    'Galerie' => 'gallery',
+                    'Collectionneur' => 'collector',
+                    'Autre' => 'other',
+                ],
+                'required' => false,
+                'placeholder' => 'Sélectionner un type (optionnel)'
             ])
         ;
     }

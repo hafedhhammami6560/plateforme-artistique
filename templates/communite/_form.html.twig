@@ -5,5 +5,41 @@
     <div>
         {{ form_row(form.description) }}
     </div>
+        <div>
+                {{ form_row(form.userType) }}
+        </div>
     <button type="submit">Enregistrer</button>
 {{ form_end(form) }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const send = document.getElementById('ai-send');
+    const input = document.getElementById('ai-input');
+    const messages = document.getElementById('ai-messages');
+
+    if (!send) return;
+    function append(role, text){
+        const el = document.createElement('div');
+        el.style.marginBottom='8px';
+        el.innerHTML = '<strong>'+role+':</strong> ' + text;
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    send.addEventListener('click', function(){
+        const msg = input.value.trim();
+        if (!msg) return;
+        append('Vous', msg);
+        input.value = '';
+        fetch('{{ path('ai_chat') }}', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({message: msg})
+        }).then(r=>r.json()).then(data=>{
+            append('IA', data.reply);
+        }).catch(e=>{
+            append('IA', 'Erreur: impossible de contacter le service.');
+        });
+    });
+});
+</script>

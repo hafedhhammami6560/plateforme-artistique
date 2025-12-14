@@ -4,6 +4,21 @@
 
 {% block body %}
     <h1>Créer une communauté</h1>
-    {{ include('communite/_form.html.twig') }}
+    <div style="display:flex;gap:24px;align-items:flex-start;">
+        <div style="flex:1;">
+            {{ include('communite/_form.html.twig') }}
+        </div>
+
+        <aside style="width:420px;border-left:1px solid #eee;padding-left:20px;">
+            <h3>Aide (chat IA)</h3>
+            <p>Pose une question à l'assistant pour t'aider à créer la communauté (nom, description, bonnes pratiques).</p>
+            <div id="ai-chat" style="display:flex;flex-direction:column;gap:8px;">
+                <div id="ai-messages" style="height:300px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px;background:#fafafa"></div>
+                <textarea id="ai-input" rows="3" placeholder="Pose ta question..." style="width:100%"></textarea>
+                <button id="ai-send">Envoyer</button>
+            </div>
+            <small style="display:block;margin-top:8px;color:#666">Note: c'est une implémentation locale simple; tu peux connecter une API IA externe plus tard.</small>
+        </aside>
+    </div>
     <a href="{{ path('communite_index') }}">Retour</a>
 {% endblock %}

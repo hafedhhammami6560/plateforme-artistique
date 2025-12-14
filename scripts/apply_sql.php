@@ -57,31 +57,24 @@ if ($sql === false) {
     exit(1);
 }
 
-$mysqli = mysqli_init();
-if (!$mysqli) {
-    echo "Unable to initialize mysqli\n";
-    exit(1);
-}
-
-if (!@$mysqli->real_connect($host, $user, $pass, $dbName, (int)$port)) {
-    echo "Connection failed: " . mysqli_connect_error() . "\n";
-    exit(1);
-}
-
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// Use PDO instead of mysqli to avoid dependency on ext-mysqli
+$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $dbName);
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
+];
 
 try {
-    if ($mysqli->multi_query($sql)) {
-        do {
-            if ($result = $mysqli->store_result()) {
-                $result->free();
-            }
-        } while ($mysqli->more_results() && $mysqli->next_result());
-    }
+    $pdo = new PDO($dsn, $user, $pass, $options);
+
+    // Execute the SQL. PDO::exec supports multiple statements for MySQL when
+    // the driver allows it. If the file is large or contains complex delimiters,
+    // users should import via their DB client.
+    $pdo->exec($sql);
+
     echo "SQL imported successfully.\n";
-} catch (\Throwable $e) {
-    echo "Error executing SQL: " . $e->getMessage() . "\n";
+} catch (\PDOException $e) {
+    echo "Error executing SQL (PDO): " . $e->getMessage() . "\n";
     exit(1);
 }
-
-$mysqli->close();

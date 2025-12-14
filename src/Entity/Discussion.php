@@ -60,9 +60,9 @@ class Discussion
     #[ORM\JoinColumn(nullable: true)]
     private ?Contrat $contrat = null;
 
-    #[ORM\ManyToOne(targetEntity: Produit::class)]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Produit $produit = null;
+    private ?Project $produit = null;
 
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'discussion', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
@@ -201,12 +201,12 @@ class Discussion
         return $this;
     }
 
-    public function getProduit(): ?Produit
+    public function getProduit(): ?Project
     {
         return $this->produit;
     }
 
-    public function setProduit(?Produit $produit): static
+    public function setProduit(?Project $produit): static
     {
         $this->produit = $produit;
 

@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Contrat;
-use App\Entity\Produit;
+use App\Entity\Project;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -60,25 +60,44 @@ class ContratType extends AbstractType
                 'constraints' => [new NotBlank()],
             ])
             ->add('artiste', EntityType::class, [
-                'label' => 'Artiste',
+                'label' => 'Type utilisateur',
                 'class' => User::class,
                 'choice_label' => function ($user) {
-                    return $user->getName() . ' (' . $user->getEmail() . ')';
+                    $roles = $user->getRoles();
+                    $roleLabel = '';
+                    if (in_array('ROLE_ADMIN', $roles)) {
+                        $roleLabel = 'Admin';
+                    } elseif (in_array('ROLE_ARTIST', $roles)) {
+                        $roleLabel = 'Artiste';
+                    } elseif (in_array('ROLE_PRODUCER', $roles)) {
+                        $roleLabel = 'Producteur';
+                    } else {
+                        $roleLabel = 'Client';
+                    }
+                    return $user->getName() . ' - ' . $roleLabel . ' (' . $user->getEmail() . ')';
+                },
+                'group_by' => function ($user) {
+                    $roles = $user->getRoles();
+                    if (in_array('ROLE_ADMIN', $roles)) {
+                        return 'Administrateurs';
+                    } elseif (in_array('ROLE_ARTIST', $roles)) {
+                        return 'Artistes';
+                    } elseif (in_array('ROLE_PRODUCER', $roles)) {
+                        return 'Producteurs';
+                    }
+                    return 'Clients';
                 },
                 'query_builder' => function ($repo) {
                     return $repo->createQueryBuilder('u')
-                        ->where('u.roles LIKE :role')
-                        ->setParameter('role', '%ROLE_ARTIST%')
                         ->orderBy('u.name', 'ASC');
                 },
                 'constraints' => [new NotBlank()],
             ])
-            ->add('produits', EntityType::class, [
-                'label' => 'Produits',
-                'class' => Produit::class,
-                'multiple' => true,
-                'expanded' => true,
-                'choice_label' => 'nom',
+            ->add('produit', EntityType::class, [
+                'label' => 'Projet',
+                'class' => Project::class,
+                'choice_label' => 'title',
+                'placeholder' => 'Sélectionner un projet',
                 'required' => false,
             ])
             ->add('termes', TextareaType::class, [

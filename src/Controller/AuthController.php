@@ -276,12 +276,15 @@ class AuthController extends AbstractController
      * Déconnexion
      */
     #[Route('/logout', name: 'auth_logout', methods: ['GET'])]
-    public function logout(): Response
+    public function logout(Request $request): Response
     {
         // Invalider le token de sécurité
         if ($this->container->has('security.token_storage')) {
             $this->container->get('security.token_storage')->setToken(null);
         }
+
+        // Invalider la session pour éviter la persistance de l'utilisateur
+        $request->getSession()->invalidate();
 
         $response = $this->redirectToRoute('app_home');
 

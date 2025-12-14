@@ -27,7 +27,7 @@ class FeedbackType extends AbstractType
             ->add('type', ChoiceType::class, [
                 'label' => 'Type',
                 'choices' => [
-                    'projet' => 'product',
+                    'Produit' => 'product',
                     'Artiste' => 'artist',
                     'Éditeur' => 'publisher',
                     'Autre' => 'other',

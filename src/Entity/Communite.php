@@ -11,9 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'communite')]
 class Communite
 {
-    #[ORM\ManyToMany(targetEntity: User::class)]
-    #[ORM\JoinTable(name: 'communite_participants')]
-    private Collection $participants;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -28,9 +25,15 @@ class Communite
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $createdBy = null;
+    #[ORM\Column(type: 'string', length: 100)]
+    private ?string $createdBy = null;
+
+    /**
+     * Type d'utilisateur principal pour la communauté
+     * (ex: artiste, organisateur, galerie, collectionneur)
+     */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $userType = null;
 
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'communite', cascade: ['persist', 'remove'])]
     private Collection $organisations;
@@ -39,27 +42,7 @@ class Communite
     {
         $this->organisations = new ArrayCollection();
         $this->createdAt = new \DateTime();
-        $this->createdBy = null;
-        $this->participants = new ArrayCollection();
-    }
-
-    public function getParticipants(): Collection
-    {
-        return $this->participants;
-    }
-
-    public function addParticipant(User $user): static
-    {
-        if (!$this->participants->contains($user)) {
-            $this->participants->add($user);
-        }
-        return $this;
-    }
-
-    public function removeParticipant(User $user): static
-    {
-        $this->participants->removeElement($user);
-        return $this;
+        $this->createdBy = 'admin';
     }
 
     public function getId(): ?int
@@ -100,12 +83,12 @@ class Communite
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?string
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(User $createdBy): static
+    public function setCreatedBy(string $createdBy): static
     {
         $this->createdBy = $createdBy;
         return $this;
@@ -138,5 +121,16 @@ class Communite
     public function __toString(): string
     {
         return $this->name ?? '';
+    }
+
+    public function getUserType(): ?string
+    {
+        return $this->userType;
+    }
+
+    public function setUserType(?string $userType): static
+    {
+        $this->userType = $userType;
+        return $this;
     }
 }

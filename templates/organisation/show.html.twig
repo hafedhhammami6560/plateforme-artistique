@@ -42,7 +42,7 @@
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-muted">Created By</h6>
-                            <p>{{ organisation.createdBy }}</p>
+                            <p>{{ organisation.createdBy.name|default(organisation.createdBy.email) }}</p>
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-muted">Created At</h6>
@@ -129,5 +129,3 @@
     </div>
 </div>
 {% endblock %}
-
-

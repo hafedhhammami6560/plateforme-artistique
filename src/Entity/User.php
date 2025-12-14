@@ -352,4 +352,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->signatureElectronique !== null;
     }
+
+    public function __toString(): string
+    {
+        return $this->name ?? $this->email ?? '';
+    }
 }

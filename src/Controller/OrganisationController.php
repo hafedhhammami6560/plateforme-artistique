@@ -123,16 +123,30 @@ class OrganisationController extends AbstractController
         // Création d'une nouvelle instance vide
         $organisation = new Organisation();
         
-        // Utilisateur statique (module User non implémenté)
-        $organisation->setCreatedBy('user_static');
+        // Récupérer l'utilisateur connecté (Session Symfony ou Cookie fallback)
+        $user = $this->getUser();
+        if (!$user) {
+            $userId = $request->cookies->get('user_id');
+            if ($userId) {
+                $user = $em->getRepository(\App\Entity\User::class)->find($userId);
+            }
+        }
+
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour créer une organisation.');
+            return $this->redirectToRoute('auth_login');
+        }
         
-        // Création du formulaire et liaison avec la requête
+        // Créer le formulaire
         $form = $this->createForm(OrganisationType::class, $organisation);
         $form->handleRequest($request);
 
         // Vérification soumission et validation
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                // Définir le créateur
+                $organisation->setCreatedBy($user);
+                
                 // Sauvegarde en base de données
                 $em->persist($organisation);
                 $em->flush();
@@ -152,10 +166,7 @@ class OrganisationController extends AbstractController
             }
         }
 
-        // Affichage du formulaire:
-        // - GET (première visite)
-        // - Formulaire invalide (erreurs de validation)
-        // - Exception lors de la sauvegarde
+        // Affichage du formulaire
         return $this->render('organisation/new.html.twig', [
             'organisation' => $organisation,
             'form' => $form->createView(),

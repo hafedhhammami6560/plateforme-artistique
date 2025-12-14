@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'communite')]
 class Communite
 {
+    #[ORM\ManyToMany(targetEntity: User::class)]
+    #[ORM\JoinTable(name: 'communite_participants')]
+    private Collection $participants;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -25,8 +28,9 @@ class Communite
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(type: 'string', length: 100)]
-    private ?string $createdBy = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $createdBy = null;
 
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'communite', cascade: ['persist', 'remove'])]
     private Collection $organisations;
@@ -35,7 +39,27 @@ class Communite
     {
         $this->organisations = new ArrayCollection();
         $this->createdAt = new \DateTime();
-        $this->createdBy = 'admin';
+        $this->createdBy = null;
+        $this->participants = new ArrayCollection();
+    }
+
+    public function getParticipants(): Collection
+    {
+        return $this->participants;
+    }
+
+    public function addParticipant(User $user): static
+    {
+        if (!$this->participants->contains($user)) {
+            $this->participants->add($user);
+        }
+        return $this;
+    }
+
+    public function removeParticipant(User $user): static
+    {
+        $this->participants->removeElement($user);
+        return $this;
     }
 
     public function getId(): ?int
@@ -76,12 +100,12 @@ class Communite
         return $this;
     }
 
-    public function getCreatedBy(): ?string
+    public function getCreatedBy(): ?User
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(string $createdBy): static
+    public function setCreatedBy(User $createdBy): static
     {
         $this->createdBy = $createdBy;
         return $this;

@@ -90,7 +90,7 @@
                             <td><strong>{{ c.name }}</strong></td>
                             <td>{{ c.description|default('-')|slice(0, 50) }}{% if c.description|length > 50 %}...{% endif %}</td>
                             <td><span class="badge bg-info">{{ c.organisations|length }}</span></td>
-                            <td>{{ c.createdBy }}</td>
+                            <td>{{ c.createdBy.name|default(c.createdBy.email) }}</td>
                             <td>{{ c.createdAt|date('Y-m-d') }}</td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -135,5 +135,3 @@
     }
 </style>
 {% endblock %}
-
-

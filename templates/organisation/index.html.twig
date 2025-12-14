@@ -107,7 +107,7 @@
                                     <span class="badge bg-secondary">None</span>
                                 {% endif %}
                             </td>
-                            <td>{{ o.createdBy }}</td>
+                            <td>{{ o.createdBy.name|default(o.createdBy.email) }}</td>
                             <td>{{ o.createdAt|date('Y-m-d') }}</td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -152,5 +152,3 @@
     }
 </style>
 {% endblock %}
-
-

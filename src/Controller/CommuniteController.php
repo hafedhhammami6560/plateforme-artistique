@@ -104,8 +104,19 @@ class CommuniteController extends AbstractController
         // Nouvelle instance vide
         $communite = new Communite();
         
-        // Utilisateur statique (module User non disponible)
-        $communite->setCreatedBy('user_static');
+        // Récupérer l'utilisateur connecté (Session Symfony ou Cookie fallback)
+        $user = $this->getUser();
+        if (!$user) {
+            $userId = $request->cookies->get('user_id');
+            if ($userId) {
+                $user = $em->getRepository(\App\Entity\User::class)->find($userId);
+            }
+        }
+
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour créer une communauté.');
+            return $this->redirectToRoute('auth_login');
+        }
         
         // Création et liaison du formulaire
         $form = $this->createForm(CommuniteType::class, $communite);
@@ -114,6 +125,9 @@ class CommuniteController extends AbstractController
         // Vérification si formulaire soumis et valide
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                // Définir le créateur
+                $communite->setCreatedBy($user);
+
                 // Sauvegarde en base de données
                 $em->persist($communite);
                 $em->flush();
@@ -136,13 +150,10 @@ class CommuniteController extends AbstractController
             }
         }
 
-        // Affichage du formulaire dans les cas suivants:
-        // 1. Requête GET (première visite)
-        // 2. Formulaire invalide (erreurs de validation Symfony/Doctrine)
-        // 3. Exception levée lors de la sauvegarde
+        // Affichage du formulaire
         return $this->render('communite/new.html.twig', [
             'communite' => $communite,
-            'form' => $form->createView(),  // createView() pour le rendu Twig
+            'form' => $form->createView(),
         ]);
     }
 

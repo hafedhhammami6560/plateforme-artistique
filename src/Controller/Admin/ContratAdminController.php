@@ -26,7 +26,7 @@ class ContratAdminController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
         $user = $userRepo->find($userId);
-        if (!$user || $user->getUserType() !== 'admin') {
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException('Accès refusé. Vous devez être administrateur.');
         }
 
@@ -45,7 +45,7 @@ class ContratAdminController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
         $user = $userRepo->find($userId);
-        if (!$user || $user->getUserType() !== 'admin') {
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException('Accès refusé. Vous devez être administrateur.');
         }
 
@@ -63,7 +63,7 @@ class ContratAdminController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
         $user = $userRepo->find($userId);
-        if (!$user || $user->getUserType() !== 'admin') {
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException('Accès refusé. Vous devez être administrateur.');
         }
 
@@ -89,7 +89,7 @@ class ContratAdminController extends AbstractController
             return $this->redirectToRoute('auth_login');
         }
         $user = $userRepo->find($userId);
-        if (!$user || $user->getUserType() !== 'admin') {
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException('Accès refusé. Vous devez être administrateur.');
         }
 

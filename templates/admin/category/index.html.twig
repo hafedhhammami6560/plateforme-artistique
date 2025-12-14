@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Catégories{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-folder"></i> Gestion des Catégories</h1>
+        <a href="{{ path('admin_category_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouvelle catégorie
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Projets</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>{{ category.id }}</td>
+                                    <td><strong>{{ category.name }}</strong></td>
+                                    <td>{{ category.description|slice(0, 50) }}{{ category.description|length > 50 ? '...' : '' }}</td>
+                                    <td><span class="badge bg-secondary">{{ category.projects|length }}</span></td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ path('admin_category_show', {'id': category.id}) }}" class="btn btn-sm btn-outline-info" title="Voir">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('admin_category_edit', {'id': category.id}) }}" class="btn btn-sm btn-outline-warning" title="Éditer">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ path('admin_category_delete', {'id': category.id}) }}" style="display:inline-block; margin-left: 2px;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune catégorie trouvée.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -707,7 +707,9 @@
       {% if recent_projects|length >= 1 %}
         <article class="hero-img-small-top" aria-label="{{ recent_projects[0].title }}">
           <div class="label-tag">new</div>
-          {% if recent_projects[0].image %}
+          {% if recent_projects[0].cloudinaryUrl %}
+            <img src="{{ recent_projects[0].cloudinaryUrl }}" alt="{{ recent_projects[0].title }}" />
+          {% elseif recent_projects[0].image %}
             <img src="{{ asset('uploads/projects/' ~ recent_projects[0].image) }}" alt="{{ recent_projects[0].title }}" />
           {% else %}
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
@@ -723,7 +725,9 @@
       {% if recent_projects|length >= 2 %}
         <article class="hero-img-small-bottom" aria-label="{{ recent_projects[1].title }}">
           <div class="label-tag">popular</div>
-          {% if recent_projects[1].image %}
+          {% if recent_projects[1].cloudinaryUrl %}
+            <img src="{{ recent_projects[1].cloudinaryUrl }}" alt="{{ recent_projects[1].title }}" />
+          {% elseif recent_projects[1].image %}
             <img src="{{ asset('uploads/projects/' ~ recent_projects[1].image) }}" alt="{{ recent_projects[1].title }}" />
           {% else %}
             <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
@@ -739,7 +743,9 @@
       {% if recent_projects|length >= 3 %}
         <article class="hero-img-large" aria-label="{{ recent_projects[2].title }}">
           <div class="label-tag">featured</div>
-          {% if recent_projects[2].image %}
+          {% if recent_projects[2].cloudinaryUrl %}
+            <img src="{{ recent_projects[2].cloudinaryUrl }}" alt="{{ recent_projects[2].title }}" />
+          {% elseif recent_projects[2].image %}
             <img src="{{ asset('uploads/projects/' ~ recent_projects[2].image) }}" alt="{{ recent_projects[2].title }}" />
           {% else %}
             <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
@@ -771,6 +777,45 @@
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span><span></span><span></span>
       </div>
+    </section>
+
+    <section aria-label="Derniers projets" style="grid-column: 1 / -1; margin-top: 40px;">
+      {% if recent_projects %}
+        <h2 style="font-size: 1.6rem; margin-bottom: 16px;">Derniers projets</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+          {% for project in recent_projects %}
+            <div style="background: #ffffff; color: #0c254a; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 20px rgb(3 50 124 / 0.4);">
+              {% if project.cloudinaryUrl %}
+                <img src="{{ project.cloudinaryUrl }}" alt="{{ project.title }}" style="width: 100%; height: 180px; object-fit: cover;" />
+              {% elseif project.image %}
+                <img src="{{ asset('uploads/projects/' ~ project.image) }}" alt="{{ project.title }}" style="width: 100%; height: 180px; object-fit: cover;" />
+              {% else %}
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 180px; display: flex; align-items: center; justify-content: center; color: white;">
+                  <i class="fas fa-image fa-3x"></i>
+                </div>
+              {% endif %}
+              <div style="padding: 12px 14px;">
+                <h3 style="font-size: 1rem; margin-bottom: 6px; color: #0c254a;">{{ project.title }}</h3>
+                <p style="font-size: 0.85rem; color: #3b4d6b; margin-bottom: 10px;">{{ project.description|slice(0, 90) }}{{ project.description|length > 90 ? '...' : '' }}</p>
+                <p style="font-size: 0.8rem; color: #5b6f90; margin-bottom: 10px;">
+                  <span><i class="fas fa-calendar"></i> {{ project.createdAt|date('d/m/Y') }}</span>
+                  {% if project.category %}
+                    · <span><i class="fas fa-folder"></i> {{ project.category.name }}</span>
+                  {% endif %}
+                </p>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <a href="{{ path('app_project_show', {'id': project.id}) }}" class="btn-primary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">Voir</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+          <a href="{{ path('app_project_index') }}" class="btn-primary" style="text-decoration: none; padding: 10px 24px;">Voir tous</a>
+        </div>
+      {% else %}
+        <p style="color: #d6e9f3;">Aucun projet disponible pour le moment.</p>
+      {% endif %}
     </section>
   </div>
 </body>

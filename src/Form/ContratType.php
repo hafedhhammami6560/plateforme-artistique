@@ -73,13 +73,6 @@ class ContratType extends AbstractType
                 },
                 'constraints' => [new NotBlank()],
             ])
-            ->add('produit', EntityType::class, [
-                'label' => 'Projet',
-                'class' => Project::class,
-                'choice_label' => 'title',
-                'placeholder' => 'Sélectionner un projet',
-                'required' => false,
-            ])
             ->add('termes', TextareaType::class, [
                 'label' => 'Termes du contrat',
                 'attr' => ['rows' => 6],

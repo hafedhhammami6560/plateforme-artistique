@@ -23,6 +23,12 @@ class Project
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $cloudinaryUrl = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $cloudinaryPublicId = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -74,6 +80,30 @@ class Project
     public function setImage(?string $image): static
     {
         $this->image = $image;
+
+        return $this;
+    }
+
+    public function getCloudinaryUrl(): ?string
+    {
+        return $this->cloudinaryUrl;
+    }
+
+    public function setCloudinaryUrl(?string $cloudinaryUrl): static
+    {
+        $this->cloudinaryUrl = $cloudinaryUrl;
+
+        return $this;
+    }
+
+    public function getCloudinaryPublicId(): ?string
+    {
+        return $this->cloudinaryPublicId;
+    }
+
+    public function setCloudinaryPublicId(?string $cloudinaryPublicId): static
+    {
+        $this->cloudinaryPublicId = $cloudinaryPublicId;
 
         return $this;
     }

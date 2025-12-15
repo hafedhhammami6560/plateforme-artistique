@@ -101,15 +101,6 @@ class DiscussionType extends AbstractType
                 'placeholder' => 'Sélectionner un contrat',
                 'required' => false,
             ])
-            ->add('produit', EntityType::class, [
-                'label' => 'Projet lié (optionnel)',
-                'class' => Project::class,
-                'choice_label' => function ($project) {
-                    return $project->getTitle();
-                },
-                'placeholder' => 'Sélectionner un projet',
-                'required' => false,
-            ])
         ;
     }
 

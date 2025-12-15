@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Project;
 use App\Form\ProjectType;
 use App\Repository\ProjectRepository;
+use App\Service\CloudinaryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +38,7 @@ class ProjectController extends AbstractController
     }
 
     #[Route('/new', name: 'app_project_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, CloudinaryService $cloudinaryService): Response
     {
         // Vérifier que l'utilisateur est connecté
         $userId = $request->cookies->get('user_id');
@@ -51,21 +52,22 @@ class ProjectController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle file upload
+            // Handle file upload avec Cloudinary
             $imageFile = $form->get('image')->getData();
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('kernel.project_dir').'/public/uploads/projects',
-                        $newFilename
-                    );
-                    $project->setImage($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                $uploadResult = $cloudinaryService->uploadImage($imageFile, 'artworks/projects');
+                
+                if ($uploadResult['success']) {
+                    $project->setCloudinaryUrl($uploadResult['url']);
+                    $project->setCloudinaryPublicId($uploadResult['public_id']);
+                    // Garder aussi le nom de fichier local pour compatibilité
+                    $project->setImage($uploadResult['public_id']);
+                } else {
+                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image: ' . $uploadResult['error']);
+                    return $this->render('project/new.html.twig', [
+                        'project' => $project,
+                        'form' => $form,
+                    ]);
                 }
             }
 
@@ -92,7 +94,7 @@ class ProjectController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_project_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Project $project, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
+    public function edit(Request $request, Project $project, EntityManagerInterface $entityManager, CloudinaryService $cloudinaryService): Response
     {
         // Vérifier que l'utilisateur est connecté
         $userId = $request->cookies->get('user_id');
@@ -105,21 +107,26 @@ class ProjectController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle file upload
+            // Handle file upload avec Cloudinary
             $imageFile = $form->get('image')->getData();
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('kernel.project_dir').'/public/uploads/projects',
-                        $newFilename
-                    );
-                    $project->setImage($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                // Supprimer l'ancienne image de Cloudinary si elle existe
+                if ($project->getCloudinaryPublicId()) {
+                    $cloudinaryService->deleteFile($project->getCloudinaryPublicId());
+                }
+                
+                $uploadResult = $cloudinaryService->uploadImage($imageFile, 'artworks/projects');
+                
+                if ($uploadResult['success']) {
+                    $project->setCloudinaryUrl($uploadResult['url']);
+                    $project->setCloudinaryPublicId($uploadResult['public_id']);
+                    $project->setImage($uploadResult['public_id']);
+                } else {
+                    $this->addFlash('error', 'Erreur lors de l\'upload de l\'image: ' . $uploadResult['error']);
+                    return $this->render('project/edit.html.twig', [
+                        'project' => $project,
+                        'form' => $form,
+                    ]);
                 }
             }
 
@@ -137,7 +144,7 @@ class ProjectController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_project_delete', methods: ['POST'])]
-    public function delete(Request $request, Project $project, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Project $project, EntityManagerInterface $entityManager, CloudinaryService $cloudinaryService): Response
     {
         // Vérifier que l'utilisateur est connecté
         $userId = $request->cookies->get('user_id');
@@ -147,6 +154,11 @@ class ProjectController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete'.$project->getId(), $request->request->get('_token'))) {
+            // Supprimer l'image de Cloudinary avant de supprimer le projet
+            if ($project->getCloudinaryPublicId()) {
+                $cloudinaryService->deleteFile($project->getCloudinaryPublicId());
+            }
+            
             $entityManager->remove($project);
             $entityManager->flush();
 

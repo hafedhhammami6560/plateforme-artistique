@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/base_no_sidebar.html.twig' %}
 
 {% block title %}Projets - ArtConnect{% endblock %}
 
@@ -33,8 +33,10 @@
             {% for project in projects %}
                 <div class="col-md-4">
                     <div class="card h-100">
-                        {% if project.image %}
-                            <img src="{{ asset('uploads/projects/' ~ project.image) }}" class="card-img-top" alt="{{ project.title }}">
+                        {% if project.cloudinaryUrl %}
+                            <img src="{{ project.cloudinaryUrl }}" class="card-img-top" alt="{{ project.title }}" style="height: 250px; object-fit: cover;">
+                        {% elseif project.image %}
+                            <img src="{{ asset('uploads/projects/' ~ project.image) }}" class="card-img-top" alt="{{ project.title }}" style="height: 250px; object-fit: cover;">
                         {% else %}
                             <div class="card-img-top bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 250px; display: flex; align-items: center; justify-content: center; color: white;">
                                 <i class="fas fa-image fa-4x"></i>

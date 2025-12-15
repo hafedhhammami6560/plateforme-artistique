@@ -194,12 +194,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ path('produit_index') }}" class="{{ app.request.attributes.get('_route') starts with 'produit_' ? 'active' : '' }}">
-                        <i class="fas fa-shopping-bag"></i>
-                        <span>Produits</span>
-                    </a>
-                </li>
-                <li>
                         <a href="{{ path('app_contrat_index') }}" class="{{ app.request.attributes.get('_route') starts with 'contrat_' ? 'active' : '' }}">
                         <i class="fas fa-file-contract"></i>
                         <span>Contrats</span>

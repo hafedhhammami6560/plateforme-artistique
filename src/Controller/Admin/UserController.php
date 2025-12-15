@@ -37,7 +37,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/', name: 'dashboard', methods: ['GET'])]
-    public function dashboard(UserRepository $userRepository, Request $request): Response
+    public function dashboard(UserRepository $userRepository, Request $request, \App\Repository\ProjectRepository $projectRepository, \App\Repository\ContratRepository $contratRepository): Response
     {
         // Vérifier les droits admin
         if ($response = $this->checkAdminAccess($request, $userRepository)) {
@@ -47,8 +47,18 @@ class UserController extends AbstractController
         // Get all users from the database
         $users = $userRepository->findAll();
 
+        // Compute simple statistics
+        $totalUsers = $userRepository->count([]);
+        $totalProjects = $projectRepository->count([]);
+        $totalContrats = $contratRepository->count([]);
+
         return $this->render('admin/user/dashboard.html.twig', [
             'users' => $users,
+            'stats' => [
+                'users' => $totalUsers,
+                'projects' => $totalProjects,
+                'contrats' => $totalContrats,
+            ],
         ]);
     }
 

@@ -21,6 +21,8 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Mailtrap\MailtrapClient;
 use Mailtrap\Mime\MailtrapEmail;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email as MimeEmail;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 #[Route('/auth')]
@@ -37,8 +39,16 @@ class AuthController extends AbstractController
             $session->start();
         }
 
-        // Always have a captcha ready for the form
+        // Ensure a captcha value exists so POST branches can reference it,
+        // then force a refresh for every GET (page view) so the code/image
+        // changes on each connection.
         $captchaQuestion = $this->ensureCaptcha($session);
+
+        // If this is a GET (initial page load), always generate a new captcha
+        // so the user sees a fresh challenge each time they visit the login page.
+        if (!$request->isMethod('POST')) {
+            $captchaQuestion = $this->refreshCaptcha($session);
+        }
 
         if ($request->isMethod('POST')) {
             $username = $request->request->get('username', '');
@@ -317,19 +327,44 @@ class AuthController extends AbstractController
     public function logout(Request $request): Response
     {
         // Invalider le token de sécurité
-        if ($this->container->has('security.token_storage')) {
-            $this->container->get('security.token_storage')->setToken(null);
-        }
+        try {
+            // Invalidate the security token if available
+            if ($this->container->has('security.token_storage')) {
+                try {
+                    $this->container->get('security.token_storage')->setToken(null);
+                } catch (\Throwable $e) {
+                    error_log('Logout: failed to clear security token: ' . $e->getMessage());
+                }
+            }
 
-        // Invalider la session pour éviter la persistance de l'utilisateur
-        $request->getSession()->invalidate();
+            // Invalidate the session if available
+            $session = $request->getSession();
+            if ($session !== null) {
+                try {
+                    if ($session->isStarted()) {
+                        $session->invalidate();
+                    } else {
+                        $session->clear();
+                    }
+                } catch (\Throwable $e) {
+                    error_log('Logout: failed to invalidate/clear session: ' . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            // Catch any unexpected error and continue with redirect
+            error_log('Logout: unexpected error: ' . $e->getMessage());
+        }
 
         // Redirect user to the login page after logout
         $response = $this->redirectToRoute('auth_login');
 
-        // Supprimer les cookies
-        $response->headers->clearCookie('user_role', '/');
-        $response->headers->clearCookie('user_id', '/');
+        // Remove cookies (best-effort)
+        try {
+            $response->headers->clearCookie('user_role', '/');
+            $response->headers->clearCookie('user_id', '/');
+        } catch (\Throwable $e) {
+            error_log('Logout: failed to clear cookies: ' . $e->getMessage());
+        }
 
         $this->addFlash('success', 'Vous avez été déconnecté avec succès.');
         return $response;
@@ -438,7 +473,7 @@ class AuthController extends AbstractController
      * Forgot Password - Request reset link
      */
     #[Route('/forgot-password', name: 'auth_forgot_password', methods: ['GET', 'POST'])]
-    public function forgotPassword(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
+    public function forgotPassword(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager, MailerInterface $mailer): Response
     {
         if ($request->isMethod('POST')) {
             $email = $request->request->get('email', '');
@@ -457,32 +492,55 @@ class AuthController extends AbstractController
                 $resetUrl = $this->generateUrl('auth_reset_password', ['token' => $resetToken], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL);
 
                 try {
+                    // First, try to send using Symfony Mailer if configured.
                     $emailContent = $this->renderView('email/reset_password.html.twig', [
                         'user' => $user,
                         'resetUrl' => $resetUrl,
                         'expiresAt' => $expiresAt
                     ]);
 
-                    $mailtrapEmail = (new MailtrapEmail())
-                        ->from(new Address('noreply@plateforme-artistique.com', 'Plateforme Artistique'))
-                        ->to(new Address($user->getEmail(), $user->getName()))
-                        ->subject('Réinitialisation de votre mot de passe')
-                        ->html($emailContent)
-                        ->category('Password Reset');
+                    try {
+                        $symfonyEmail = (new MimeEmail())
+                            ->from(new Address('noreply@plateforme-artistique.com', 'Plateforme Artistique'))
+                            ->to(new Address($user->getEmail(), $user->getName()))
+                            ->subject('Réinitialisation de votre mot de passe')
+                            ->html($emailContent);
 
-                    // Use sandbox mode for testing
-                    $mailtrapClient = MailtrapClient::initSendingEmails(
-                        apiKey: $_ENV['MAILTRAP_API_TOKEN'],
-                        isSandbox: true, // Enable sandbox mode
-                        inboxId: (int)$_ENV['MAILTRAP_INBOX_ID'] // Your inbox ID
-                    );
+                        $mailer->send($symfonyEmail);
+                        $this->addFlash('success', 'Un email de réinitialisation a été envoyé à votre adresse.');
+                    } catch (\Throwable $e) {
+                        // If Symfony Mailer fails (e.g. no MAILER_DSN), fallback to Mailtrap API client when available.
+                        if (class_exists('\Mailtrap\\MailtrapClient')) {
+                            $mailtrapEmail = (new MailtrapEmail())
+                                ->from(new Address('noreply@plateforme-artistique.com', 'Plateforme Artistique'))
+                                ->to(new Address($user->getEmail(), $user->getName()))
+                                ->subject('Réinitialisation de votre mot de passe')
+                                ->html($emailContent)
+                                ->category('Password Reset');
 
-                    $response = $mailtrapClient->send($mailtrapEmail);
+                            // Try to use Mailtrap API (not sandbox) if env variables exist
+                            $apiToken = $_ENV['MAILTRAP_API_TOKEN'] ?? null;
+                            $inboxId = isset($_ENV['MAILTRAP_INBOX_ID']) ? (int) $_ENV['MAILTRAP_INBOX_ID'] : null;
 
-                    $this->addFlash('success', 'Un email de réinitialisation a été envoyé à votre adresse.');
+                            if ($apiToken && $inboxId) {
+                                $mailtrapClient = MailtrapClient::initSendingEmails(
+                                    apiKey: $apiToken,
+                                    isSandbox: false,
+                                    inboxId: $inboxId
+                                );
+
+                                $mailtrapClient->send($mailtrapEmail);
+                                $this->addFlash('success', 'Un email de réinitialisation a été envoyé à votre adresse (via Mailtrap).');
+                            } else {
+                                throw $e; // rethrow to be caught by outer catch
+                            }
+                        } else {
+                            throw $e; // rethrow to be caught by outer catch
+                        }
+                    }
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
-                    error_log('Mailtrap error: ' . $e->getMessage());
+                    error_log('ForgotPassword mail error: ' . $e->getMessage());
                 }
             } else {
                 // Don't reveal if email exists or not for security

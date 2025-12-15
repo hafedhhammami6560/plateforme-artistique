@@ -11,6 +11,37 @@
         </a>
     </div>
 
+    {# Statistics summary cards #}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Utilisateurs</h5>
+                    <p class="card-text display-6">{{ stats.users ?? 0 }}</p>
+                    <p class="card-subtitle">Total users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Projets</h5>
+                    <p class="card-text display-6">{{ stats.projects ?? 0 }}</p>
+                    <p class="card-subtitle">Total projects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Contrats</h5>
+                    <p class="card-text display-6">{{ stats.contrats ?? 0 }}</p>
+                    <p class="card-subtitle">Total contracts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% for message in app.flashes('success') %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle"></i> {{ message }}

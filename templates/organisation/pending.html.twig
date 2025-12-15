@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Organisations en attente{% endblock %}
+
+{% block body %}
+<h1>Organisations en attente d'approbation</h1>
+
+{% if pending is empty %}
+    <p>Aucune organisation en attente.</p>
+{% else %}
+    <table>
+        <thead>
+            <tr><th>Nom</th><th>Créé le</th><th>Adresse</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for org in pending %}
+                <tr>
+                    <td>{{ org.name }}</td>
+                    <td>{{ org.createdAt ? org.createdAt|date('Y-m-d H:i') : '' }}</td>
+                    <td>{{ org.locationAddress ?: org.address }}</td>
+                    <td>
+                        <form method="post" action="{{ path('organisation_approve', {'id': org.id}) }}" style="display:inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ org.id) }}">
+                            <button type="submit">Approuver</button>
+                        </form>
+
+                        <form method="post" action="{{ path('organisation_reject', {'id': org.id}) }}" style="display:inline;margin-left:8px">
+                            <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ org.id) }}">
+                            <button type="submit">Rejeter</button>
+                        </form>
+
+                        <a href="{{ path('organisation_show', {'id': org.id}) }}" style="margin-left:8px">Voir</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<a href="{{ path('organisation_index') }}">Retour à la liste</a>
+
+{% endblock %}

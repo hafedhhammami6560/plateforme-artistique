@@ -1,0 +1,11 @@
+## knp_snappy configuration removed -- not used in this project.
+## This file was left as a placeholder. The project uses Dompdf by default.
+
+# If you want to enable KnpSnappy in the future, install the bundle and
+# create the configuration here, e.g.:
+# knp_snappy:
+#     pdf:
+#         enabled: true
+#         binary: '%env(WKHTMLTOPDF_BINARY)%'
+#         options: []
+#         env: []

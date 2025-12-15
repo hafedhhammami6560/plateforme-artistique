@@ -167,25 +167,34 @@
                 cursor: pointer;
             }
 
-            /* No sidebar styles */
-            .no-sidebar body {
+            /* No sidebar styles (body receives the class "no-sidebar") */
+            body.no-sidebar {
                 padding-left: 0;
             }
-            .no-sidebar .main-content {
+            body.no-sidebar .main-content {
                 padding: 0;
                 width: 100%;
             }
-            .no-sidebar header {
+            body.no-sidebar header {
                 width: 100%;
                 padding: 20px;
             }
-            .no-sidebar .main-content {
+            body.no-sidebar .main-content {
                 margin-left: 0;
                 padding: 20px;
             }
         </style>
     </head>
-    {% set is_client_page = app.user and not is_granted('ROLE_ADMIN') %}
+    {% set current_route = app.request.attributes.get('_route')|default('') %}
+    {% set is_client_page = app.user and is_granted('ROLE_CLIENT') and (
+        current_route starts with 'app_contrat_' or
+        current_route starts with 'app_discussion_' or
+        current_route starts with 'app_category_' or
+        current_route starts with 'app_project_' or
+        current_route starts with 'app_user_' or
+        current_route starts with 'organisation_' or
+        current_route starts with 'communite_'
+    ) %}
     <body{% if is_client_page %} class="no-sidebar"{% endif %}>
         {% if is_client_page %}
         <!-- Client Header -->

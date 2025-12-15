@@ -22,29 +22,38 @@
 {{ form_end(form) }}
 
 {# Google Maps JS API #}
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_REAL_API_KEY&libraries=places"></script>
-<script>
-let map, marker, autocomplete;
-function initMap() {
-    try {
-        map = new google.maps.Map(document.getElementById('gmaps-map'), {
-            center: { lat: 48.8566, lng: 2.3522 },
-            zoom: 12
-        });
-        marker = new google.maps.Marker({ map });
-        autocomplete = new google.maps.places.Autocomplete(document.getElementById('gmaps-autocomplete'));
-        autocomplete.addListener('place_changed', function() {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) return;
-            map.setCenter(place.geometry.location);
-            marker.setPosition(place.geometry.location);
-            document.getElementById('organisation_addressGoogle').value = place.formatted_address;
-            document.getElementById('organisation_latitude').value = place.geometry.location.lat();
-            document.getElementById('organisation_longitude').value = place.geometry.location.lng();
-        });
-    } catch (e) {
-        document.getElementById('gmaps-map').innerHTML = '<div style="color:red;text-align:center;padding:20px;">Erreur Google Maps : ' + e.message + '</div>';
+{% if google_maps_api_key is defined and google_maps_api_key|length > 0 %}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+    <script>
+    let map, marker, autocomplete;
+    function initMap() {
+        try {
+            map = new google.maps.Map(document.getElementById('gmaps-map'), {
+                center: { lat: 48.8566, lng: 2.3522 },
+                zoom: 12
+            });
+            marker = new google.maps.Marker({ map });
+            autocomplete = new google.maps.places.Autocomplete(document.getElementById('gmaps-autocomplete'));
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) return;
+                map.setCenter(place.geometry.location);
+                marker.setPosition(place.geometry.location);
+                const addrField = document.getElementById('organisation_addressGoogle');
+                if (addrField) addrField.value = place.formatted_address;
+                document.getElementById('organisation_latitude').value = place.geometry.location.lat();
+                document.getElementById('organisation_longitude').value = place.geometry.location.lng();
+            });
+        } catch (e) {
+            document.getElementById('gmaps-map').innerHTML = '<div style="color:red;text-align:center;padding:20px;">Erreur Google Maps : ' + e.message + '</div>';
+        }
     }
-}
-window.addEventListener('DOMContentLoaded', initMap);
-</script>
+    window.addEventListener('DOMContentLoaded', initMap);
+    </script>
+{% else %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        document.getElementById('gmaps-map').innerHTML = '<div style="color:#777;text-align:center;padding:20px;">Google Maps API key non configurée. Configurez la variable d\'environnement <code>GOOGLE_MAPS_API_KEY</code>.</div>';
+    });
+    </script>
+{% endif %}

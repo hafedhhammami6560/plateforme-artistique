@@ -409,6 +409,12 @@ class ContratController extends AbstractController
             return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
         }
 
+        // Check PHP GD extension required by Dompdf for image handling
+        if (!function_exists('imagecreatefrompng')) {
+            $this->addFlash('error', "La génération du PDF nécessite l'extension PHP GD (php_gd2). Veuillez l'activer dans votre php.ini et redémarrer le serveur web.");
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
+
         // Configure Dompdf
         $pdfOptions = new \Dompdf\Options();
         $pdfOptions->set('defaultFont', 'Arial');
@@ -428,12 +434,17 @@ class ContratController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
 
         // Render the HTML as PDF
-        $dompdf->render();
+        try {
+            $dompdf->render();
 
-        // Output the generated PDF to Browser (inline view)
-        return new Response($dompdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="contrat-' . $contrat->getNumeroContrat() . '.pdf"',
-        ]);
+            // Output the generated PDF to Browser (inline view)
+            return new Response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="contrat-' . $contrat->getNumeroContrat() . '.pdf"',
+            ]);
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la génération du PDF : ' . $e->getMessage());
+            return $this->redirectToRoute('app_contrat_show', ['id' => $contrat->getId()]);
+        }
     }
 }

@@ -235,6 +235,17 @@
           <label for="terms">I agree to the <a href="#">terms & policy</a></label>
         </div>
 
+        <div class="checkbox-container">
+          <input type="checkbox" id="newsletter" name="newsletter" />
+          <label for="newsletter">S'inscrire à la newsletter</label>
+        </div>
+
+        <label for="signup_captcha">Captcha</label>
+        <div style="margin-bottom:10px;">
+          <img src="{{ signupCaptchaQuestion|default('') }}" alt="captcha" style="border-radius:6px;" />
+        </div>
+        <input type="text" id="signup_captcha_answer" name="signup_captcha_answer" placeholder="Enter captcha text" required />
+
         <button type="submit" class="signup-btn">Signup</button>
       </form>
 

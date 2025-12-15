@@ -140,6 +140,27 @@ class AuthController extends AbstractController
     }
 
     /**
+     * Signup captcha helpers (reuse generator but separate session keys)
+     */
+    private function refreshSignupCaptcha(SessionInterface $session): string
+    {
+        $code = $this->generateCaptchaCode();
+        $session->set('signup_captcha_answer', $code);
+        $session->set('signup_captcha_question', $this->generateCaptchaImage($code));
+
+        return (string) $session->get('signup_captcha_question');
+    }
+
+    private function ensureSignupCaptcha(SessionInterface $session): string
+    {
+        if (!$session->has('signup_captcha_answer') || !$session->has('signup_captcha_question')) {
+            return $this->refreshSignupCaptcha($session);
+        }
+
+        return (string) $session->get('signup_captcha_question');
+    }
+
+    /**
      * Assure qu'une question de captcha est disponible.
      */
     private function ensureCaptcha(SessionInterface $session): string
@@ -230,16 +251,32 @@ class AuthController extends AbstractController
     #[Route('/signup', name: 'auth_signup', methods: ['GET', 'POST'])]
     public function signup(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository): Response
     {
+        // Ensure a captcha for signup form
+        $signupCaptchaQuestion = $this->ensureSignupCaptcha($request->getSession());
+
         if ($request->isMethod('POST')) {
             $name = $request->request->get('name', '');
             $email = $request->request->get('email', '');
             $password = $request->request->get('password', '');
             $userType = $request->request->get('user_type', '');
+            $signupCaptchaAnswer = trim((string) $request->request->get('signup_captcha_answer', ''));
+            $expectedSignupCaptcha = (string) $request->getSession()->get('signup_captcha_answer', '');
+            $newsletter = $request->request->get('newsletter') ? true : false;
 
             // Valider les données
             if (empty($name) || empty($email) || empty($password) || empty($userType)) {
                 $this->addFlash('error', 'Tous les champs sont obligatoires.');
                 return $this->render('home/singinpage.html.twig');
+            }
+
+            // Validate signup captcha
+            if ($signupCaptchaAnswer === '' || strcasecmp($signupCaptchaAnswer, $expectedSignupCaptcha) !== 0) {
+                $this->addFlash('error', 'Captcha d\'inscription incorrect.');
+                // refresh captcha
+                $signupCaptchaQuestion = $this->refreshSignupCaptcha($request->getSession());
+                return $this->render('home/singinpage.html.twig', [
+                    'signupCaptchaQuestion' => $signupCaptchaQuestion,
+                ]);
             }
 
             // Vérifier si l'email existe déjà
@@ -254,6 +291,7 @@ class AuthController extends AbstractController
             $user->setName($name);
             $user->setEmail($email);
             $user->setUserType($userType);
+            $user->setNewsletterSubscribed($newsletter);
             $user->setRoles(['ROLE_CLIENT']); // Rôle client par défaut
             $user->setIsVerified(true); // Auto-vérifier pour simplifier
 
@@ -286,7 +324,8 @@ class AuthController extends AbstractController
         // Invalider la session pour éviter la persistance de l'utilisateur
         $request->getSession()->invalidate();
 
-        $response = $this->redirectToRoute('app_home');
+        // Redirect user to the login page after logout
+        $response = $this->redirectToRoute('auth_login');
 
         // Supprimer les cookies
         $response->headers->clearCookie('user_role', '/');

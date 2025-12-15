@@ -51,6 +51,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $userType = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $newsletterSubscribed = false;
+
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $signatureElectronique = null;
 
@@ -317,6 +320,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUserType(?string $userType): static
     {
         $this->userType = $userType;
+        return $this;
+    }
+
+    public function isNewsletterSubscribed(): bool
+    {
+        return $this->newsletterSubscribed;
+    }
+
+    public function setNewsletterSubscribed(bool $subscribed): static
+    {
+        $this->newsletterSubscribed = $subscribed;
         return $this;
     }
 
